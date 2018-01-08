@@ -46,8 +46,6 @@ $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -knownSites $KNOWN_INDEL_2 \
 -knownSites $DBSNP \
 --intervals $BAIT_BED \
---excludeIntervals X \
---excludeIntervals Y \
 -nct 8 \
 -o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
 
@@ -66,8 +64,6 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -knownSites $KNOWN_INDEL_2 \
 -knownSites $DBSNP \
 --intervals $BAIT_BED \
---excludeIntervals X \
---excludeIntervals Y \
 -nct 8 \
 -o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
