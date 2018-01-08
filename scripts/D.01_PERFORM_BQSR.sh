@@ -4,10 +4,6 @@
 # tell sge to execute in bash
 #$ -S /bin/bash
 
-
-# tell sge to submit any of these queue when available
-#$ -q cgc.q
-
 # tell sge that you are in the users current working directory
 #$ -cwd
 
@@ -30,13 +26,12 @@ GATK_DIR=$2
 CORE_PATH=$3
 
 PROJECT=$4
-FAMILY=$5
-SM_TAG=$6
-REF_GENOME=$7
-KNOWN_INDEL_1=$8
-KNOWN_INDEL_2=$9
-DBSNP=${10}
-# BAIT_BED=${11}
+SM_TAG=$5
+REF_GENOME=$6
+KNOWN_INDEL_1=$7
+KNOWN_INDEL_2=$8
+DBSNP=$9
+BAIT_BED=${10}
 
 ## --BQSR using data only from the baited intervals
 ## --I am actually going to downsample here, b/c it actually makes more sense to do so.
@@ -44,36 +39,37 @@ DBSNP=${10}
 START_PERFORM_BQSR=`date '+%s'`
 
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T BaseRecalibrator \
--I $CORE_PATH/$PROJECT/TEMP/$SM_TAG".realign.bam" \
--R $REF_GENOME \
+--analysis_type BaseRecalibrator \
+--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--reference_sequence $REF_GENOME \
 -knownSites $KNOWN_INDEL_1 \
 -knownSites $KNOWN_INDEL_2 \
 -knownSites $DBSNP \
--L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_BAIT.bed" \
+--intervals $BAIT_BED \
+--excludeIntervals X \
+--excludeIntervals Y \
 -nct 8 \
--o $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
+-o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
 
 END_PERFORM_BQSR=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT",F.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$END_PERFORM_BQSR \
+echo $SM_TAG"_"$PROJECT",D.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$END_PERFORM_BQSR \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-md5sum $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
->> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".CIDR.Analysis.MD5.txt"
-
 echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T BaseRecalibrator \
--I $CORE_PATH/$PROJECT/TEMP/$SM_TAG".realign.bam" \
--R $REF_GENOME \
+--analysis_type BaseRecalibrator \
+--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--reference_sequence $REF_GENOME \
 -knownSites $KNOWN_INDEL_1 \
 -knownSites $KNOWN_INDEL_2 \
 -knownSites $DBSNP \
--L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_BAIT.bed" \
+--intervals $BAIT_BED \
+--excludeIntervals X \
+--excludeIntervals Y \
 -nct 8 \
--o $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
->> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+-o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-echo >> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

@@ -14,16 +14,21 @@ CORE_PATH="/mnt/research/active"
 
 QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|rnd.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
 
+# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
+
+PRIORITY="-1000"
+
 # PIPELINE PROGRAMS
 
 BWA_DIR="/mnt/research/tools/LINUX/BWA/bwa-0.7.15"
 SAMBLASTER_DIR="/mnt/research/tools/LINUX/SAMBLASTER/samblaster-v.0.1.24"
 JAVA_1_8="/mnt/research/tools/LINUX/JAVA/jdk1.8.0_73/bin"
 PICARD_DIR="/mnt/research/tools/LINUX/PICARD/picard-2.17.0"
-DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6/"
+DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6"
+GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
+
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
-# GATK_DIR="/isilon/cgc/PROGRAMS/GenomeAnalysisTK-3.7"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
 # TABIX_DIR="/isilon/cgc/PROGRAMS/tabix-0.2.6"
 # SAMTOOLS_DIR="/isilon/cgc/PROGRAMS/samtools-0.1.18"
@@ -68,7 +73,6 @@ PROJECT_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | 
 
 #  1  Project=the Seq Proj folder name
 SEQ_PROJECT=${PROJECT_ARRAY[0]}
-
 }
 
 # for every project in the sample sheet create all of the folders in the project if they don't already exist
@@ -122,48 +126,48 @@ done
 
 # RUN BWA
 
-CREATE_SAMPLE_INFO_ARRAY ()
+CREATE_PLATFORM_UNIT_ARRAY ()
 {
-SAMPLE_INFO_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' | sort | uniq`)
+PLATFORM_UNIT_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' | sort | uniq`)
 
 #  1  Project=the Seq Proj folder name
-PROJECT=${SAMPLE_INFO_ARRAY[0]}
+PROJECT=${PLATFORM_UNIT_ARRAY[0]}
 
 #  2  FCID=flowcell that sample read group was performed on
-FCID=${SAMPLE_INFO_ARRAY[1]}
+FCID=${PLATFORM_UNIT_ARRAY[1]}
 
 #  3  Lane=lane of flowcell that sample read group was performed on]
-LANE=${SAMPLE_INFO_ARRAY[2]}
+LANE=${PLATFORM_UNIT_ARRAY[2]}
 
 #  4  Index=sample barcode
-INDEX=${SAMPLE_INFO_ARRAY[3]}
+INDEX=${PLATFORM_UNIT_ARRAY[3]}
 
 #  5  Platform=type of sequencing chemistry matching SAM specification
-PLATFORM=${SAMPLE_INFO_ARRAY[4]}
+PLATFORM=${PLATFORM_UNIT_ARRAY[4]}
 
 #  6  Library_Name=library group of the sample read group, Used during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
-LIBRARY=${SAMPLE_INFO_ARRAY[5]}
+LIBRARY=${PLATFORM_UNIT_ARRAY[5]}
 
 #  7  Date=should be the run set up date to match the seq run folder name, but it has been arbitrarily populated
-RUN_DATE=${SAMPLE_INFO_ARRAY[6]}
+RUN_DATE=${PLATFORM_UNIT_ARRAY[6]}
 
 #  8  SM_Tag=sample ID
-SM_TAG=${SAMPLE_INFO_ARRAY[7]}
+SM_TAG=${PLATFORM_UNIT_ARRAY[7]}
 SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
 
 #  9  Center=the center/funding mechanism
-CENTER=${SAMPLE_INFO_ARRAY[8]}
+CENTER=${PLATFORM_UNIT_ARRAY[8]}
 
 # 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
 # “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
-SEQUENCER_MODEL=${SAMPLE_INFO_ARRAY[9]}
+SEQUENCER_MODEL=${PLATFORM_UNIT_ARRAY[9]}
 
 #############################
 # 11  Seq_Exp_ID ### SKIP ###
 #############################
 
 # 12  Genome_Ref=the reference genome used in the analysis pipeline
-REF_GENOME=${SAMPLE_INFO_ARRAY[10]}
+REF_GENOME=${PLATFORM_UNIT_ARRAY[10]}
 
 ###########################
 # 13  Operator ### SKIP ###
@@ -172,21 +176,21 @@ REF_GENOME=${SAMPLE_INFO_ARRAY[10]}
 ##########################################
 
 # 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
-TITV_BED=${SAMPLE_INFO_ARRAY[11]}
+TITV_BED=${PLATFORM_UNIT_ARRAY[11]}
 
 # 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
 # Used for limited where to run base quality score recalibration on where to create gvcf files.
-BAIT_BED=${SAMPLE_INFO_ARRAY[12]}
+BAIT_BED=${PLATFORM_UNIT_ARRAY[12]}
 
 # 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
-TARGET_BED=${SAMPLE_INFO_ARRAY[13]}
+TARGET_BED=${PLATFORM_UNIT_ARRAY[13]}
 
 # 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
-DBSNP=${SAMPLE_INFO_ARRAY[14]}
+DBSNP=${PLATFORM_UNIT_ARRAY[14]}
 
 # 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
-KNOWN_INDEL_1=${SAMPLE_INFO_ARRAY[15]}
-KNOWN_INDEL_2=${SAMPLE_INFO_ARRAY[16]}
+KNOWN_INDEL_1=${PLATFORM_UNIT_ARRAY[15]}
+KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
 }
 
 RUN_BWA ()
@@ -197,7 +201,7 @@ qsub \
 -cwd \
 -V \
 -q $QUEUE_LIST \
--p -50 \
+-p $PRIORITY \
 -N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
 -j y \
@@ -222,18 +226,15 @@ $REF_GENOME
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
 do
-CREATE_SAMPLE_INFO_ARRAY
+CREATE_PLATFORM_UNIT_ARRAY
 RUN_BWA
-# echo sleep 0.1
+echo sleep 0.1s
 done
 
 # create a hold job id qsub command line based on the number of
 # submit merging the bam files created by bwa mem above
 # only launch when every lane for a sample is done being processed by bwa mem
 # I want to clean this up eventually, but not in the mood for it right now.
-
-CREATE_SAMPLE_INFO_ARRAY
-# gsub(/,/,",INPUT=/mnt/research/active/"$1"/TEMP/",$4) \
 
 awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
 $SAMPLE_SHEET \
@@ -249,66 +250,168 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 "-cwd",\
 "-V",\
 "-q","'$QUEUE_LIST'",\
-"-p -50",\
+"-p","'$PRIORITY'",\
 "-N","B.01_MERGE_BAM_"$5"_"$1,\
-"-o","'$CORE_PATH'/"$1"/LOGS/"$2"_"$1"-MERGE_BAM_FILES.log",\
+"-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
 "-j y",\
 "-hold_jid","A.01_BWA_"$5"_"$3, \
 "'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
 "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 1s"}'
 
-# # Mark duplicates on the bam file above. Create a Mark Duplicates report which goes into the QC report
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","C.01_MARK_DUPLICATES_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","B.01_MERGE_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".MARK_DUPLICATES.log",\
-# "'$SCRIPT_DIR'""/C.01_MARK_DUPLICATES.sh",\
-# "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # Generate a list of places that could be potentially realigned.
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$19}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($5,INDEL,";"); split($3,smtag,"[@]"); \
-# print "qsub","-N","D.01_REALIGNER_TARGET_CREATOR_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","C.01_MARK_DUPLICATES_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".REALIGNER_TARGET_CREATOR.log",\
-# "'$SCRIPT_DIR'""/D.01_REALIGNER_TARGET_CREATOR.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,INDEL[1],INDEL[2]"\n""sleep 1s"}'
-#
-# # With the list generated above walk through the BAM file and realign where necessary
-# # Write out a new bam file
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$19}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($5,INDEL,";"); split($3,smtag,"[@]"); \
-# print "qsub","-N","E.01_INDEL_REALIGNER_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","D.01_REALIGNER_TARGET_CREATOR_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".INDEL_REALIGNER.log",\
-# "'$SCRIPT_DIR'""/E.01_INDEL_REALIGNER.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,INDEL[1],INDEL[2]"\n""sleep 1s"}'
-#
-# # Run Base Quality Score Recalibration
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$19,$18,$16}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($5,INDEL,";"); split($3,smtag,"[@]"); \
-# print "qsub","-N","F.01_PERFORM_BQSR_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","E.01_INDEL_REALIGNER_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PERFORM_BQSR.log",\
-# "'$SCRIPT_DIR'""/F.01_PERFORM_BQSR.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,INDEL[1],INDEL[2],$6,$7"\n""sleep 1s"}'
+###################################################
+###################################################
+### PROCEEDING WITH AGGREGATED SAMPLE FILES NOW ###
+###################################################
+###################################################
+
+CREATE_SAMPLE_ARRAY ()
+{
+SAMPLE_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $8=="'$SM_TAG'" {split($19,INDEL,";"); print $1,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' | sort | uniq`)
+
+#  1  Project=the Seq Proj folder name
+PROJECT=${SAMPLE_ARRAY[0]}
+
+###################################################################
+#  2 SKIP : FCID=flowcell that sample read group was performed on #
+###################################################################
+
+############################################################################
+#  3 SKIP : Lane=lane of flowcell that sample read group was performed on] #
+############################################################################
+
+################################
+#  4 SKIP Index=sample barcode #
+################################
+
+#  5  Platform=type of sequencing chemistry matching SAM specification
+PLATFORM=${SAMPLE_ARRAY[1]}
+
+#  6  Library_Name=library group of the sample read group, Used during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
+LIBRARY=${SAMPLE_ARRAY[2]}
+
+#  7  Date=should be the run set up date to match the seq run folder name, but it has been arbitrarily populated
+RUN_DATE=${SAMPLE_ARRAY[3]}
+
+#  8  SM_Tag=sample ID
+SM_TAG=${SAMPLE_ARRAY[4]}
+SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
+
+#  9  Center=the center/funding mechanism
+CENTER=${SAMPLE_ARRAY[5]}
+
+# 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
+# “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
+SEQUENCER_MODEL=${SAMPLE_ARRAY[6]}
+
+#############################
+# 11  Seq_Exp_ID ### SKIP ###
+#############################
+
+# 12  Genome_Ref=the reference genome used in the analysis pipeline
+REF_GENOME=${SAMPLE_ARRAY[7]}
+
+###########################
+# 13  Operator ### SKIP ###
+##########################################
+# 14  Extra_VCF_Filter_Params ### SKIP ###
+##########################################
+
+# 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
+TITV_BED=${SAMPLE_ARRAY[8]}
+
+# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
+# Used for limited where to run base quality score recalibration on where to create gvcf files.
+BAIT_BED=${SAMPLE_ARRAY[9]}
+
+# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
+TARGET_BED=${SAMPLE_ARRAY[10]}
+
+# 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
+DBSNP=${SAMPLE_ARRAY[11]}
+
+# 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
+KNOWN_INDEL_1=${SAMPLE_ARRAY[12]}
+KNOWN_INDEL_2=${SAMPLE_ARRAY[13]}
+}
+
+MARK_DUPLICATES ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MARK_DUPLICATES.log" \
+-j y \
+-hold_jid B.01_MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/C.01_MARK_DUPLICATES.sh \
+$JAVA_1_8 \
+$PICARD_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+RUN_BQSR ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PERFORM_BQSR.log" \
+-j y \
+$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$KNOWN_INDEL_1 \
+$KNOWN_INDEL_2 \
+$DBSNP \
+$BAIT_BED
+}
+
+PRINT_READS ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PERFORM_BQSR.log" \
+-j y \
+$SCRIPT_DIR/E.01_PRINT_READS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_SAMPLE_ARRAY
+MARK_DUPLICATES
+echo sleep 0.1s
+RUN_BQSR
+echo sleep 0.1s
+PRINT_READS
+echo sleep 0.1s
+done
+
 #
 # # write Final Bam file
 #
@@ -325,9 +428,9 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 #
 # # SCATTER THE HAPLOTYPE CALLER GVCF CREATION USING THE WHERE THE BED INTERSECTS WITH {{1.22},{X,Y}}
 #
-# CREATE_SAMPLE_INFO_ARRAY_HC ()
+# CREATE_PLATFORM_UNIT_ARRAY_HC ()
 # {
-# SAMPLE_INFO_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
+# PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
 # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # }
 #
@@ -335,18 +438,18 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N H.01_HAPLOTYPE_CALLER_${SAMPLE_INFO_ARRAY_HC[0]}_${SAMPLE_INFO_ARRAY_HC[5]}_chr$CHROMOSOME \
-# -hold_jid G.01_FINAL_BAM_${SAMPLE_INFO_ARRAY_HC[5]}_${SAMPLE_INFO_ARRAY_HC[0]} \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_HC[0]}/${SAMPLE_INFO_ARRAY_HC[1]}/${SAMPLE_INFO_ARRAY_HC[2]}/LOGS/${SAMPLE_INFO_ARRAY_HC[2]}_${SAMPLE_INFO_ARRAY_HC[0]}.HAPLOTYPE_CALLER_chr$CHROMOSOME.log \
+# -N H.01_HAPLOTYPE_CALLER_${PLATFORM_UNIT_ARRAY_HC[0]}_${PLATFORM_UNIT_ARRAY_HC[5]}_chr$CHROMOSOME \
+# -hold_jid G.01_FINAL_BAM_${PLATFORM_UNIT_ARRAY_HC[5]}_${PLATFORM_UNIT_ARRAY_HC[0]} \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_chr$CHROMOSOME.log \
 # $SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_HC[0]} ${SAMPLE_INFO_ARRAY_HC[1]} ${SAMPLE_INFO_ARRAY_HC[2]} ${SAMPLE_INFO_ARRAY_HC[3]} \
+# ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]} \
 # $CHROMOSOME
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_SAMPLE_INFO_ARRAY_HC
+# CREATE_PLATFORM_UNIT_ARRAY_HC
 # 	for CHROMOSOME in {{1..22},{X,Y}}
 # 		do
 # 		CALL_HAPLOTYPE_CALLER
@@ -366,7 +469,7 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # # 	HOLD_ID_PATH="-hold_jid "
 # # 	for CHROMOSOME in {{1..22},{X,Y}};
 # #  	do
-# #  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01_HAPLOTYPE_CALLER_"$PROJECT"_"${SAMPLE_INFO_ARRAY_HC[5]}"_chr"$CHROMOSOME","
+# #  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01_HAPLOTYPE_CALLER_"$PROJECT"_"${PLATFORM_UNIT_ARRAY_HC[5]}"_chr"$CHROMOSOME","
 # #  	done
 # #  done
 # # }
@@ -382,15 +485,15 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 #  done
 # }
 #
-# # CREATE_SAMPLE_INFO_ARRAY_HC ()
+# # CREATE_PLATFORM_UNIT_ARRAY_HC ()
 # # {
-# # SAMPLE_INFO_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
+# # PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
 # # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # # }
 #
-# CREATE_SAMPLE_INFO_ARRAY_HC ()
+# CREATE_PLATFORM_UNIT_ARRAY_HC ()
 # {
-# SAMPLE_INFO_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
 # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # }
@@ -399,30 +502,30 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${SAMPLE_INFO_ARRAY_HC[0]}_$SAMPLE \
+# -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${PLATFORM_UNIT_ARRAY_HC[0]}_$SAMPLE \
 # ${HOLD_ID_PATH} \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_HC[0]}/${SAMPLE_INFO_ARRAY_HC[1]}/${SAMPLE_INFO_ARRAY_HC[2]}/LOGS/${SAMPLE_INFO_ARRAY_HC[2]}_${SAMPLE_INFO_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
 # $SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GATHER.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_HC[0]} ${SAMPLE_INFO_ARRAY_HC[1]} ${SAMPLE_INFO_ARRAY_HC[2]} ${SAMPLE_INFO_ARRAY_HC[3]}
+# ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]}
 # }
 #
 # # CALL_HAPLOTYPE_CALLER_GATHER ()
 # # {
 # # echo \
 # # qsub \
-# # -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${SAMPLE_INFO_ARRAY_HC[0]}_${SAMPLE_INFO_ARRAY_HC[5]} \
+# # -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${PLATFORM_UNIT_ARRAY_HC[0]}_${PLATFORM_UNIT_ARRAY_HC[5]} \
 # # ${HOLD_ID_PATH} \
-# # -o $CORE_PATH/${SAMPLE_INFO_ARRAY_HC[0]}/${SAMPLE_INFO_ARRAY_HC[1]}/${SAMPLE_INFO_ARRAY_HC[2]}/LOGS/${SAMPLE_INFO_ARRAY_HC[2]}_${SAMPLE_INFO_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
+# # -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
 # # $SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GATHER.sh \
 # # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# # ${SAMPLE_INFO_ARRAY_HC[0]} ${SAMPLE_INFO_ARRAY_HC[1]} ${SAMPLE_INFO_ARRAY_HC[2]} ${SAMPLE_INFO_ARRAY_HC[3]}
+# # ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]}
 # # }
 #
 # # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8} $SAMPLE_SHEET | sort | uniq );
 # #  do
 # # 	BUILD_HOLD_ID_PATH
-# # 	CREATE_SAMPLE_INFO_ARRAY_HC
+# # 	CREATE_PLATFORM_UNIT_ARRAY_HC
 # # 	CALL_HAPLOTYPE_CALLER_GATHER
 # # 	echo sleep 1s
 # #  done
@@ -432,7 +535,7 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 #  do
 # 	BUILD_HOLD_ID_PATH
-# 	CREATE_SAMPLE_INFO_ARRAY_HC
+# 	CREATE_PLATFORM_UNIT_ARRAY_HC
 # 	CALL_HAPLOTYPE_CALLER_GATHER
 # 	echo sleep 1s
 #  done
@@ -636,9 +739,9 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # ### RUN VERIFYBAM ID PER CHROMOSOME - VITO ########
 # ###################################################
 #
-# CREATE_SAMPLE_INFO_ARRAY_VERIFY_BAM ()
+# CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM ()
 # {
-# SAMPLE_INFO_ARRAY_VERIFY_BAM=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$15,smtag[1]"_"smtag[2]}' \
+# PLATFORM_UNIT_ARRAY_VERIFY_BAM=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$15,smtag[1]"_"smtag[2]}' \
 # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # }
 #
@@ -646,31 +749,31 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N H.09_SELECT_VERIFYBAMID_VCF_${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -hold_jid G.01_FINAL_BAM_${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]} \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}/LOGS/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}.SELECT_VERIFYBAMID_chr$CHROMOSOME.log \
+# -N H.09_SELECT_VERIFYBAMID_VCF_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
+# -hold_jid G.01_FINAL_BAM_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.SELECT_VERIFYBAMID_chr$CHROMOSOME.log \
 # $SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH $VERIFY_VCF \
-# ${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[3]} \
-# ${SAMPLE_INFO_ARRAY_VERIFY_BAM[4]} $CHROMOSOME
+# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[3]} \
+# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[4]} $CHROMOSOME
 # }
 #
 # CALL_VERIFYBAMID ()
 # {
 # echo \
 # qsub \
-# -N H.09-A.01_VERIFYBAMID_${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -hold_jid H.09_SELECT_VERIFYBAMID_VCF_${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}/LOGS/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}.VERIFYBAMID_chr$CHROMOSOME.log \
+# -N H.09-A.01_VERIFYBAMID_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
+# -hold_jid H.09_SELECT_VERIFYBAMID_VCF_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.VERIFYBAMID_chr$CHROMOSOME.log \
 # $SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
 # $CORE_PATH $VERIFY_DIR \
-# ${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]} \
+# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]} \
 # $CHROMOSOME
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_SAMPLE_INFO_ARRAY_VERIFY_BAM
+# CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM
 # 	for CHROMOSOME in {1..22}
 # 		do
 # 		CALL_SELECT_VERIFY_BAM
@@ -691,7 +794,7 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # 	HOLD_ID_PATH="-hold_jid "
 # 	for CHROMOSOME in {{1..22},{X,Y}};
 #  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.09-A.01_VERIFYBAMID_"${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}"_"${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}"_"chr$CHROMOSOME","
+#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.09-A.01_VERIFYBAMID_"${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}"_"${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}"_"chr$CHROMOSOME","
 #  	done
 #  done
 # }
@@ -700,17 +803,17 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 #  {
 # echo \
 # qsub \
-# -N H.09-A.01-A.01_JOIN_VERIFYBAMID_${SAMPLE_INFO_ARRAY_VERIFY_BAM[5]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]} \
+# -N H.09-A.01-A.01_JOIN_VERIFYBAMID_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} \
 # $HOLD_ID_PATH \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]}/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}/LOGS/${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}_${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]}.CAT_VERIFYBAMID_CHR.log \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.CAT_VERIFYBAMID_CHR.log \
 # $SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
 # $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_VERIFY_BAM[0]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[1]} ${SAMPLE_INFO_ARRAY_VERIFY_BAM[2]}
+# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}
 #  }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 #  do
-#  	CREATE_SAMPLE_INFO_ARRAY_VERIFY_BAM
+#  	CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM
 # 	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID_CHR
 # 	CAT_VERIFYBAMID_CHR
 # 	echo sleep 1s
@@ -1197,15 +1300,15 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # ########### RUNNING FILTER TO SAMPLE ALL SITES BY CHROMOSOME ####################
 # #################################################################################
 #
-# # CREATE_SAMPLE_INFO_ARRAY_2 ()
+# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # # {
-# # SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$8,$20,$12,$18,smtag[1]"_"smtag[2]}' \
+# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$8,$20,$12,$18,smtag[1]"_"smtag[2]}' \
 # # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # # }
 #
 # # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 # # do
-# # CREATE_SAMPLE_INFO_ARRAY_2
+# # CREATE_PLATFORM_UNIT_ARRAY_2
 # # 	for CHROMOSOME in {{1..22},{X,Y}}
 # # 		do
 # # 		CALL_FILTER_TO_SAMPLE_ALL_SITES
@@ -1213,9 +1316,9 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # # 		done
 # # 	done
 #
-# CREATE_SAMPLE_INFO_ARRAY_2 ()
+# CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # {
-# SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
 # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # }
@@ -1224,17 +1327,17 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_$CHROMOSOME.log \
+# -N P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -hold_jid P.01_VARIANT_ANNOTATOR_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_$CHROMOSOME.log \
 # $SCRIPT_DIR/P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_CHR.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]} $CHROMOSOME
+# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_SAMPLE_INFO_ARRAY_2
+# CREATE_PLATFORM_UNIT_ARRAY_2
 # 	for CHROMOSOME in {{1..22},{X,Y}}
 # 		do
 # 		CALL_FILTER_TO_SAMPLE_ALL_SITES
@@ -1262,33 +1365,33 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # # {
 # # echo \
 # # qsub \
-# # -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]} \
+# # -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]} \
 # #  ${HOLD_ID_PATH} \
-# #  -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[2]}/${SAMPLE_INFO_ARRAY_2[1]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
+# #  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[2]}/${PLATFORM_UNIT_ARRAY_2[1]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
 # #  $SCRIPT_DIR/T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER.sh \
 # #  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# #  ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[3]}
+# #  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[3]}
 # # }
 #
-# # SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}'
 #
 # CALL_FILTER_TO_SAMPLE_VCF_GATHER ()
 # {
 # echo \
 # qsub \
-# -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]} \
+# -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]} \
 #  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
+#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
 #  $SCRIPT_DIR/T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER.sh \
 #  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]}
+#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
 # }
 #
 # # for SAMPLE in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $8}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
 # #  do
 # #  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF
-# # 	CREATE_SAMPLE_INFO_ARRAY_2
+# # 	CREATE_PLATFORM_UNIT_ARRAY_2
 # # 	CALL_FILTER_TO_SAMPLE_VCF_GATHER
 # # 	echo sleep 1s
 # #  done
@@ -1296,7 +1399,7 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 #  do
 #  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF
-# 	CREATE_SAMPLE_INFO_ARRAY_2
+# 	CREATE_PLATFORM_UNIT_ARRAY_2
 # 	CALL_FILTER_TO_SAMPLE_VCF_GATHER
 # 	echo sleep 1s
 #  done
@@ -1305,9 +1408,9 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # ##### DO PER CHROMOSOME VARIANT TO TABLE FOR SAMPLE ########################################################
 # ############################################################################################################
 #
-# # CREATE_SAMPLE_INFO_ARRAY_2 ()
+# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # # {
-# # SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
 # # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # # }
@@ -1316,17 +1419,17 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_$CHROMOSOME.log \
+# -N T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -hold_jid P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_$CHROMOSOME.log \
 # $SCRIPT_DIR/T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_CHR.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]} $CHROMOSOME
+# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_SAMPLE_INFO_ARRAY_2
+# CREATE_PLATFORM_UNIT_ARRAY_2
 # 	for CHROMOSOME in {{1..22},{X,Y}}
 # 		do
 # 		CALL_VARIANT_TO_TABLE_SAMPLE_ALL_SITES
@@ -1354,18 +1457,18 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[0]} \
+# -N T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[0]} \
 #  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER.log \
+#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER.log \
 #  $SCRIPT_DIR/T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER.sh \
 #  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]}
+#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 #  do
 # 	BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_SAMPLE_GATHER
-# 	CREATE_SAMPLE_INFO_ARRAY_2
+# 	CREATE_PLATFORM_UNIT_ARRAY_2
 # 	CALL_VARIANT_TO_TABLE_SAMPLE_GATHER
 # 	echo sleep 1s
 #  done
@@ -1402,14 +1505,14 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # ########### RUNNING FILTER TO SAMPLE ALL SITES BY CHROMOSOME ON TARGET ####################
 # ###########################################################################################
 #
-# # CREATE_SAMPLE_INFO_ARRAY_2 ()
+# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # # {
-# # SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {print $1,$8,$20,$12,$18}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
+# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {print $1,$8,$20,$12,$18}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # # }
 #
-# CREATE_SAMPLE_INFO_ARRAY_2 ()
+# CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # {
-# SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # print $1,$20,$8,$12,$18,smtag[1]"_"smtag[2]}' \
 # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # }
@@ -1418,17 +1521,17 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_$CHROMOSOME.log \
+# -N P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -hold_jid P.01_VARIANT_ANNOTATOR_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
+# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_$CHROMOSOME.log \
 # $SCRIPT_DIR/P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_CHR.sh \
 # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]} $CHROMOSOME
+# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_SAMPLE_INFO_ARRAY_2
+# CREATE_PLATFORM_UNIT_ARRAY_2
 # 	for CHROMOSOME in {{1..22},{X,Y}}
 # 		do
 # 		CALL_FILTER_TO_SAMPLE_ALL_SITES_ON_TARGET
@@ -1452,9 +1555,9 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 #  done
 # }
 #
-# # CREATE_SAMPLE_INFO_ARRAY_2 ()
+# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
 # # {
-# # SAMPLE_INFO_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
+# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
 # # print $1,$20,$8,$12,$18,smtag[1]"_"smtag[2]}' \
 # # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
 # # }
@@ -1463,18 +1566,18 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 # {
 # echo \
 # qsub \
-# -N T.15_FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER_${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE}_${SAMPLE_INFO_ARRAY_2[0]} \
+# -N T.15_FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]} \
 #  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${SAMPLE_INFO_ARRAY_2[0]}/${SAMPLE_INFO_ARRAY_2[1]}/${SAMPLE_INFO_ARRAY_2[2]}/LOGS/${SAMPLE_INFO_ARRAY_2[1]}_${SAMPLE_INFO_ARRAY_2[2]}_${SAMPLE_INFO_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER.log \
+#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER.log \
 #  $SCRIPT_DIR/T.15_FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER.sh \
 #  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${SAMPLE_INFO_ARRAY_2[0]} ${SAMPLE_INFO_ARRAY_2[1]} ${SAMPLE_INFO_ARRAY_2[2]} ${SAMPLE_INFO_ARRAY_2[3]}
+#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
 # }
 #
 # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
 #  do
 #  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF_TARGET
-# 	CREATE_SAMPLE_INFO_ARRAY_2
+# 	CREATE_PLATFORM_UNIT_ARRAY_2
 # 	CALL_FILTER_TO_SAMPLE_VCF_TARGET_GATHER
 # 	echo sleep 1s
 #  done

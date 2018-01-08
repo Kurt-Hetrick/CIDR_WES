@@ -32,7 +32,10 @@ SM_TAG=$5
 
 START_MARK_DUPLICATES=`date '+%s'`
 
-$JAVA_1_8/java -jar $PICARD_DIR/picard.jar MarkDuplicates \
+$JAVA_1_8/java -jar \
+-Xmx16g \
+-XX:ParallelGCThreads=4 \
+$PICARD_DIR/picard.jar MarkDuplicates \
 INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
 OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 VALIDATION_STRINGENCY=SILENT \
@@ -46,7 +49,10 @@ HOSTNAME=`hostname`
 echo $SM_TAG"_"$PROJECT",C.01,MARK_DUPLICATES,"$HOSTNAME","$START_MARK_DUPLICATES","$END_MARK_DUPLICATES \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $JAVA_1_8/java -jar $PICARD_DIR/picard.jar MarkDuplicates \
+echo $JAVA_1_8/java -jar \
+-Xmx16g \
+-XX:ParallelGCThreads=4 \
+$PICARD_DIR/picard.jar MarkDuplicates \
 INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
 OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 VALIDATION_STRINGENCY=SILENT \
