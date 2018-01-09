@@ -26,12 +26,11 @@ JAVA_1_8="/mnt/research/tools/LINUX/JAVA/jdk1.8.0_73/bin"
 PICARD_DIR="/mnt/research/tools/LINUX/PICARD/picard-2.17.0"
 DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6"
 GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
-
+SAMTOOLS_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-1.6"
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
 # TABIX_DIR="/isilon/cgc/PROGRAMS/tabix-0.2.6"
-# SAMTOOLS_DIR="/isilon/cgc/PROGRAMS/samtools-0.1.18"
 # BEDTOOLS_DIR="/isilon/cgc/PROGRAMS/bedtools-2.22.0/bin"
 # VCFTOOLS_DIR="/isilon/cgc/PROGRAMS/vcftools_0.1.12b/bin"
 # PLINK2_DIR="/isilon/cgc/PROGRAMS/PLINK2"
@@ -390,7 +389,7 @@ qsub \
 -q $QUEUE_LIST \
 -p $PRIORITY \
 -N E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PERFORM_BQSR.log" \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PRINT_READS.log" \
 -j y \
 $SCRIPT_DIR/E.01_PRINT_READS.sh \
 $JAVA_1_8 \
@@ -412,20 +411,6 @@ PRINT_READS
 echo sleep 0.1s
 done
 
-#
-# # write Final Bam file
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","F.01_PERFORM_BQSR_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".FINAL_BAM.log",\
-# "'$SCRIPT_DIR'""/G.01_FINAL_BAM.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
 # # SCATTER THE HAPLOTYPE CALLER GVCF CREATION USING THE WHERE THE BED INTERSECTS WITH {{1.22},{X,Y}}
 #
 # CREATE_PLATFORM_UNIT_ARRAY_HC ()
