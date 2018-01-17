@@ -4,9 +4,6 @@
 # tell sge to execute in bash
 #$ -S /bin/bash
 
-# tell sge to submit any of these queue when available
-#$ -q cgc.q
-
 # tell sge that you are in the users current working directory
 #$ -cwd
 
@@ -32,10 +29,9 @@ CORE_PATH=$3
 VERIFY_VCF=$4
 
 PROJECT=$5
-FAMILY=$6
-SM_TAG=$7
-REF_GENOME=$8
-TI_TV_BED=$9
+SM_TAG=$6
+REF_GENOME=$7
+TITV_BED=$8
 
 ## --Creating an on the fly VCF file to be used as the reference for verifyBamID--
 ## --remove X and Y data
@@ -44,9 +40,9 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
--R $REF_GENOME \
+--reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $TI_TV_BED \
+-L $TITV_BED \
 -XL X \
 -XL Y \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
@@ -60,12 +56,12 @@ echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,SELECT_VERIFYBAMID_VCF,"$HOSTNAME","$S
 
 echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
--R $REF_GENOME \
+--reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $TI_TV_BED \
+-L $TITV_BED \
 -XL X \
 -XL Y \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
->> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-echo >> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

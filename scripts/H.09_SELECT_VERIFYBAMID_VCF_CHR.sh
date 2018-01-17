@@ -40,7 +40,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
--R $REF_GENOME \
+--reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
 -L $TI_TV_BED \
 -L $CHROMOSOME \
@@ -58,7 +58,7 @@ echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.09,SELECT_VERIFYBAMID_"$CHROMOSOME","$HOS
 
 echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
--R $REF_GENOME \
+--reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
 -L $TI_TV_BED \
 -L $CHROMOSOME \
@@ -66,6 +66,6 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -XL Y \
 --interval_set_rule INTERSECTION \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
->> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-echo >> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

@@ -21,6 +21,8 @@
 
 set
 
+echo
+
 SAMTOOLS_DIR=$1
 CORE_PATH=$2
 
@@ -28,47 +30,30 @@ PROJECT=$3
 SM_TAG=$4
 REF_GENOME=$5
 
-## --write out file with new scores, retain old scores, no downsampling
+## --write lossless cram file. this is the deliverable
 
 START_CRAM=`date '+%s'`
 
 $SAMTOOLS_DIR/samtools \
 view \
--C \
+-C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 -T $REF_GENOME \
 -@ 4 \
--o $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam"
+-o $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram"
 
 END_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT",F.01,FINAL_BAM,"$HOSTNAME","$START_CRAM","$END_CRAM \
+echo $SM_TAG"_"$PROJECT",F.01,CRAM,"$HOSTNAME","$START_CRAM","$END_CRAM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 echo $SAMTOOLS_DIR/samtools \
 view \
--C \
+-C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 -T $REF_GENOME \
 -@ 4 \
 -o $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-##### DOING THE md5sum on the bam file outside of GATK ##### Just want to see how long it would take
-
-# START_FINAL_BAM_MD5=`date '+%s'`
-# 
-# md5sum $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/BAM/$SM_TAG".bam" \
-# >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".CIDR.Analysis.MD5.txt"
-# 
-# END_FINAL_BAM_MD5=`date '+%s'`
-# 
-# echo $SM_TAG"_"$PROJECT",G.01-A.01,FINAL_BAM_MD5,"$HOSTNAME","$START_FINAL_BAM_MD5","$END_FINAL_BAM_MD5 \
-# >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
-# 
-# md5sum $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/BAM/$SM_TAG".bai" \
-# >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".CIDR.Analysis.MD5.txt"

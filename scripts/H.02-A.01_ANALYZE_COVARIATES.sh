@@ -4,9 +4,6 @@
 # tell sge to execute in bash
 #$ -S /bin/bash
 
-# tell sge to submit any of these queue when available
-#$ -q cgc.q
-
 # tell sge that you are in the users current working directory
 #$ -cwd
 
@@ -22,10 +19,6 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-# This would be a good candidate to write a bright module to load this.
-# source /u01/home/khetrick/bashrc_change_R
-# Somewhere along the way it looks like GATK fixed the issue where R pacakges had renamed packages. So know I shouldn't have to source this specific version of R with specific packages.
-
 set
 
 echo
@@ -35,20 +28,19 @@ GATK_DIR=$2
 CORE_PATH=$3
 
 PROJECT=$4
-FAMILY=$5
-SM_TAG=$6
-REF_GENOME=$7
+SM_TAG=$5
+REF_GENOME=$6
 
 ## --Generate BQSR plots--
 
 START_ANALYZE_COVARIATES=`date '+%s'`
 
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T AnalyzeCovariates \
--R $REF_GENOME \
--before $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
--after $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \
--plots $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf"
+--analysis_type AnalyzeCovariates \
+--reference_sequence $REF_GENOME \
+-before $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+-after $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \
+-plots $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf"
 
 END_ANALYZE_COVARIATES=`date '+%s'`
 
@@ -59,14 +51,11 @@ echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01-A.01,ANALYZE_COVARIATES,"$HOSTNAME","$
 
 echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T AnalyzeCovariates \
--R $REF_GENOME \
--before $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
--after $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \
--plots $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf" \
->> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
+--reference_sequence $REF_GENOME \
+-before $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+-after $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \
+-plots $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf" \
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-echo >> $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/$SM_TAG".COMMAND.LINES.txt"
-
-md5sum $CORE_PATH/$PROJECT/$FAMILY/$SM_TAG/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf" \
->> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".CIDR.Analysis.MD5.txt"
+echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 

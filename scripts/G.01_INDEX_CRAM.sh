@@ -23,38 +23,35 @@ set
 
 echo
 
-CORE_PATH=$1
-VERIFY_DIR=$2
+SAMTOOLS_DIR=$1
+CORE_PATH=$2
 
 PROJECT=$3
 SM_TAG=$4
+REF_GENOME=$5
 
-## --Running verifyBamID--
+## --index the cram file
+START_INDEX_CRAM=`date '+%s'`
 
-START_VERIFYBAMID=`date '+%s'`
+$SAMTOOLS_DIR/samtools \
+index \
+$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram"
 
-$VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
---out $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG \
---precise \
---verbose \
---maxDepth 2500
+# make a copy/rename the cram index file since their appears to be two useable standards
 
-END_VERIFYBAMID=`date '+%s'`
+cp $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.crai" \
+$CORE_PATH/$PROJECT/CRAM/$SM_TAG".crai"
+
+END_INDEX_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,VERIFYBAMID,"$HOSTNAME","$START_VERIFYBAMID","$END_VERIFYBAMID \
+echo $SM_TAG"_"$PROJECT",G.01,INDEX_CRAM,"$HOSTNAME","$START_INDEX_CRAM","$END_INDEX_CRAM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
---out $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG \
---precise \
---verbose \
---maxDepth 2500 \
+echo $SAMTOOLS_DIR/samtools \
+index \
+$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

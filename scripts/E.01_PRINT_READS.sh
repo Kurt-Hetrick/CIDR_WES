@@ -21,6 +21,8 @@
 
 set
 
+echo
+
 JAVA_1_8=$1
 GATK_DIR=$2
 CORE_PATH=$3
@@ -29,7 +31,7 @@ PROJECT=$4
 SM_TAG=$5
 REF_GENOME=$6
 
-## --write out file with new scores, retain old scores, no downsampling
+## --write out bam file with a 4 bin qscore scheme, remove indel Q scores, emit original Q scores
 
 START_FINAL_BAM=`date '+%s'`
 

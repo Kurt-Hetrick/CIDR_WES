@@ -21,6 +21,8 @@
 
 set
 
+echo
+
 BWA_DIR=$1
 SAMBLASTER_DIR=$2
 JAVA_1_8=$3

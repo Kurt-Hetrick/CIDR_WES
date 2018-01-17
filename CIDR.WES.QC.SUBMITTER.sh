@@ -12,13 +12,15 @@ CORE_PATH="/mnt/research/active"
 
 # Generate a list of active queue and remove the ones that I don't want to use
 
-QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|rnd.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
+QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
 
 # EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
 PRIORITY="-1000"
 
-# PIPELINE PROGRAMS
+#####################
+# PIPELINE PROGRAMS #
+#####################
 
 BWA_DIR="/mnt/research/tools/LINUX/BWA/bwa-0.7.15"
 SAMBLASTER_DIR="/mnt/research/tools/LINUX/SAMBLASTER/samblaster-v.0.1.24"
@@ -27,22 +29,27 @@ PICARD_DIR="/mnt/research/tools/LINUX/PICARD/picard-2.17.0"
 DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6"
 GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
 SAMTOOLS_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-1.6"
+BEDTOOLS_DIR="/mnt/research/tools/LINUX/BEDTOOLS/bedtools-2.22.0/bin"
+VERIFY_DIR="/mnt/research/tools/LINUX/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
 # TABIX_DIR="/isilon/cgc/PROGRAMS/tabix-0.2.6"
-# BEDTOOLS_DIR="/isilon/cgc/PROGRAMS/bedtools-2.22.0/bin"
 # VCFTOOLS_DIR="/isilon/cgc/PROGRAMS/vcftools_0.1.12b/bin"
 # PLINK2_DIR="/isilon/cgc/PROGRAMS/PLINK2"
 # KING_DIR="/isilon/cgc/PROGRAMS/KING/Linux-king19"
 # CIDRSEQSUITE_DIR="/isilon/cgc/PROGRAMS/CIDRSeqSuiteSoftware_Version_4_0/"
 # ANNOVAR_DIR="/isilon/cgc/PROGRAMS/ANNOVAR/2013_09_11"
 
-# PIPELINE FILES
-# GENE_LIST="/isilon/cgc/PIPELINE_FILES/RefSeqGene.GRCh37.Ready.txt"
-# VERIFY_VCF="/isilon/cgc/PIPELINE_FILES/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
-# CODING_BED="/isilon/cgc/PIPELINE_FILES/RefSeq.Unique.GRCh37.FINAL.bed"
-# CYTOBAND_BED="/isilon/cgc/PIPELINE_FILES/GRCh37.Cytobands.bed"
+##################
+# PIPELINE FILES #
+##################
+
+CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/UCSC_hg19_CodingOnly_083013_MERGED_noContigs_noCHR.bed"
+GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/RefSeqGene.GRCh37.Ready.txt"
+CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/GRCh37.Cytobands.bed"
+VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
+
 # HAPMAP="/isilon/cgc/PIPELINE_FILES/hapmap_3.3.b37.vcf"
 # OMNI_1KG="/isilon/cgc/PIPELINE_FILES/1000G_omni2.5.b37.vcf"
 # HI_CONF_1KG_PHASE1_SNP="/isilon/cgc/PIPELINE_FILES/1000G_phase1.snps.high_confidence.b37.vcf"
@@ -96,7 +103,7 @@ $CORE_PATH/$SEQ_PROJECT/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/CONCORDANCE \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/COUNT_COVARIATES/{GATK_REPORT,PDF} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/GC_BIAS/{METRICS,PDF,SUMMARY} \
-$CORE_PATH/$SEQ_PROJECT/REPORTS/DEPTH_OF_COVERAGE/{TARGET,REFSEQ_CODING_PLUS_10bp} \
+$CORE_PATH/$SEQ_PROJECT/REPORTS/DEPTH_OF_COVERAGE/{TARGET,UCSC,BED_SUPERSET} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/INSERT_SIZE/{METRICS,PDF} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/LOCAL_REALIGNMENT_INTERVALS \
@@ -121,9 +128,11 @@ done
 # -M email@address
 # -m {b,e,a} depending on the job.
 ## other possible options
-### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value)
+### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value
 
-# RUN BWA
+########################################################################################
+# create an array at the platform level so that bwa mem can add metadata to the header #
+########################################################################################
 
 CREATE_PLATFORM_UNIT_ARRAY ()
 {
@@ -192,6 +201,10 @@ KNOWN_INDEL_1=${PLATFORM_UNIT_ARRAY[15]}
 KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
 }
 
+###########################################################################################################################################
+# Use bwa mem to do the alignments; pipe to samblaster to add mate tags; pipe to picard's AddOrReplaceReadGroups to handle the bam header #
+###########################################################################################################################################
+
 RUN_BWA ()
 {
 echo \
@@ -201,7 +214,7 @@ qsub \
 -V \
 -q $QUEUE_LIST \
 -p $PRIORITY \
--N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX"_"$PROJECT \
+-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
 -j y \
 $SCRIPT_DIR/A.01_BWA.sh \
@@ -230,10 +243,12 @@ RUN_BWA
 echo sleep 0.1s
 done
 
-# create a hold job id qsub command line based on the number of
-# submit merging the bam files created by bwa mem above
-# only launch when every lane for a sample is done being processed by bwa mem
-# I want to clean this up eventually, but not in the mood for it right now.
+###############################################################################
+# create a hold job id qsub command line based on the number of ###############
+# submit merging the bam files created by bwa mem above #######################
+# only launch when every lane for a sample is done being processed by bwa mem #
+# I want to clean this up eventually, but not in the mood for it right now. ###
+###############################################################################
 
 awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
 $SAMPLE_SHEET \
@@ -242,7 +257,7 @@ $SAMPLE_SHEET \
 | uniq \
 | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
 | awk 'BEGIN {FS="\t"} \
-gsub(/,/,",A.01_BWA_"$2"_",$3) \
+gsub(/,/,",A.01-BWA_"$2"_",$3) \
 gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 {print "qsub",\
 "-S /bin/bash",\
@@ -250,10 +265,10 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 "-V",\
 "-q","'$QUEUE_LIST'",\
 "-p","'$PRIORITY'",\
-"-N","B.01_MERGE_BAM_"$5"_"$1,\
+"-N","B.01-MERGE_BAM_"$5"_"$1,\
 "-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
 "-j y",\
-"-hold_jid","A.01_BWA_"$5"_"$3, \
+"-hold_jid","A.01-BWA_"$5"_"$3, \
 "'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
 "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 1s"}'
 
@@ -262,6 +277,10 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 ### PROCEEDING WITH AGGREGATED SAMPLE FILES NOW ###
 ###################################################
 ###################################################
+
+################################################################################
+# create an array at the SM tag level to populate aggregated sample variables. #
+################################################################################
 
 CREATE_SAMPLE_ARRAY ()
 {
@@ -333,6 +352,11 @@ KNOWN_INDEL_1=${SAMPLE_ARRAY[12]}
 KNOWN_INDEL_2=${SAMPLE_ARRAY[13]}
 }
 
+#########################################################################################
+# I am setting the heap space and garbage collector threads now #########################
+# doing this does drastically decrease the load average ( the gc thread specification ) #
+#########################################################################################
+
 MARK_DUPLICATES ()
 {
 echo \
@@ -345,7 +369,7 @@ qsub \
 -N C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MARK_DUPLICATES.log" \
 -j y \
--hold_jid B.01_MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid B.01-MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/C.01_MARK_DUPLICATES.sh \
 $JAVA_1_8 \
 $PICARD_DIR \
@@ -353,6 +377,10 @@ $CORE_PATH \
 $PROJECT \
 $SM_TAG
 }
+
+#############################################
+## using data only in the baited intervals ##
+#############################################
 
 RUN_BQSR ()
 {
@@ -366,6 +394,7 @@ qsub \
 -N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PERFORM_BQSR.log" \
 -j y \
+-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 $JAVA_1_8 \
 $GATK_DIR \
@@ -379,6 +408,12 @@ $DBSNP \
 $BAIT_BED
 }
 
+##############################
+# use a 4 bin q score scheme #
+# remove indel Q scores ######
+# retain original Q score  ###
+##############################
+
 PRINT_READS ()
 {
 echo \
@@ -391,6 +426,7 @@ qsub \
 -N E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PRINT_READS.log" \
 -j y \
+-hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/E.01_PRINT_READS.sh \
 $JAVA_1_8 \
 $GATK_DIR \
@@ -399,6 +435,382 @@ $PROJECT \
 $SM_TAG \
 $REF_GENOME
 }
+
+######################################
+# CREATE VCF FOR VERIFYBAMID METRICS #
+######################################
+
+SELECT_VERIFYBAMID_VCF ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
+-j y \
+-hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.08_SELECT_VERIFYBAMID_VCF.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$VERIFY_VCF \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TITV_BED
+}
+
+###################
+# RUN VERIFYBAMID #
+###################
+
+RUN_VERIFYBAMID ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-VERIFYBAMID.log" \
+-j y \
+-hold_jid H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.08-A.01_VERIFYBAMID.sh \
+$CORE_PATH \
+$VERIFY_DIR \
+$PROJECT \
+$SM_TAG
+}
+
+
+#####################################################
+# create a lossless cram, although the bam is lossy #
+#####################################################
+
+BAM_TO_CRAM ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-BAM_TO_CRAM.log" \
+-j y \
+-hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/F.01_BAM_TO_CRAM.sh \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+##########################################################################################
+# index the cram file and copy it so that there are both *crai and cram.crai *extensions #
+##########################################################################################
+
+INDEX_CRAM ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-INDEX_CRAM.log" \
+-j y \
+-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/G.01_INDEX_CRAM.sh \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+#############################################
+# do the md5sum hash value on the cram file #
+#############################################
+
+MD5SUM_CRAM ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N G.02-MD5SUM_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MD5SUM_CRAM.log" \
+-j y \
+-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/G.02_MD5SUM_CRAM.sh \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+#########################################################################
+# generate the post bqsr q score values to compare to the original ones #
+#########################################################################
+
+POST_BQSR_TABLE ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.02-POST_BQSR_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-POST_BQSR_TABLE.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.02_POST_BQSR_TABLE.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$KNOWN_INDEL_1 \
+$KNOWN_INDEL_2 \
+$DBSNP \
+$BAIT_BED
+}
+
+#######################################
+# CREATE A PDF OF THE RESULTS OF BQSR #
+#######################################
+
+ANALYZE_COVARIATES ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.02-A.01-ANALYZE_COVARIATES"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-ANALYZE_COVARIATES.log" \
+-j y \
+-hold_jid H.02-POST_BQSR_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.02-A.01_ANALYZE_COVARIATES.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+################################################
+# CREATE  DEPTH OF COVERAGE FOR ALL UCSC EXONS #
+################################################
+
+DOC_CODING ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.03-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-DOC_CODING.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.03_DOC_CODING.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$CODING_BED \
+$GENE_LIST \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+##############################################
+# CREATE  DEPTH OF COVERAGE FOR BED SUPERSET #
+##############################################
+
+DOC_BAIT ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.04-DOC_BAIT"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-DOC_BED_SUPERSET.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.04_DOC_BED_SUPERSET.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$BAIT_BED \
+$GENE_LIST \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+#############################################
+# CREATE  DEPTH OF COVERAGE FOR TARGET BED  #
+#############################################
+
+DOC_TARGET ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.05-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-DOC_TARGET.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.05_DOC_TARGET.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$TARGET_BED \
+$GENE_LIST \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+#########################################################
+# DO AN ANEUPLOIDY CHECK ON TARGET BED FILE DOC OUTPUT  #
+#########################################################
+
+ANEUPLOIDY_CHECK ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.05-A.01_CHROM_DEPTH"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-ANEUPLOIDY_CHECK.log" \
+-j y \
+-hold_jid H.05-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.05-A.01_CHROM_DEPTH.sh \
+$CORE_PATH \
+$CYTOBAND_BED \
+$DATAMASH_DIR \
+$BEDTOOLS_DIR \
+$PROJECT \
+$SM_TAG
+}
+
+#############################
+# COLLECT MULTIPLE METRICS  #
+#############################
+
+COLLECT_MULTIPLE_METRICS ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.06-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.06_COLLECT_MULTIPLE_METRICS.sh \
+$JAVA_1_8 \
+$PICARD_DIR \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$DBSNP \
+$TARGET_BED
+}
+
+#######################
+# COLLECT HS METRICS  #
+#######################
+
+COLLECT_HS_METRICS ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.07-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-COLLECT_HS_METRICS.log" \
+-j y \
+-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.07_COLLECT_HS_METRICS.sh \
+$JAVA_1_8 \
+$PICARD_DIR \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$BAIT_BED \
+$TARGET_BED
+}
+
+# # RUN SELECT VERIFYBAM ID VCF
+#
+# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
+# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
+# | sort -k 1 -k 2 -k 3 \
+# | uniq \
+# | awk '{split($3,smtag,"[@]"); \
+# print "qsub","-N","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
+# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
+# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".SELECT_VERIFYBAMID_VCF.log",\
+# "'$SCRIPT_DIR'""/H.08_SELECT_VERIFYBAMID_VCF.sh",\
+# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$VERIFY_VCF'",$1,$2,$3,$4,$5"\n""sleep 1s"}'
+#
+# # RUN VERIFYBAMID
+#
+# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
+# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
+# | sort -k 1 -k 2 -k 3 \
+# | uniq \
+# | awk '{split($3,smtag,"[@]"); \
+# print "qsub","-N","H.08-A.01_VERIFYBAMID_"smtag[1]"_"smtag[2]"_"$1,\
+# "-hold_jid","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
+# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".VERIFYBAMID.log",\
+# "'$SCRIPT_DIR'""/H.08-A.01_VERIFYBAMID.sh",\
+# "'$CORE_PATH'","'$VERIFY_DIR'",$1,$2,$3"\n""sleep 1s"}'
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
@@ -409,8 +821,36 @@ RUN_BQSR
 echo sleep 0.1s
 PRINT_READS
 echo sleep 0.1s
+BAM_TO_CRAM
+echo sleep 0.1s
+INDEX_CRAM
+echo sleep 0.1s
+MD5SUM_CRAM
+echo sleep 0.1s
+POST_BQSR_TABLE
+echo sleep 0.1s
+ANALYZE_COVARIATES
+echo sleep 0.1s
+DOC_CODING
+echo sleep 0.1s
+DOC_BAIT
+echo sleep 0.1s
+DOC_TARGET
+echo sleep 0.1s
+ANEUPLOIDY_CHECK
+echo sleep 0.1s
+COLLECT_MULTIPLE_METRICS
+echo sleep 0.1s
+COLLECT_HS_METRICS
+echo sleep 0.1s
+SELECT_VERIFYBAMID_VCF
+echo sleep 0.1s
+RUN_VERIFYBAMID
+echo sleep 0.1s
 done
 
+
+#####################################################################################################
 # # SCATTER THE HAPLOTYPE CALLER GVCF CREATION USING THE WHERE THE BED INTERSECTS WITH {{1.22},{X,Y}}
 #
 # CREATE_PLATFORM_UNIT_ARRAY_HC ()
@@ -525,200 +965,6 @@ done
 # 	echo sleep 1s
 #  done
 #
-# # Run POST BQSR TABLE
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$19,$18}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($5,INDEL,";"); split($3,smtag,"[@]"); \
-# print "qsub","-N","H.02_POST_BQSR_TABLE_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".POST_BQSR_TABLE.log",\
-# "'$SCRIPT_DIR'""/H.02_POST_BQSR_TABLE.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,INDEL[1],INDEL[2],$6"\n""sleep 1s"}'
-#
-# # Run ANALYZE COVARIATES
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($5,INDEL,";"); split($3,smtag,"[@]"); \
-# print "qsub","-N","H.02-A.01_ANALYZE_COVARIATES_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.02_POST_BQSR_TABLE_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".ANALYZE_COVARIATES.log",\
-# "'$SCRIPT_DIR'""/H.02-A.01_ANALYZE_COVARIATES.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# # RUN DOC CODING PLUS 10 BP FLANKS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03_DOC_CODING_10bpFLANKS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".DOC_CODING_10bpFLANKS.log",\
-# "'$SCRIPT_DIR'""/H.03_DOC_CODING_10bpFLANKS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$GENE_LIST'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# # RUN ANEUPLOIDY_CHECK AFTER CODING PLUS 10 BP FLANKS FINISHES
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.01_DOC_CHROM_DEPTH_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03_DOC_CODING_10bpFLANKS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".ANEUPLOIDY_CHECK.log",\
-# "'$SCRIPT_DIR'""/H.03-A.01_CHROM_DEPTH.sh",\
-# "'$CORE_PATH'","'$CYTOBAND_BED'","'$DATAMASH_DIR'","'$BEDTOOLS_DIR'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN FORMATTING PER BASE COVERAGE WITH GENE NAME ANNNOTATION
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.02_PER_BASE_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03_DOC_CODING_10bpFLANKS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_BASE.log",\
-# "'$SCRIPT_DIR'""/H.03-A.02_PER_BASE.sh",\
-# "'$CORE_PATH'","'$BEDTOOLS_DIR'","'$CODING_BED'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN FILTERING PER BASE COVERAGE WITH GENE NAME ANNNOTATION WITH LESS THAN 30x
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.02_PER_BASE_FILTER_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03-A.02_PER_BASE_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_BASE_FILTER.log",\
-# "'$SCRIPT_DIR'""/H.03-A.02-A.01_PER_BASE_FILTERED.sh",\
-# "'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # BGZIP PER BASE COVERAGE WITH GENE NAME ANNNOTATION
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.02-A.02_PER_BASE_BGZIP_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03-A.02_PER_BASE_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_BASE_BGZIP.log",\
-# "'$SCRIPT_DIR'""/H.03-A.02-A.02_PER_BASE_BGZIP.sh",\
-# "'$CORE_PATH'","'$TABIX_DIR'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # TABIX PER BASE COVERAGE WITH GENE NAME ANNNOTATION
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.02-A.02-A.01_PER_BASE_TABIX_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03-A.02-A.02_PER_BASE_BGZIP_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_BASE_TABIX.log",\
-# "'$SCRIPT_DIR'""/H.03-A.02-A.02-A.01_PER_BASE_TABIX.sh",\
-# "'$CORE_PATH'","'$TABIX_DIR'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN FORMATTING PER CODING INTERVAL COVERAGE WITH GENE NAME ANNNOTATION
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.03_PER_INTERVAL_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03_DOC_CODING_10bpFLANKS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_INTERVAL.log",\
-# "'$SCRIPT_DIR'""/H.03-A.03_PER_INTERVAL.sh",\
-# "'$CORE_PATH'","'$BEDTOOLS_DIR'","'$CODING_BED'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN FILTERING PER CODING INTERVAL COVERAGE WITH GENE NAME ANNNOTATION WITH LESS THAN 30x
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.03-A.03_PER_INTERVAL_FILTER_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.03-A.03_PER_INTERVAL_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".PER_INTERVAL_FILTER.log",\
-# "'$SCRIPT_DIR'""/H.03-A.03-A.01_PER_INTERVAL_FILTERED.sh",\
-# "'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN DOC TARGET BED
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$17}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.05_DOC_TARGET_BED_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".DOC_TARGET_BED.log",\
-# "'$SCRIPT_DIR'""/H.05_DOC_TARGET_BED.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$GENE_LIST'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# # RUN COLLECT MULTIPLE METRICS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$18,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.06_COLLECT_MULTIPLE_METRICS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".COLLECT_MULTIPLE_METRICS.log",\
-# "'$SCRIPT_DIR'""/H.06_COLLECT_MULTIPLE_METRICS.sh",\
-# "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'","'$SAMTOOLS_DIR'",$1,$2,$3,$4,$5,$6"\n""sleep 1s"}'
-#
-# # RUN COLLECT HS METRICS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$16,$17}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.07_COLLECT_HS_METRICS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".COLLECT_HS_METRICS.log",\
-# "'$SCRIPT_DIR'""/H.07_COLLECT_HS_METRICS.sh",\
-# "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'","'$SAMTOOLS_DIR'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# # RUN SELECT VERIFYBAM ID VCF
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".SELECT_VERIFYBAMID_VCF.log",\
-# "'$SCRIPT_DIR'""/H.08_SELECT_VERIFYBAMID_VCF.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$VERIFY_VCF'",$1,$2,$3,$4,$5"\n""sleep 1s"}'
-#
-# # RUN VERIFYBAMID
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.08-A.01_VERIFYBAMID_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".VERIFYBAMID.log",\
-# "'$SCRIPT_DIR'""/H.08-A.01_VERIFYBAMID.sh",\
-# "'$CORE_PATH'","'$VERIFY_DIR'",$1,$2,$3"\n""sleep 1s"}'
 #
 # ###################################################
 # ### RUN VERIFYBAM ID PER CHROMOSOME - VITO ########
