@@ -786,68 +786,87 @@ $BAIT_BED \
 $TARGET_BED
 }
 
-# # RUN SELECT VERIFYBAM ID VCF
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","G.01_FINAL_BAM_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".SELECT_VERIFYBAMID_VCF.log",\
-# "'$SCRIPT_DIR'""/H.08_SELECT_VERIFYBAMID_VCF.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$VERIFY_VCF'",$1,$2,$3,$4,$5"\n""sleep 1s"}'
-#
-# # RUN VERIFYBAMID
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); \
-# print "qsub","-N","H.08-A.01_VERIFYBAMID_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","H.08_SELECT_VERIFYBAMID_VCF_"smtag[1]"_"smtag[2]"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$1".VERIFYBAMID.log",\
-# "'$SCRIPT_DIR'""/H.08-A.01_VERIFYBAMID.sh",\
-# "'$CORE_PATH'","'$VERIFY_DIR'",$1,$2,$3"\n""sleep 1s"}'
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+# do
+# CREATE_SAMPLE_ARRAY
+# MARK_DUPLICATES
+# echo sleep 0.1s
+# RUN_BQSR
+# echo sleep 0.1s
+# PRINT_READS
+# echo sleep 0.1s
+# BAM_TO_CRAM
+# echo sleep 0.1s
+# INDEX_CRAM
+# echo sleep 0.1s
+# MD5SUM_CRAM
+# echo sleep 0.1s
+# POST_BQSR_TABLE
+# echo sleep 0.1s
+# ANALYZE_COVARIATES
+# echo sleep 0.1s
+# DOC_CODING
+# echo sleep 0.1s
+# DOC_BAIT
+# echo sleep 0.1s
+# DOC_TARGET
+# echo sleep 0.1s
+# ANEUPLOIDY_CHECK
+# echo sleep 0.1s
+# COLLECT_MULTIPLE_METRICS
+# echo sleep 0.1s
+# COLLECT_HS_METRICS
+# echo sleep 0.1s
+# SELECT_VERIFYBAMID_VCF
+# echo sleep 0.1s
+# RUN_VERIFYBAMID
+# echo sleep 0.1s
+# done
+
+############################
+# HAPLOTYPE CALLER SCATTER #
+############################
+
+# THE JOB DEPENDENCY IS THE BAM FILE B/C CRAM SUPORRT WAS BROKEN IN GATK 3.7 AND 3.8
+# WILL WANT TO SWITCH TO CRAM WHEN USING A VERSION OF GATK WHERE THIS NOT BROKEN
+# This is why i have both verifybamId and a bam/cram dependency, b/c verifybamID has to come after the bam file.
+# the freemix value from verifybamID output is pulled as a variable to the haplotype caller script
+
+CALL_HAPLOTYPE_CALLER ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
+-j y \
+-hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$BAIT_BED \
+$CHROMOSOME
+}
+
+# Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
 CREATE_SAMPLE_ARRAY
-MARK_DUPLICATES
-echo sleep 0.1s
-RUN_BQSR
-echo sleep 0.1s
-PRINT_READS
-echo sleep 0.1s
-BAM_TO_CRAM
-echo sleep 0.1s
-INDEX_CRAM
-echo sleep 0.1s
-MD5SUM_CRAM
-echo sleep 0.1s
-POST_BQSR_TABLE
-echo sleep 0.1s
-ANALYZE_COVARIATES
-echo sleep 0.1s
-DOC_CODING
-echo sleep 0.1s
-DOC_BAIT
-echo sleep 0.1s
-DOC_TARGET
-echo sleep 0.1s
-ANEUPLOIDY_CHECK
-echo sleep 0.1s
-COLLECT_MULTIPLE_METRICS
-echo sleep 0.1s
-COLLECT_HS_METRICS
-echo sleep 0.1s
-SELECT_VERIFYBAMID_VCF
-echo sleep 0.1s
-RUN_VERIFYBAMID
-echo sleep 0.1s
-done
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+		do
+		CALL_HAPLOTYPE_CALLER
+		echo sleep 0.1s
+		done
+	done
 
 
 #####################################################################################################
