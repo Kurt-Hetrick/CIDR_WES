@@ -31,6 +31,12 @@ GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
 SAMTOOLS_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-1.6"
 BEDTOOLS_DIR="/mnt/research/tools/LINUX/BEDTOOLS/bedtools-2.22.0/bin"
 VERIFY_DIR="/mnt/research/tools/LINUX/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
+SAMTOOLS_0118_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-0.1.18"
+	# Becasue I didn't want to go through compiling this yet for version 1.6...I'm hoping that Keith will eventually do a full OS install of RHEL7 instead of his
+	# typical stripped down installations so I don't have to install multiple libraries again
+	# Need to talk to Chris Dwan about thiis
+CIDRSEQSUITE_6_JAVA_DIR="/mnt/research/tools/LINUX/JAVA/jre1.7.0_45/bin"
+CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
@@ -49,13 +55,14 @@ CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/UCSC_hg19_Coding
 GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/RefSeqGene.GRCh37.Ready.txt"
 CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/GRCh37.Cytobands.bed"
 VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
+DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/b37/dbsnp_138.b37.excluding_sites_after_129.vcf"
+VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 
 # HAPMAP="/isilon/cgc/PIPELINE_FILES/hapmap_3.3.b37.vcf"
 # OMNI_1KG="/isilon/cgc/PIPELINE_FILES/1000G_omni2.5.b37.vcf"
 # HI_CONF_1KG_PHASE1_SNP="/isilon/cgc/PIPELINE_FILES/1000G_phase1.snps.high_confidence.b37.vcf"
 # MILLS_1KG_GOLD_INDEL="/isilon/cgc/PIPELINE_FILES/Mills_and_1000G_gold_standard.indels.b37.vcf"
 # PHASE3_1KG_AUTOSOMES="/isilon/cgc/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
-# DBSNP_129="/isilon/cgc/PIPELINE_FILES/dbsnp_138.b37.excluding_sites_after_129.vcf"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -86,7 +93,7 @@ SEQ_PROJECT=${PROJECT_ARRAY[0]}
 MAKE_PROJ_DIR_TREE ()
 {
 mkdir -p \
-$CORE_PATH/$SEQ_PROJECT/{TEMP,FASTQ,LOGS,CRAM,GVCF,COMMAND_LINES} \
+$CORE_PATH/$SEQ_PROJECT/{TEMP,FASTQ,LOGS,CRAM,GVCF,COMMAND_LINES,HC_CRAM} \
 $CORE_PATH/$SEQ_PROJECT/INDEL/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/INDEL/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/SNV/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
@@ -95,12 +102,13 @@ $CORE_PATH/$SEQ_PROJECT/MIXED/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/MIXED/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/VCF/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/VCF/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
-$CORE_PATH/$SEQ_PROJECT/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,TI_TV,VERIFYBAMID,VERIFYBAMID_CHR} \
+$CORE_PATH/$SEQ_PROJECT/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,VERIFYBAMID_CHR} \
+$CORE_PATH/$SEQ_PROJECT/REPORTS/{TI_TV,TI_TV_MS} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
-$CORE_PATH/$SEQ_PROJECT/REPORTS/CONCORDANCE \
+$CORE_PATH/$SEQ_PROJECT/REPORTS/{CONCORDANCE,CONCORDANCE_MS} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/COUNT_COVARIATES/{GATK_REPORT,PDF} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/GC_BIAS/{METRICS,PDF,SUMMARY} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/DEPTH_OF_COVERAGE/{TARGET,UCSC,BED_SUPERSET} \
@@ -823,6 +831,144 @@ $TARGET_BED
 # echo sleep 0.1s
 # done
 
+#####################################
+#####################################
+##### VERIFYBAMID BY CHROMOSOME #####
+#####################################
+#####################################
+
+#####################################
+# VERIFYBAMID BY CHROMOSOME SCATTER #
+#####################################
+
+# make per chromosome/target bed file intersection vcf files for each sample
+
+CALL_SELECT_VERIFYBAMID_VCF_CHR ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
+-j y \
+-hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$VERIFY_VCF \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED \
+$CHROMOSOME
+}
+
+CALL_VERIFYBAMID_CHR ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
+-j y \
+-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
+$CORE_PATH \
+$VERIFY_DIR \
+$PROJECT \
+$SM_TAG \
+$CHROMOSOME
+}
+
+# # Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
+# 
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+# do
+# CREATE_SAMPLE_ARRAY
+# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | egrep -v "X|Y|MT" | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+# 		do
+# 		CALL_SELECT_VERIFYBAMID_VCF_CHR
+# 		echo sleep 0.1s
+# 		CALL_VERIFYBAMID_CHR
+# 		echo sleep 0.1s
+# 		done
+# 	done
+
+####################################
+# VERIFYBAMID BY CHROMOSOME GATHER #
+####################################
+
+#################################################################################
+
+# GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
+# I THINK THAT I SHOULD BE ABLE TO INCORPORATE THIS INTO THE ABOVE LOOP.
+
+BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
+{
+	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+	do
+	HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | egrep -v "X|Y|MT" | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+ 	do
+ 		HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+ 		HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
+ 	done
+ done
+}
+
+CALL_VERIFYBAMID_CHR_GATHER ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+${HOLD_ID_PATH_CAT_VERIFYBAMID} \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
+$SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
+$CORE_PATH \
+$DATAMASH_DIR \
+$PROJECT \
+$SM_TAG \
+$TARGET_BED
+}
+
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+ do
+	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
+	CREATE_SAMPLE_ARRAY
+	CALL_VERIFYBAMID_CHR_GATHER
+	echo sleep 0.1s
+ done
+
+###############################################################
+
+# GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
+
+BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER(){
+	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+	do
+	HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+ 	do
+ 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+ 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+ 	done
+ done
+}
+
 ############################
 # HAPLOTYPE CALLER SCATTER #
 ############################
@@ -856,183 +1002,664 @@ $BAIT_BED \
 $CHROMOSOME
 }
 
-# Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
+CALL_GENOTYPE_GVCF ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
+-j y \
+-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$DBSNP \
+$CHROMOSOME
+}
 
-for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-do
-CREATE_SAMPLE_ARRAY
-	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-		do
-		CALL_HAPLOTYPE_CALLER
-		echo sleep 0.1s
-		done
-	done
-
-
-#####################################################################################################
-# # SCATTER THE HAPLOTYPE CALLER GVCF CREATION USING THE WHERE THE BED INTERSECTS WITH {{1.22},{X,Y}}
-#
-# CREATE_PLATFORM_UNIT_ARRAY_HC ()
-# {
-# PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_HAPLOTYPE_CALLER ()
-# {
-# echo \
-# qsub \
-# -N H.01_HAPLOTYPE_CALLER_${PLATFORM_UNIT_ARRAY_HC[0]}_${PLATFORM_UNIT_ARRAY_HC[5]}_chr$CHROMOSOME \
-# -hold_jid G.01_FINAL_BAM_${PLATFORM_UNIT_ARRAY_HC[5]}_${PLATFORM_UNIT_ARRAY_HC[0]} \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_chr$CHROMOSOME.log \
-# $SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]} \
-# $CHROMOSOME
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+# # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
+# 
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_PLATFORM_UNIT_ARRAY_HC
-# 	for CHROMOSOME in {{1..22},{X,Y}}
+# CREATE_SAMPLE_ARRAY
+# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
 # 		do
 # 		CALL_HAPLOTYPE_CALLER
-# 		echo sleep 1s
+# 		echo sleep 0.1s
+# 		CALL_GENOTYPE_GVCF
+# 		echo sleep 0.1s
 # 		done
 # 	done
-#
-# ################################################################
-#
+
+###########################
+# HAPLOTYPE CALLER GATHER #
+###########################
+
 # # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
-#
-# # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
-#
-# # BUILD_HOLD_ID_PATH(){
-# # 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# # 	do
-# # 	HOLD_ID_PATH="-hold_jid "
-# # 	for CHROMOSOME in {{1..22},{X,Y}};
-# #  	do
-# #  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01_HAPLOTYPE_CALLER_"$PROJECT"_"${PLATFORM_UNIT_ARRAY_HC[5]}"_chr"$CHROMOSOME","
-# #  	done
-# #  done
-# # }
-#
+# 
 # BUILD_HOLD_ID_PATH(){
 # 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
 # 	do
 # 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
+# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
 #  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01_HAPLOTYPE_CALLER_"$PROJECT"_"$SAMPLE"_chr"$CHROMOSOME","
+#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+#  		HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
 #  	done
 #  done
 # }
-#
-# # CREATE_PLATFORM_UNIT_ARRAY_HC ()
-# # {
-# # PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
-# # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# CREATE_PLATFORM_UNIT_ARRAY_HC ()
-# {
-# PLATFORM_UNIT_ARRAY_HC=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
+
+CALL_HAPLOTYPE_CALLER_GVCF_GATHER ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.01-A.01_HAPLOTYPE_CALLER_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+${HOLD_ID_PATH} \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-HAPLOTYPE_CALLER_GVCF_GATHER.log \
+$SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GVCF_GATHER.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED
+}
+
+CALL_HAPLOTYPE_CALLER_BAM_GATHER ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+${HOLD_ID_PATH} \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-HAPLOTYPE_CALLER_BAM_GATHER.log \
+$SCRIPT_DIR/H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER.sh \
+$JAVA_1_8 \
+$PICARD_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$TARGET_BED
+}
+
+########################
+# GENOTYPE GVCF GATHER #
+########################
+
+# # GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
+# 
+# BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER(){
+# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+# 	do
+# 	HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+#  	do
+#  		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+#  		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+#  	done
+#  done
 # }
-#
-# CALL_HAPLOTYPE_CALLER_GATHER ()
-# {
-# echo \
-# qsub \
-# -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${PLATFORM_UNIT_ARRAY_HC[0]}_$SAMPLE \
-# ${HOLD_ID_PATH} \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
-# $SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GATHER.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]}
-# }
-#
-# # CALL_HAPLOTYPE_CALLER_GATHER ()
-# # {
-# # echo \
-# # qsub \
-# # -N H.01-A.01_HAPLOTYPE_CALLER_GATHER_${PLATFORM_UNIT_ARRAY_HC[0]}_${PLATFORM_UNIT_ARRAY_HC[5]} \
-# # ${HOLD_ID_PATH} \
-# # -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_HC[0]}/${PLATFORM_UNIT_ARRAY_HC[1]}/${PLATFORM_UNIT_ARRAY_HC[2]}/LOGS/${PLATFORM_UNIT_ARRAY_HC[2]}_${PLATFORM_UNIT_ARRAY_HC[0]}.HAPLOTYPE_CALLER_GATHER.log \
-# # $SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GATHER.sh \
-# # $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# # ${PLATFORM_UNIT_ARRAY_HC[0]} ${PLATFORM_UNIT_ARRAY_HC[1]} ${PLATFORM_UNIT_ARRAY_HC[2]} ${PLATFORM_UNIT_ARRAY_HC[3]}
-# # }
-#
-# # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8} $SAMPLE_SHEET | sort | uniq );
-# #  do
-# # 	BUILD_HOLD_ID_PATH
-# # 	CREATE_PLATFORM_UNIT_ARRAY_HC
-# # 	CALL_HAPLOTYPE_CALLER_GATHER
-# # 	echo sleep 1s
-# #  done
-#
-# # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]}' $SAMPLE_SHEET | sort | uniq );
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
+
+CALL_GENOTYPE_GVCF_GATHER ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+${HOLD_ID_PATH_GENOTYPE_GVCF_GATHER} \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-GENOTYPE_GVCF_GATHER.log \
+$SCRIPT_DIR/I.01-A.01_GENOTYPE_GVCF_GATHER.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED
+}
+
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 #  do
 # 	BUILD_HOLD_ID_PATH
-# 	CREATE_PLATFORM_UNIT_ARRAY_HC
-# 	CALL_HAPLOTYPE_CALLER_GATHER
-# 	echo sleep 1s
+# 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER	
+# 	CREATE_SAMPLE_ARRAY
+# 	CALL_HAPLOTYPE_CALLER_GVCF_GATHER
+# 	echo sleep 0.1s
+# 	CALL_HAPLOTYPE_CALLER_BAM_GATHER
+# 	echo sleep 0.1s
+# 	CALL_GENOTYPE_GVCF_GATHER
+# 	echo sleep 0.1s
 #  done
-#
-#
-# ###################################################
-# ### RUN VERIFYBAM ID PER CHROMOSOME - VITO ########
-# ###################################################
-#
-# CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM ()
-# {
-# PLATFORM_UNIT_ARRAY_VERIFY_BAM=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$20,$8,$12,$15,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_SELECT_VERIFY_BAM ()
-# {
-# echo \
-# qsub \
-# -N H.09_SELECT_VERIFYBAMID_VCF_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -hold_jid G.01_FINAL_BAM_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.SELECT_VERIFYBAMID_chr$CHROMOSOME.log \
-# $SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH $VERIFY_VCF \
-# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[3]} \
-# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[4]} $CHROMOSOME
-# }
-#
-# CALL_VERIFYBAMID ()
-# {
-# echo \
-# qsub \
-# -N H.09-A.01_VERIFYBAMID_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -hold_jid H.09_SELECT_VERIFYBAMID_VCF_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}_chr$CHROMOSOME \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.VERIFYBAMID_chr$CHROMOSOME.log \
-# $SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
-# $CORE_PATH $VERIFY_DIR \
-# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]} \
-# $CHROMOSOME
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+
+###########################################################
+### HC_BAM TO CRAM; VCF BREAKOUTS, FILTERING, METRICS #####
+###########################################################
+
+########################################################
+# create a lossless HC cram, although the bam is lossy #
+########################################################
+
+HC_BAM_TO_CRAM ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-HC_BAM_TO_CRAM.log" \
+-j y \
+-hold_jid H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM.sh \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+##########################################################################################
+# index the cram file and copy it so that there are both *crai and cram.crai *extensions #
+##########################################################################################
+
+HC_INDEX_CRAM ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-HC_INDEX_CRAM.log" \
+-j y \
+-hold_jid H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM.sh \
+$SAMTOOLS_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+SELECT_SNV ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01_SELECT_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_SNV_QC.log \
+$SCRIPT_DIR/J.01_SELECT_SNV.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+SELECT_INDEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.02_SELECT_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_INDEL_QC.log \
+$SCRIPT_DIR/J.02_SELECT_INDEL.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+SELECT_MIXED ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.03_SELECT_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_MIXED_QC.log \
+$SCRIPT_DIR/J.03_SELECT_MIXED.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+FILTER_SNV ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01_SELECT_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-FILTER_SNV_QC.log \
+$SCRIPT_DIR/J.01-A.01_FILTER_SNV.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+FILTER_INDEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.02_SELECT_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-FILTER_INDEL_QC.log \
+$SCRIPT_DIR/J.02-A.01_FILTER_INDEL.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+FILTER_MIXED ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.03_SELECT_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-FILTER_MIXED_QC.log \
+$SCRIPT_DIR/J.03-A.01_FILTER_MIXED.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+BAIT_PASS_SNV ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-BAIT_PASS_SNV_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.01_SNV_BAIT_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+TARGET_PASS_SNV ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-TARGET_PASS_SNV_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.02_SNV_TARGET_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED
+}
+
+# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
+QUEUE_LIST_TEMP=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q" | datamash collapse 1 | awk '{print $1}'`
+
+TARGET_PASS_SNV_CONCORDANCE ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST_TEMP \
+-p $PRIORITY \
+-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
+$CIDRSEQSUITE_6_JAVA_DIR \
+$CIDRSEQSUITE_6_1_1_DIR \
+$VERACODE_CSV \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$TARGET_BED
+}
+
+BAIT_PASS_INDEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-BAIT_PASS_INDEL_QC.log \
+$SCRIPT_DIR/J.02-A.01-A.01_INDEL_BAIT_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+TARGET_PASS_INDEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-TARGET_PASS_INDEL_QC.log \
+$SCRIPT_DIR/J.02-A.01-A.02_INDEL_TARGET_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED
+}
+
+BAIT_PASS_MIXED ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-BAIT_PASS_MIXED_QC.log \
+$SCRIPT_DIR/J.03-A.01-A.01_MIXED_BAIT_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME
+}
+
+TARGET_PASS_MIXED ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-TARGET_PASS_MIXED_QC.log \
+$SCRIPT_DIR/J.03-A.01-A.02_MIXED_TARGET_PASS.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TARGET_BED
+}
+
+SELECT_TITV_ALL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.03_SELECT_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_TITV_ALL_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.03_SELECT_TITV_ALL.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TITV_BED
+}
+
+SELECT_TITV_KNOWN ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.04_SELECT_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_TITV_KNOWN_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.04_SELECT_TITV_KNOWN.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TITV_BED \
+$DBSNP_129
+}
+
+SELECT_TITV_NOVEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.05_SELECT_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-SELECT_TITV_NOVEL_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.05_SELECT_TITV_NOVEL.sh \
+$JAVA_1_8 \
+$GATK_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG \
+$REF_GENOME \
+$TITV_BED \
+$DBSNP_129
+}
+
+RUN_TITV_ALL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01-A.03_SELECT_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-RUN_TITV_ALL_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.03-A.01_RUN_TITV_ALL.sh \
+$SAMTOOLS_0118_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+RUN_TITV_KNOWN ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01-A.04_SELECT_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-RUN_TITV_KNOWN_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.04-A.01_RUN_TITV_KNOWN.sh \
+$SAMTOOLS_0118_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+RUN_TITV_NOVEL ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid J.01-A.01-A.05_SELECT_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-RUN_TITV_NOVEL_QC.log \
+$SCRIPT_DIR/J.01-A.01-A.05-A.01_RUN_TITV_NOVEL.sh \
+$SAMTOOLS_0118_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 # do
-# CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM
-# 	for CHROMOSOME in {1..22}
-# 		do
-# 		CALL_SELECT_VERIFY_BAM
-# 		echo sleep 1s
-# 		CALL_VERIFYBAMID
-# 		echo sleep 1s
-# 	done
+# CREATE_SAMPLE_ARRAY
+# HC_BAM_TO_CRAM
+# echo sleep 0.1s
+# HC_INDEX_CRAM
+# echo sleep 0.1s
+# SELECT_SNV
+# echo sleep 0.1s
+# SELECT_INDEL
+# echo sleep 0.1s
+# SELECT_MIXED
+# echo sleep 0.1s
+# FILTER_SNV
+# echo sleep 0.1s
+# FILTER_INDEL
+# echo sleep 0.1s
+# FILTER_MIXED
+# echo sleep 0.1s
+# BAIT_PASS_SNV
+# echo sleep 0.1s
+# TARGET_PASS_SNV
+# echo sleep 0.1s
+# TARGET_PASS_SNV_CONCORDANCE
+# echo sleep 0.1s
+# BAIT_PASS_INDEL
+# echo sleep 0.1s
+# TARGET_PASS_INDEL
+# echo sleep 0.1s
+# BAIT_PASS_MIXED
+# echo sleep 0.1s
+# TARGET_PASS_MIXED
+# echo sleep 0.1s
+# SELECT_TITV_ALL
+# echo sleep 0.1s
+# SELECT_TITV_KNOWN
+# echo sleep 0.1s
+# SELECT_TITV_NOVEL
+# echo sleep 0.1s
+# RUN_TITV_ALL
+# echo sleep 0.1s
+# RUN_TITV_KNOWN
+# echo sleep 0.1s
+# RUN_TITV_NOVEL
+# echo sleep 0.1s
 # done
-#
+
 # #####################################################
 # ### JOIN THE PER CHROMOSOME VERIFYBAMID REPORTS #####
 # #####################################################
@@ -1068,1102 +1695,6 @@ CREATE_SAMPLE_ARRAY
 # 	CAT_VERIFYBAMID_CHR
 # 	echo sleep 1s
 #  done
-#
-# #### JOINT CALLING AND VQSR #### ###VITO###
-#
-# ### CREATE A GVCF ".list" file for each sample
-#
-# CREATE_FAMILY_INFO_ARRAY ()
-# {
-# FAMILY_INFO_ARRAY=(`awk 'BEGIN {FS="\t"; OFS="\t"} $20=="'$FAMILY'" {split($8,smtag,"[@]"); print $1,smtag[1]"_"smtag[2],$20,$12,$18}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CREATE_GVCF_LIST ()
-# {
-# awk 'BEGIN {OFS="/"} $20=="'$FAMILY'" {print "'$CORE_PATH'",$1,$20,$8,"GVCF",$8".g.vcf.gz"}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort \
-# | uniq \
-# >| $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/$FAMILY/$FAMILY".gvcf.list"
-# }
-#
-# CREATE_FAMILY_SAMPLE_LIST ()
-# {
-# awk '$20=="'$FAMILY'" {print $8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort \
-# | uniq \
-# >| $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/$FAMILY/$FAMILY".sample.list"
-# }
-#
-# BUILD_HOLD_ID_PATH_GENOTYPE_GVCF ()
-# {
-# ##NEED FULL LIST OF SAMPLES IN FAMILY FOR THE INNER FOR LOOP.  THE ${FAMILY_INFO_ARRAY[1]} WON'T WORK CONSIDERING THAT IS SPECIFIC FOR ONE SAMPLE
-#
-# for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# do
-# HOLD_ID_PATH="-hold_jid "
-# for SAMPLE in $(awk 'BEGIN {FS="\t"; OFS="\t"} $20=="'$FAMILY'" {print $8}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq);
-# 	do
-# 		HOLD_ID_PATH=$HOLD_ID_PATH"H.01-A.01_HAPLOTYPE_CALLER_GATHER_"$PROJECT"_"${FAMILY_INFO_ARRAY[1]}","
-# 	done
-# done
-# }
-#
-# CALL_GENOTYPE_GVCF ()
-# {
-# for CHROM in {{1..22},{X,Y}};
-# do
-# echo \
-# qsub \
-# -N I.01_GENOTYPE_GVCF_SCATTER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}_chr$CHROM \
-# $HOLD_ID_PATH \
-# -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.GENOTYPE_GVCF_chr$CHROM.log \
-# $SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]} ${FAMILY_INFO_ARRAY[4]} $CHROM $CONTROL_REPO
-# echo sleep 1s
-# done
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} NR>1 {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq);
-# do
-# 	 CREATE_FAMILY_INFO_ARRAY
-# 	 CREATE_GVCF_LIST
-#  CREATE_FAMILY_SAMPLE_LIST
-# BUILD_HOLD_ID_PATH_GENOTYPE_GVCF
-# CALL_GENOTYPE_GVCF
-# done
-#
-# ########################################################################################
-# ##### GATHER UP THE PER FAMILY PER CHROMOSOME GVCF FILES INTO A SINGLE FAMILY GVCF #####
-# ########################################################################################
-#
-# BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHR in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"I.01_GENOTYPE_GVCF_SCATTER_"$FAMILY"_"$PROJECT"_chr"$CHR","
-#  	done
-#  done
-# }
-#
-#
-# CALL_GENOTYPE_GVCF_GATHER ()
-# {
-# echo \
-# qsub \
-# -N I.01-A.01_GENOTYPE_GVCF_GATHER_${FAMILY_INFO_ARRAY[0]}_${FAMILY_INFO_ARRAY[2]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.GENOTYPE_GVCF_GATHER.log \
-#  $SCRIPT_DIR/I.01-A.01_GENOTYPE_GVCF_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-#  	# echo $FAMILY
-# 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_GENOTYPE_GVCF_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ##########################################################
-# ################END VITO##################################
-# ##########################################################
-#
-# #####################################################################################################
-# ##### Run Variant Recalibrator for the SNP model, this is done in parallel with the INDEL model #####
-# #####################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12,$18}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","J.01_VARIANT_RECALIBRATOR_SNP_"$2"_"$1,\
-# "-hold_jid","I.01-A.01_GENOTYPE_GVCF_GATHER_"$1"_"$2,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_RECALIBRATOR_SNP.log",\
-# "'$SCRIPT_DIR'""/J.01_VARIANT_RECALIBRATOR_SNP.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,"'$HAPMAP'","'$OMNI_1KG'","'$HI_CONF_1KG_PHASE1_SNP'""\n""sleep 1s"}'
-#
-# ### Run Variant Recalibrator for the INDEL model, this is done in parallel with the SNP model
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","J.02_VARIANT_RECALIBRATOR_INDEL_"$2"_"$1,\
-# "-hold_jid","I.01-A.01_GENOTYPE_GVCF_GATHER_"$1"_"$2,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_RECALIBRATOR_INDEL.log",\
-# "'$SCRIPT_DIR'""/J.02_VARIANT_RECALIBRATOR_INDEL.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,"'$MILLS_1KG_GOLD_INDEL'""\n""sleep 1s"}'
-#
-# ### Run Apply Recalbration with the SNP model to the VCF file
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","K.01_APPLY_RECALIBRATION_SNP_"$2"_"$1,\
-# "-hold_jid","J.01_VARIANT_RECALIBRATOR_SNP_"$2"_"$1",""J.02_VARIANT_RECALIBRATOR_INDEL_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".APPLY_RECALIBRATION_SNP.log",\
-# "'$SCRIPT_DIR'""/K.01_APPLY_RECALIBRATION_SNP.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ### Run Apply Recalibration with the INDEL model to the VCF file.
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","L.01_APPLY_RECALIBRATION_INDEL_"$2"_"$1,\
-# "-hold_jid","K.01_APPLY_RECALIBRATION_SNP_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".APPLY_RECALIBRATION_INDEL.log",\
-# "'$SCRIPT_DIR'""/L.01_APPLY_RECALIBRATION_INDEL.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ################################################
-# ##### SCATTER GATHER FOR ADDING ANNOTATION #####
-# ################################################
-#
-# CREATE_FAMILY_INFO_ARRAY ()
-# {
-# FAMILY_INFO_ARRAY=(`awk 'BEGIN {FS="\t"; OFS="\t"} $20=="'$FAMILY'" {print $1,$8,$20,$12,$18}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_VARIANT_ANNOTATOR ()
-# {
-# echo \
-# qsub \
-# -N P.01_VARIANT_ANNOTATOR_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}_$CHROMOSOME \
-# -hold_jid L.01_APPLY_RECALIBRATION_INDEL_${FAMILY_INFO_ARRAY[2]}"_"${FAMILY_INFO_ARRAY[0]} \
-# -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.VARIANT_ANNOTATOR_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01_VARIANT_ANNOTATOR_SCATTER.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH $PED_FILE \
-# ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]} $CHROMOSOME $PHASE3_1KG_AUTOSOMES
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq);
-# do
-# CREATE_FAMILY_INFO_ARRAY
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_VARIANT_ANNOTATOR
-# 		echo sleep 1s
-# 	done
-# done
-#
-# ##############################################################################################
-# ##### GATHER UP THE PER FAMILY PER CHROMOSOME ANNOTATED VCF FILES INTO A SINGLE VCF FILE #####
-# ##############################################################################################
-#
-# BUILD_HOLD_ID_PATH_ADD_MORE_ANNOTATION ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01_VARIANT_ANNOTATOR_"$FAMILY"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# CALL_VARIANT_ANNOTATOR_GATHER ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.01_VARIANT_ANNOTATOR_GATHER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.ADD_MORE_ANNOTATION_GATHER.log \
-#  $SCRIPT_DIR/P.01-A.01_VARIANT_ANNOTATOR_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-# 	BUILD_HOLD_ID_PATH_ADD_MORE_ANNOTATION
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_VARIANT_ANNOTATOR_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ############################################################################################################
-# ##### DO PER CHROMOSOME VARIANT TO TABLE FOR COHORT ########################################################
-# ############################################################################################################
-#
-# CREATE_FAMILY_ONLY_ARRAY ()
-# {
-# FAMILY_ONLY_ARRAY=(`awk 'BEGIN {FS="\t"; OFS="\t"} $20=="'$FAMILY'" {print $1,$20,$12,$18,$17}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_VARIANT_TO_TABLE_COHORT_ALL_SITES ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.02_VARIANT_TO_TABLE_COHORT_ALL_SITES_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${FAMILY_ONLY_ARRAY[0]}/${FAMILY_ONLY_ARRAY[1]}/LOGS/${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}.VARIANT_TO_TABLE_COHORT_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01-A.02_VARIANT_TO_TABLE_COHORT_ALL_SITES_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${FAMILY_ONLY_ARRAY[0]} ${FAMILY_ONLY_ARRAY[1]} ${FAMILY_ONLY_ARRAY[2]} $CHROMOSOME
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"} {print $1}' $PED_FILE | sort | uniq );
-# do
-# CREATE_FAMILY_ONLY_ARRAY
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_VARIANT_TO_TABLE_COHORT_ALL_SITES
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# ################################################################################################################
-# ##### GATHER PER CHROMOSOME VARIANT TO TABLE FOR COHORT ########################################################
-# ################################################################################################################
-#
-# BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_COHORT_GATHER ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01-A.02_VARIANT_TO_TABLE_COHORT_ALL_SITES_"$FAMILY"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# CALL_VARIANT_TO_TABLE_COHORT_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.18_VARIANT_TO_TABLE_COHORT_ALL_SITES_GATHER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.VARIANT_TO_TABLE_COHORT_ALL_SITES_GATHER.log \
-#  $SCRIPT_DIR/T.18_VARIANT_TO_TABLE_COHORT_ALL_SITES_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-# 	BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_COHORT_GATHER
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_VARIANT_TO_TABLE_COHORT_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ##############################################################################################################
-# ## BGZIP INITIAL JOINT CALLED VCF TABLE ######################################################################
-# ##############################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","T.18-A.01_VARIANT_TO_TABLE_BGZIP_COHORT_ALL_SITES_"$2"_"$1,\
-# "-hold_jid","T.18_VARIANT_TO_TABLE_COHORT_ALL_SITES_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_TO_TABLE_BGZIP_COHORT_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.18-A.01_VARIANT_TO_TABLE_BGZIP_COHORT_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2"\n""sleep 1s"}'
-#
-# ##############################################################################################################
-# ## TABIX INDEX INITIAL JOINT CALLED VCF TABLE ################################################################
-# ##############################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","T.18-A.01-A.01_VARIANT_TO_TABLE_TABIX_COHORT_ALL_SITES_"$2"_"$1,\
-# "-hold_jid","T.18-A.01_VARIANT_TO_TABLE_BGZIP_COHORT_ALL_SITES_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_TO_TABLE_TABIX_COHORT_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.18-A.01-A.01_VARIANT_TO_TABLE_TABIX_COHORT_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2"\n""sleep 1s"}'
-#
-#
-# #################################################################################
-# ########### RUNNING FILTER TO FAMILY ALL SITES BY CHROMOSOME ####################
-# #################################################################################
-#
-# CALL_FILTER_TO_FAMILY_ALL_SITES ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.03_FILTER_TO_FAMILY_ALL_SITES_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${FAMILY_ONLY_ARRAY[0]}/${FAMILY_ONLY_ARRAY[1]}/LOGS/${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}.FILTER_TO_FAMILY_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01-A.03_FILTER_TO_FAMILY_ALL_SITES_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${FAMILY_ONLY_ARRAY[0]} ${FAMILY_ONLY_ARRAY[1]} ${FAMILY_ONLY_ARRAY[2]} $CHROMOSOME
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"} {print $1}' $PED_FILE | sort | uniq );
-# do
-# CREATE_FAMILY_ONLY_ARRAY
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_FILTER_TO_FAMILY_ALL_SITES
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# #####################################################################################################
-# ##### GATHER UP THE PER FAMILY PER CHROMOSOME FILTER TO FAMILY VCF FILES INTO A SINGLE VCF FILE #####
-# #####################################################################################################
-#
-# BUILD_HOLD_ID_PATH_FILTER_TO_FAMILY_VCF ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01-A.03_FILTER_TO_FAMILY_ALL_SITES_"$FAMILY"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# CALL_FILTER_TO_FAMILY_VCF_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.03-1_FILTER_TO_FAMILY_ALL_SITES_GATHER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.FILTER_TO_FAMILY_ALL_SITES_GATHER.log \
-#  $SCRIPT_DIR/T.03-1_FILTER_TO_FAMILY_ALL_SITES_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-# 	BUILD_HOLD_ID_PATH_FILTER_TO_FAMILY_VCF
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_FILTER_TO_FAMILY_VCF_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ############################################################################################################
-# ##### DO PER CHROMOSOME VARIANT TO TABLE FOR FAMILY ########################################################
-# ############################################################################################################
-#
-# CALL_VARIANT_TO_TABLE_FAMILY_ALL_SITES ()
-# {
-# echo \
-# qsub \
-# -N T.03-2_VARIANT_TO_TABLE_FAMILY_ALL_SITES_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -hold_jid P.01-A.03_FILTER_TO_FAMILY_ALL_SITES_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${FAMILY_ONLY_ARRAY[0]}/${FAMILY_ONLY_ARRAY[1]}/LOGS/${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}.VARIANT_TO_TABLE_FAMILY_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/T.03-2_VARIANT_TO_TABLE_FAMILY_ALL_SITES_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${FAMILY_ONLY_ARRAY[0]} ${FAMILY_ONLY_ARRAY[1]} ${FAMILY_ONLY_ARRAY[2]} $CHROMOSOME
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"} {print $1}' $PED_FILE | sort | uniq );
-# do
-# CREATE_FAMILY_ONLY_ARRAY
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_VARIANT_TO_TABLE_FAMILY_ALL_SITES
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# ################################################################################################################
-# ##### GATHER PER CHROMOSOME VARIANT TO TABLE FOR FAMILY ########################################################
-# ################################################################################################################
-#
-# BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_FAMILY_GATHER ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"T.03-2_VARIANT_TO_TABLE_FAMILY_ALL_SITES_"$FAMILY"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-#
-# CALL_VARIANT_TO_TABLE_FAMILY_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.03-2-A.01_VARIANT_TO_TABLE_FAMILY_ALL_SITES_GATHER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.VARIANT_TO_TABLE_ALL_SITES_GATHER.log \
-#  $SCRIPT_DIR/T.03-2-A.01_VARIANT_TO_TABLE_FAMILY_ALL_SITES_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-# 	BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_FAMILY_GATHER
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_VARIANT_TO_TABLE_FAMILY_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ##############################################################################################################
-# ## BGZIP FAMILY ONLY VCF TABLE ###############################################################################
-# ##############################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","T.03-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_FAMILY_ALL_SITES_"$2"_"$1,\
-# "-hold_jid","T.03-2-A.01_VARIANT_TO_TABLE_FAMILY_ALL_SITES_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_TO_TABLE_BGZIP_FAMILY_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.03-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_FAMILY_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2"\n""sleep 1s"}'
-#
-# ##############################################################################################################
-# ## TABIX INDEX FAMILY ONLY VCF TABLE #########################################################################
-# ##############################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","T.03-2-A.01-A.01-A.01_VARIANT_TO_TABLE_TABIX_FAMILY_ALL_SITES_"$2"_"$1,\
-# "-hold_jid","T.03-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_FAMILY_ALL_SITES_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".VARIANT_TO_TABLE_TABIX_FAMILY_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.03-2-A.01-A.01-A.01_VARIANT_TO_TABLE_TABIX_FAMILY_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2"\n""sleep 1s"}'
-#
-# #################################################################################
-# ########### RUNNING FILTER TO SAMPLE ALL SITES BY CHROMOSOME ####################
-# #################################################################################
-#
-# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# # {
-# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {split($8,smtag,"[@]"); print $1,$8,$20,$12,$18,smtag[1]"_"smtag[2]}' \
-# # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# # for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# # do
-# # CREATE_PLATFORM_UNIT_ARRAY_2
-# # 	for CHROMOSOME in {{1..22},{X,Y}}
-# # 		do
-# # 		CALL_FILTER_TO_SAMPLE_ALL_SITES
-# # 		echo sleep 1s
-# # 		done
-# # 	done
-#
-# CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# {
-# PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_FILTER_TO_SAMPLE_ALL_SITES ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_PLATFORM_UNIT_ARRAY_2
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_FILTER_TO_SAMPLE_ALL_SITES
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# #####################################################################################################
-# ##### GATHER UP THE PER SAMPLE PER CHROMOSOME FILTER TO SAMPLE VCF FILES INTO A SINGLE VCF FILE #####
-# #####################################################################################################
-#
-# BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_"$SAMPLE"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# # CALL_FILTER_TO_SAMPLE_VCF_GATHER ()
-# # {
-# # echo \
-# # qsub \
-# # -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]} \
-# #  ${HOLD_ID_PATH} \
-# #  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[2]}/${PLATFORM_UNIT_ARRAY_2[1]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
-# #  $SCRIPT_DIR/T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER.sh \
-# #  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# #  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[3]}
-# # }
-#
-# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}'
-#
-# CALL_FILTER_TO_SAMPLE_VCF_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_GATHER.log \
-#  $SCRIPT_DIR/T.06-1_FILTER_TO_SAMPLE_ALL_SITES_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
-# }
-#
-# # for SAMPLE in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $8}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-# #  do
-# #  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF
-# # 	CREATE_PLATFORM_UNIT_ARRAY_2
-# # 	CALL_FILTER_TO_SAMPLE_VCF_GATHER
-# # 	echo sleep 1s
-# #  done
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-#  do
-#  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF
-# 	CREATE_PLATFORM_UNIT_ARRAY_2
-# 	CALL_FILTER_TO_SAMPLE_VCF_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ############################################################################################################
-# ##### DO PER CHROMOSOME VARIANT TO TABLE FOR SAMPLE ########################################################
-# ############################################################################################################
-#
-# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# # {
-# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# # print $1,$20,$8,$12,$16,smtag[1]"_"smtag[2]}' \
-# # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# CALL_VARIANT_TO_TABLE_SAMPLE_ALL_SITES ()
-# {
-# echo \
-# qsub \
-# -N T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01-A.04_FILTER_TO_SAMPLE_ALL_SITES_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_PLATFORM_UNIT_ARRAY_2
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_VARIANT_TO_TABLE_SAMPLE_ALL_SITES
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# ################################################################################################################
-# ##### GATHER PER CHROMOSOME VARIANT TO TABLE FOR SAMPLE ########################################################
-# ################################################################################################################
-#
-# BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_SAMPLE_GATHER ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"T.06-2_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_"$SAMPLE"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# CALL_VARIANT_TO_TABLE_SAMPLE_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER.log \
-#  $SCRIPT_DIR/T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-#  do
-# 	BUILD_HOLD_ID_PATH_VARIANT_TO_TABLE_SAMPLE_GATHER
-# 	CREATE_PLATFORM_UNIT_ARRAY_2
-# 	CALL_VARIANT_TO_TABLE_SAMPLE_GATHER
-# 	echo sleep 1s
-#  done
-#
-# #################################################################################################################
-# ## ## BGZIP SAMPLE ONLY VCF TABLE ###############################################################################
-# #################################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","T.06-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_SAMPLE_ALL_SITES_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","T.06-2-A.01_VARIANT_TO_TABLE_SAMPLE_ALL_SITES_GATHER_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".VARIANT_TO_TABLE_BGZIP_SAMPLE_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.06-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_SAMPLE_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# #################################################################################################################
-# ## ## TABIX INDEX SAMPLE ONLY VCF TABLE #########################################################################
-# #################################################################################################################
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","T.06-2-A.01-A.01-A.01_VARIANT_TO_TABLE_TABIX_SAMPLE_ALL_SITES_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","T.06-2-A.01-A.01_VARIANT_TO_TABLE_BGZIP_SAMPLE_ALL_SITES_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".VARIANT_TO_TABLE_TABIX_SAMPLE_ALL_SITES.log",\
-# "'$SCRIPT_DIR'""/T.06-2-A.01-A.01-A.01_VARIANT_TO_TABLE_TABIX_SAMPLE_ALL_SITES.sh",\
-# "'$TABIX_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ###########################################################################################
-# ########### RUNNING FILTER TO SAMPLE ALL SITES BY CHROMOSOME ON TARGET ####################
-# ###########################################################################################
-#
-# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# # {
-# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} $8=="'$SAMPLE'" {print $1,$8,$20,$12,$18}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# {
-# PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# print $1,$20,$8,$12,$18,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# }
-#
-# CALL_FILTER_TO_SAMPLE_ALL_SITES_ON_TARGET ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]} $CHROMOSOME
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_PLATFORM_UNIT_ARRAY_2
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_FILTER_TO_SAMPLE_ALL_SITES_ON_TARGET
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# ###############################################################################################################
-# ##### GATHER UP THE PER SAMPLE PER CHROMOSOME FILTER TO SAMPLE VCF FILES ON TARGET INTO A SINGLE VCF FILE #####
-# ###############################################################################################################
-#
-# BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF_TARGET ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01-A.05_FILTER_TO_SAMPLE_ALL_SITES_TARGET_"$SAMPLE"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# # CREATE_PLATFORM_UNIT_ARRAY_2 ()
-# # {
-# # PLATFORM_UNIT_ARRAY_2=(`awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); if (smtag[1]"_"smtag[2]=="'$SAMPLE'") \
-# # print $1,$20,$8,$12,$18,smtag[1]"_"smtag[2]}' \
-# # ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# CALL_FILTER_TO_SAMPLE_VCF_TARGET_GATHER ()
-# {
-# echo \
-# qsub \
-# -N T.15_FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER_${PLATFORM_UNIT_ARRAY_2[1]}_${SAMPLE}_${PLATFORM_UNIT_ARRAY_2[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_2[0]}/${PLATFORM_UNIT_ARRAY_2[1]}/${PLATFORM_UNIT_ARRAY_2[2]}/LOGS/${PLATFORM_UNIT_ARRAY_2[1]}_${PLATFORM_UNIT_ARRAY_2[2]}_${PLATFORM_UNIT_ARRAY_2[0]}.FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER.log \
-#  $SCRIPT_DIR/T.15_FILTER_TO_SAMPLE_ALL_SITES_TARGET_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${PLATFORM_UNIT_ARRAY_2[0]} ${PLATFORM_UNIT_ARRAY_2[1]} ${PLATFORM_UNIT_ARRAY_2[2]} ${PLATFORM_UNIT_ARRAY_2[3]}
-# }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {if ($8~"@") {split($8,smtag,"[@]"); print smtag[1]"_"smtag[2]} else print $8"_"}' $SAMPLE_SHEET | sort | uniq );
-#  do
-#  	BUILD_HOLD_ID_PATH_FILTER_TO_SAMPLE_VCF_TARGET
-# 	CREATE_PLATFORM_UNIT_ARRAY_2
-# 	CALL_FILTER_TO_SAMPLE_VCF_TARGET_GATHER
-# 	echo sleep 1s
-#  done
-#
-# ###########################################################################################
-# ########### RUNNING FILTER TO FAMILY ALL SITES BY CHROMOSOME ON TARGET ####################
-# ###########################################################################################
-#
-# # CREATE_FAMILY_ONLY_ARRAY ()
-# # {
-# # FAMILY_ONLY_ARRAY=(`awk 'BEGIN {FS="\t"; OFS="\t"} $20=="'$FAMILY'" {print $1,$20,$12,$18,$17}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt`)
-# # }
-#
-# CALL_FILTER_TO_FAMILY_ON_TARGET_VARIANT ()
-# {
-# echo \
-# qsub \
-# -N P.01-A.06_FILTER_TO_FAMILY_TARGET_VARIANT_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -hold_jid P.01_VARIANT_ANNOTATOR_${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}_$CHROMOSOME \
-# -o $CORE_PATH/${FAMILY_ONLY_ARRAY[0]}/${FAMILY_ONLY_ARRAY[1]}/LOGS/${FAMILY_ONLY_ARRAY[1]}_${FAMILY_ONLY_ARRAY[0]}.FILTER_TO_FAMILY_ALL_SITES_$CHROMOSOME.log \
-# $SCRIPT_DIR/P.01-A.06_FILTER_TO_FAMILY_ON_TARGET_VARIANT_ONLY_CHR.sh \
-# $JAVA_1_8 $GATK_DIR $CORE_PATH \
-# ${FAMILY_ONLY_ARRAY[0]} ${FAMILY_ONLY_ARRAY[1]} ${FAMILY_ONLY_ARRAY[2]} ${FAMILY_ONLY_ARRAY[4]} $CHROMOSOME
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"} {print $1}' $PED_FILE | sort | uniq );
-# do
-# CREATE_FAMILY_ONLY_ARRAY
-# 	for CHROMOSOME in {{1..22},{X,Y}}
-# 		do
-# 		CALL_FILTER_TO_FAMILY_ON_TARGET_VARIANT
-# 		echo sleep 1s
-# 		done
-# 	done
-#
-# ###############################################################################################################
-# ##### GATHER UP THE PER FAMILY PER CHROMOSOME ON TARGET FILTER TO FAMILY VCF FILES INTO A SINGLE VCF FILE #####
-# ###############################################################################################################
-#
-# BUILD_HOLD_ID_PATH_FILTER_TO_FAMILY_VCF_TARGET_VARIANT ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"P.01-A.06_FILTER_TO_FAMILY_TARGET_VARIANT_"$FAMILY"_"$PROJECT"_"$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-# CALL_FILTER_TO_FAMILY_VCF_GATHER_TARGET_VARIANT ()
-# {
-# echo \
-# qsub \
-# -N T.09-1_FILTER_TO_FAMILY_ON_TARGET_VARIANT_GATHER_${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]} \
-#  ${HOLD_ID_PATH} \
-#  -o $CORE_PATH/${FAMILY_INFO_ARRAY[0]}/${FAMILY_INFO_ARRAY[2]}/LOGS/${FAMILY_INFO_ARRAY[2]}_${FAMILY_INFO_ARRAY[0]}.FILTER_TO_FAMILY_ON_TARGET_VARIANT_GATHER.log \
-#  $SCRIPT_DIR/T.09-1_FILTER_TO_FAMILY_ON_TARGET_VARIANT_ONLY_GATHER.sh \
-#  $JAVA_1_8 $GATK_DIR $CORE_PATH \
-#  ${FAMILY_INFO_ARRAY[0]} ${FAMILY_INFO_ARRAY[2]} ${FAMILY_INFO_ARRAY[3]}
-# }
-#
-# for FAMILY in $(awk 'BEGIN {FS="\t"; OFS="\t"} {print $20}' ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt | sort | uniq)
-#  do
-# 	BUILD_HOLD_ID_PATH_FILTER_TO_FAMILY_VCF_TARGET_VARIANT
-# 	CREATE_FAMILY_INFO_ARRAY
-# 	CALL_FILTER_TO_FAMILY_VCF_GATHER_TARGET_VARIANT
-# 	echo sleep 1s
-#  done
-#
-# ###############################
-# ##### DOING VCF BREAKOUTS #####
-# ###############################
-#
-# ### SUBSETTING FROM COHORT (FAMILY PLUS CONTROL SET) VCF ###
-#
-# # FILTER TO JUST VARIANT SITES
-# # I think Molly might like this output, but if not, then don't have to generate it.
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","S.01_FILTER_COHORT_VARIANT_ONLY_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".FILTER_COHORT_VARIANT_ONLY.log",\
-# "'$SCRIPT_DIR'""/S.01_FILTER_COHORT_VARIANT_ONLY.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # FILTER TO JUST PASSING VARIANT SITES
-# # I think statgen is using this for some of their programs
-# # If not needed then don't generate
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
-# | uniq \
-# | awk '{print "qsub","-N","S.02_FILTER_COHORT_VARIANT_ONLY_PASS_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".FILTER_COHORT_VARIANT_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.02_FILTER_COHORT_VARIANT_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # FILTER TO JUST PASSING BIALLELIC SNV SITES
-# # TEMPORARY FILE USED FOR PCA AND RELATEDNESS
-#
-# awk 'BEGIN {OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1,1 -k 2,2 \
-# | uniq \
-# | awk '{print "qsub","-N","S.03_FILTER_COHORT_SNV_ONLY_PASS_BIALLELIC_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".FILTER_COHORT_SNV_ONLY_PASS_BIALLELIC.log",\
-# "'$SCRIPT_DIR'""/S.03_FILTER_COHORT_SNV_ONLY_PASS_BIALLELIC.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# # RUN HUAS WORKFLOW FOR PCA AND RELATEDNESS
-#
-# awk 'BEGIN {OFS="\t"} {print $1,$20,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1,1 -k 2,2 \
-# | uniq \
-# | awk '{print "qsub","-N","S.03-A.01_PCA_RELATEDNESS_"$2"_"$1,\
-# "-hold_jid","S.03_FILTER_COHORT_SNV_ONLY_PASS_BIALLELIC_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/LOGS/"$2"_"$1".PCA_RELATEDNESS.log",\
-# "'$SCRIPT_DIR'""/S.03-A.01_PCA_RELATEDNESS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'","'$VCFTOOLS_DIR'","'$PLINK2_DIR'","'$KING_DIR'",$1,$2,$3,"'$PED_FILE'","'$CONTROL_PED_FILE'""\n""sleep 1s"}'
-#
-# #################################
-# ### SUBSETTING TO SAMPLE VCFS ###
-# #################################
-#
-# ## SUBSET TO SAMPLE VARIANTS ONLY ON BAIT
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.07_FILTER_TO_SAMPLE_VARIANTS_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/LOGS/"$3"_"$1".FILTER_TO_VARIANTS.log",\
-# "'$SCRIPT_DIR'""/S.07_FILTER_TO_SAMPLE_VARIANTS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 3s"}'
-#
-# ## SUBSET TO SAMPLE PASSING SNVS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09_FILTER_TO_SNV_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_SNV_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.09_FILTER_TO_SAMPLE_SNV_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO SAMPLE PASSING INDELS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.10_FILTER_TO_INDEL_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_INDEL_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.10_FILTER_TO_SAMPLE_INDEL_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO SAMPLE PASSING MIXED
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.11_FILTER_TO_MIXED_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_MIXED_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.11_FILTER_TO_SAMPLE_MIXED_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO TARGET SNV ONLY PASS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.12_FILTER_TO_SAMPLE_TARGET_SNV_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TARGET_SNV_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.12_FILTER_TO_SAMPLE_TARGET_SNV_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO TARGET INDEL ONLY PASS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.13_FILTER_TO_SAMPLE_TARGET_INDEL_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TARGET_INDEL_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.13_FILTER_TO_SAMPLE_TARGET_INDEL_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO TARGET MIXED ONLY PASS
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.14_FILTER_TO_SAMPLE_TARGET_MIXED_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TARGET_MIXED_ONLY_PASS.log",\
-# "'$SCRIPT_DIR'""/S.14_FILTER_TO_SAMPLE_TARGET_MIXED_ONLY_PASS.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 1s"}'
-#
-# ## SUBSET TO SAMPLE VARIANTS ONLY ON TARGET
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.16_FILTER_TO_SAMPLE_VARIANTS_TARGET_"smtag[1]"_"smtag[2]"_"$1,\
-# "-hold_jid","P.01-A.01_VARIANT_ANNOTATOR_GATHER_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/LOGS/"$3"_"$1".FILTER_TO_VARIANTS_TARGET.log",\
-# "'$SCRIPT_DIR'""/S.16_FILTER_TO_SAMPLE_VARIANTS_TARGET.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4"\n""sleep 3s"}'
-#
-#
-# ####################
-# ### TITV SECTION ###
-# ####################
-#
-# # BREAK DOWN TO ALL PASSING SNV THAT FALL IN TITV BED FILE
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.01_FILTER_TO_SAMPLE_TITV_VCF_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09_FILTER_TO_SNV_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TITV_VCF.log",\
-# "'$SCRIPT_DIR'""/S.09-A.01_FILTER_TO_SAMPLE_TITV_VCF.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,$5"\n""sleep 1s"}'
-#
-# # BREAK DOWN TO ALL PASSING SNV THAT FALL IN TITV BED FILE AND OVERLAP WITH DBSNP 129
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.02_FILTER_TO_SAMPLE_TITV_VCF_KNOWN_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09_FILTER_TO_SNV_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TITV_VCF_KNOWN.log",\
-# "'$SCRIPT_DIR'""/S.09-A.02_FILTER_TO_SAMPLE_TITV_VCF_KNOWN.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,$5,"'$DBSNP_129'""\n""sleep 1s"}'
-#
-# # BREAK DOWN TO ALL PASSING SNV THAT FALL IN TITV BED FILE AND DO NOT OVERLAP WITH DBSNP 129
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$12,$15}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.03_FILTER_TO_SAMPLE_TITV_VCF_NOVEL_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09_FILTER_TO_SNV_ONLY_PASS_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".FILTER_TO_TITV_VCF_NOVEL.log",\
-# "'$SCRIPT_DIR'""/S.09-A.03_FILTER_TO_SAMPLE_TITV_VCF_NOVEL.sh",\
-# "'$JAVA_1_8'","'$GATK_DIR'","'$CORE_PATH'",$1,$2,$3,$4,$5,"'$DBSNP_129'""\n""sleep 1s"}'
-#
-# ### RUN TITV FOR THE PASSING SNVS THAT FALL IN UCSC CODING REGIONS THAT TOUCH EITHER THE BED OR TARGET FILE
-#
-# ## ALL SNVS TITV
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.01-A.01_TITV_ALL_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09-A.01_FILTER_TO_SAMPLE_TITV_VCF_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".RUN_TITV_ALL.log",\
-# "'$SCRIPT_DIR'""/S.09-A.01-A.01_TITV_ALL.sh",\
-# "'$SAMTOOLS_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ## ALL KNOWN SNVS TITV
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.02-A.01_TITV_KNOWN_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09-A.02_FILTER_TO_SAMPLE_TITV_VCF_KNOWN_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".RUN_TITV_KNOWN.log",\
-# "'$SCRIPT_DIR'""/S.09-A.02-A.01_TITV_KNOWN.sh",\
-# "'$SAMTOOLS_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ## ALL NOVEL SNVS TITV
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.09-A.03-A.01_TITV_NOVEL_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.09-A.03_FILTER_TO_SAMPLE_TITV_VCF_NOVEL_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".RUN_TITV_NOVEL.log",\
-# "'$SCRIPT_DIR'""/S.09-A.03-A.01_TITV_NOVEL.sh",\
-# "'$SAMTOOLS_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 1s"}'
-#
-# ###################
-# ##### ANNOVAR #####
-# ###################
-#
-# ## RUN ANNOVAR
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1,1 -k 2,2 -k 3,3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.16-A.01_RUN_ANNOVAR_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.16_FILTER_TO_SAMPLE_VARIANTS_TARGET_"smtag[1]"_"smtag[2]"_"$1,\
-# "-pe slots 5",\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".RUN_ANNOVAR.log",\
-# "'$SCRIPT_DIR'""/S.16-A.01_RUN_ANNOVAR.sh",\
-# "'$JAVA_1_6'","'$CIDRSEQSUITE_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 3s"}'
-#
-# ## REFORMAT ANNOVAR
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1,1 -k 2,2 -k 3,3 \
-# | uniq \
-# | awk '{split($3,smtag,"[@]"); print "qsub","-N","S.16-A.01-A.01_REFORMAT_ANNOVAR_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-hold_jid","S.16-A.01_RUN_ANNOVAR_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/"$2"/"$3"/LOGS/"$3"_"$2"_"$1".REFORMAT_ANNOVAR.log",\
-# "'$SCRIPT_DIR'""/S.16-A.01-A.01_REFORMAT_ANNOVAR.sh",\
-# "'$ANNOVAR_DIR'","'$CORE_PATH'",$1,$2,$3"\n""sleep 3s"}'
 #
 # ######### FINISH UP #################
 #

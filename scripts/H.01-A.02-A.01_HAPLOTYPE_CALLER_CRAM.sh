@@ -29,28 +29,30 @@ PROJECT=$3
 SM_TAG=$4
 REF_GENOME=$5
 
-## --index the cram file
-START_INDEX_CRAM=`date '+%s'`
+## --write lossless cram file.
+
+START_HC_CRAM=`date '+%s'`
 
 $SAMTOOLS_DIR/samtools \
-index \
-$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram"
+view \
+-C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam" \
+-T $REF_GENOME \
+-@ 4 \
+-o $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram"
 
-# make a copy/rename the cram index file since their appears to be two useable standards
-
-cp $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.crai" \
-$CORE_PATH/$PROJECT/CRAM/$SM_TAG".crai"
-
-END_INDEX_CRAM=`date '+%s'`
+END_HC_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT",G.01,INDEX_CRAM,"$HOSTNAME","$START_INDEX_CRAM","$END_INDEX_CRAM \
+echo $SM_TAG"_"$PROJECT",H.01-A.01-A.01,HC_CRAM,"$HOSTNAME","$START_HC_CRAM","$END_HC_CRAM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 echo $SAMTOOLS_DIR/samtools \
-index \
-$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+view \
+-C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam" \
+-T $REF_GENOME \
+-@ 4 \
+-o $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

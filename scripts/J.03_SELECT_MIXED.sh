@@ -17,7 +17,6 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
 set
 
@@ -30,39 +29,33 @@ CORE_PATH=$3
 PROJECT=$4
 SM_TAG=$5
 REF_GENOME=$6
-DBSNP=$7
-CHROMOSOME=$8
 
-START_GENOTYPE_GVCF=`date '+%s'`
+# Filter to MIXED
+
+START_SELECT_MIXED=`date '+%s'`
 
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T GenotypeGVCFs \
--R $REF_GENOME \
---dbsnp $DBSNP \
+-T SelectVariants \
 --disable_auto_index_creation_and_locking_when_reading_rods \
--G Standard \
--G AS_Standard \
--L $CHROMOSOME \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz"
+-R $REF_GENOME \
+--selectTypeToInclude MIXED \
+--variant $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz" \
+-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_MIXED.vcf.gz"
 
-END_GENOTYPE_GVCF=`date '+%s'`
+END_SELECT_MIXED=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT,I.01,GENOTYPE_GVCF_$CHROMOSOME,"$HOSTNAME","$START_GENOTYPE_GVCF","$END_GENOTYPE_GVCF \
+echo $SM_TAG"_"$PROJECT",J.01,SELECT_MIXED,"$HOSTNAME","$START_SELECT_MIXED","$END_SELECT_MIXED \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T GenotypeGVCFs \
--R $REF_GENOME \
---dbsnp $DBSNP \
+echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+-T SelectVariants \
 --disable_auto_index_creation_and_locking_when_reading_rods \
--G Standard \
--G AS_Standard \
--L $CHROMOSOME \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz" \
+-R $REF_GENOME \
+--selectTypeToInclude MIXED \
+--variant $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz" \
+-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_MIXED.vcf.gz" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

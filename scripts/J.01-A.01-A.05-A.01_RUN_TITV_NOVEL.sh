@@ -17,27 +17,30 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
 set
 
 echo
 
-CORE_PATH=$1
+SAMTOOLS_0118_DIR=$1
+CORE_PATH=$2
 
-PROJECT=$2
-SM_TAG=$3
+PROJECT=$3
+SM_TAG=$4
 
-## do md5sum on the cram file
+# Filter to just on SNVS
 
-START_MD5SUM_CRAM=`date '+%s'`
+START_RUN_TITV_NOVEL=`date '+%s'`
 
-md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
->> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
+zcat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Novel.vcf.gz" \
+| $SAMTOOLS_0118_DIR/bcftools/vcfutils.pl \
+qstats \
+/dev/stdin \
+>| /$CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Novel_.titv.txt"
 
-END_MD5SUM_CRAM=`date '+%s'`
+END_RUN_TITV_NOVEL=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT",G.01,MD5SUM_CRAM,"$HOSTNAME","$START_MD5SUM_CRAM","$END_MD5SUM_CRAM \
->> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
+echo $SM_TAG"_"$PROJECT",M.01,RUN_TITV_NOVEL,"$HOSTNAME","$START_RUN_TITV_NOVEL","$END_RUN_TITV_NOVEL \
+>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WNOVEL.CLOCK.TIMES.csv"

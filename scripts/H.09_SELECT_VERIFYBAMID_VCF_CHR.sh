@@ -4,9 +4,6 @@
 # tell sge to execute in bash
 #$ -S /bin/bash
 
-# tell sge to submit any of these queue when available
-#$ -q cgc.q
-
 # tell sge that you are in the users current working directory
 #$ -cwd
 
@@ -24,17 +21,18 @@
 
 set
 
+echo
+
 JAVA_1_8=$1
 GATK_DIR=$2
 CORE_PATH=$3
 VERIFY_VCF=$4
 
 PROJECT=$5
-FAMILY=$6
-SM_TAG=$7
-REF_GENOME=$8
-TI_TV_BED=$9
-CHROMOSOME=${10}
+SM_TAG=$6
+REF_GENOME=$7
+TARGET_BED=$8
+CHROMOSOME=$9
 
 START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
@@ -42,7 +40,7 @@ $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
 --reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $TI_TV_BED \
+-L $TARGET_BED \
 -L $CHROMOSOME \
 -XL X \
 -XL Y \
@@ -60,7 +58,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
 --reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $TI_TV_BED \
+-L $TARGET_BED \
 -L $CHROMOSOME \
 -XL X \
 -XL Y \

@@ -23,15 +23,14 @@ set
 echo
 
 JAVA_1_8=$1
-GATK_DIR=$2
+PICARD_DIR=$2
 CORE_PATH=$3
 
 PROJECT=$4
 SM_TAG=$5
-REF_GENOME=$6
-TARGET_BED=$7
+TARGET_BED=$6
 
-## -----CONCATENATE SCATTERED RAW VCF FILES INTO A SINGLE GRCh37 reference sorted vcf file-----
+## -----Cat Variants-----
 
 # Start with creating a *list file, reference sorted, to put into --variant.
 # Assumption is that this is a correctly sorted GRCh37 reference file as the input reference used
@@ -45,7 +44,7 @@ sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 | uniq \
 | awk '$1~/^[0-9]/' \
 | sort -k1,1n \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
 
 # Append X if present
 
@@ -55,7 +54,7 @@ sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 | sort \
 | uniq \
 | awk '$1=="X"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
 
 # Append Y if present
 
@@ -65,7 +64,7 @@ sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 | sort \
 | uniq \
 | awk '$1=="Y"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
 
 # Append MT if present
 
@@ -75,30 +74,32 @@ sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 | sort \
 | uniq \
 | awk '$1=="MT"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
 
-START_GENOTYPE_GVCF_GATHER=`date '+%s'`
+## --Merge and Sort Bam files--
 
-$JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
-org.broadinstitute.gatk.tools.CatVariants \
--R $REF_GENOME \
---assumeSorted \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list" \
---outputFile $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz"
+START_HC_BAM_GATHER=`date '+%s'`
 
-END_GENOTYPE_GVCF_GATHER=`date '+%s'`
+$JAVA_1_8/java -jar $PICARD_DIR/picard.jar \
+GatherBamFiles \
+INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt" \
+OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam" \
+VALIDATION_STRINGENCY=SILENT \
+CREATE_INDEX=true
+
+END_HC_BAM_GATHER=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT",I.01-A.01,GENOTYPE_GVCF_GATHER,"$HOSTNAME","$START_GENOTYPE_GVCF_GATHER","$END_GENOTYPE_GVCF_GATHER \
+echo $SM_TAG"_"$PROJECT",H.01-A.01,MERGE_HC_BAM,"$HOSTNAME","$START_HC_BAM_GATHER","$END_HC_BAM_GATHER \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
-org.broadinstitute.gatk.tools.CatVariants \
--R $REF_GENOME \
---assumeSorted \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list" \
---outputFile $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz" \
+echo $JAVA_1_8/java -jar $PICARD_DIR/picard.jar \
+GatherBamFiles \
+INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt" \
+OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam" \
+VALIDATION_STRINGENCY=SILENT \
+CREATE_INDEX=true \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

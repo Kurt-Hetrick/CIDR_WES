@@ -23,39 +23,35 @@ set
 
 echo
 
-CORE_PATH=$1
-VERIFY_DIR=$2
+SAMTOOLS_DIR=$1
+CORE_PATH=$2
 
 PROJECT=$3
 SM_TAG=$4
-CHROMOSOME=$5
+REF_GENOME=$5
 
-## --Running verifyBamID--
+## --index the cram file
+START_INDEX_HC_CRAM=`date '+%s'`
 
-START_VERIFYBAMID_CHR=`date '+%s'`
+$SAMTOOLS_DIR/samtools \
+index \
+$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram"
 
-$VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
---out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
---precise \
---verbose \
---maxDepth 2500
+# make a copy/rename the cram index file since their appears to be two useable standards
 
-END_VERIFYBAMID_CHR=`date '+%s'`
+cp $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram.crai" \
+$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.crai"
+
+END_INDEX_HC_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
 
-echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.09,VERIFYBAMID_"$CHROMOSOME","$HOSTNAME","$START_VERIFYBAMID_CHR","$END_VERIFYBAMID_CHR \
+echo $SM_TAG"_"$PROJECT",H.01-A.01-A.01-A.01,INDEX_HC_CRAM,"$HOSTNAME","$START_INDEX_HC_CRAM","$END_INDEX_HC_CRAM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
---out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
---precise \
---verbose \
---maxDepth 2500 \
+echo $SAMTOOLS_DIR/samtools \
+index \
+$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
