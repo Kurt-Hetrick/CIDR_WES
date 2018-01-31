@@ -223,7 +223,7 @@ grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapte
 
 zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_SNV.vcf.gz" \
 | awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-END {if (SNV_COUNT>=l) {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
+END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
 else {print "0","NaN"}}' \
 | sed 's/ /\t/g' \
 | $DATAMASH_DIR/datamash transpose \
@@ -238,7 +238,7 @@ else {print "0","NaN"}}' \
 
 zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
 | awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-END {if (SNV_COUNT>=l) {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
+END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
 else {print "0","NaN"}}' \
 | sed 's/ /\t/g' \
 | $DATAMASH_DIR/datamash transpose \
@@ -351,6 +351,8 @@ else print "0","NaN"}' \
 | sed 's/ /\t/g' \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+
 
 cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt" \
 | $DATAMASH_DIR/datamash transpose \
