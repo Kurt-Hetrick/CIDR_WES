@@ -102,7 +102,7 @@ $CORE_PATH/$SEQ_PROJECT/MIXED/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/MIXED/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/VCF/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 $CORE_PATH/$SEQ_PROJECT/VCF/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
-$CORE_PATH/$SEQ_PROJECT/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,VERIFYBAMID_CHR} \
+$CORE_PATH/$SEQ_PROJECT/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,VERIFYBAMID_CHR,QC_REPORT_PREP,QC_REPORTS} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/{TI_TV,TI_TV_MS} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 $CORE_PATH/$SEQ_PROJECT/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
@@ -244,12 +244,12 @@ $SEQUENCER_MODEL \
 $REF_GENOME
 }
 
-for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
-do
-CREATE_PLATFORM_UNIT_ARRAY
-RUN_BWA
-echo sleep 0.1s
-done
+# for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
+# do
+# CREATE_PLATFORM_UNIT_ARRAY
+# RUN_BWA
+# echo sleep 0.1s
+# done
 
 ###############################################################################
 # create a hold job id qsub command line based on the number of ###############
@@ -258,27 +258,27 @@ done
 # I want to clean this up eventually, but not in the mood for it right now. ###
 ###############################################################################
 
-awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
-$SAMPLE_SHEET \
-| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
-| sort -k 1,1 -k 2,2 -k 3,3 \
-| uniq \
-| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
-| awk 'BEGIN {FS="\t"} \
-gsub(/,/,",A.01-BWA_"$2"_",$3) \
-gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
-{print "qsub",\
-"-S /bin/bash",\
-"-cwd",\
-"-V",\
-"-q","'$QUEUE_LIST'",\
-"-p","'$PRIORITY'",\
-"-N","B.01-MERGE_BAM_"$5"_"$1,\
-"-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
-"-j y",\
-"-hold_jid","A.01-BWA_"$5"_"$3, \
-"'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
-"'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 1s"}'
+# awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
+# $SAMPLE_SHEET \
+# | awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
+# | sort -k 1,1 -k 2,2 -k 3,3 \
+# | uniq \
+# | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
+# | awk 'BEGIN {FS="\t"} \
+# gsub(/,/,",A.01-BWA_"$2"_",$3) \
+# gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
+# {print "qsub",\
+# "-S /bin/bash",\
+# "-cwd",\
+# "-V",\
+# "-q","'$QUEUE_LIST'",\
+# "-p","'$PRIORITY'",\
+# "-N","B.01-MERGE_BAM_"$5"_"$1,\
+# "-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
+# "-j y",\
+# "-hold_jid","A.01-BWA_"$5"_"$3, \
+# "'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
+# "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
 ###################################################
@@ -945,13 +945,13 @@ $SM_TAG \
 $TARGET_BED
 }
 
-for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
- do
-	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
-	CREATE_SAMPLE_ARRAY
-	CALL_VERIFYBAMID_CHR_GATHER
-	echo sleep 0.1s
- done
+# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+# do
+#	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
+#	CREATE_SAMPLE_ARRAY
+#	CALL_VERIFYBAMID_CHR_GATHER
+#	echo sleep 0.1s
+# done
 
 ###############################################################
 
@@ -1613,9 +1613,38 @@ $PROJECT \
 $SM_TAG
 }
 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_SAMPLE_ARRAY
+QC_REPORT_PREP ()
+{
+echo \
+qsub \
+-S /bin/bash \
+-cwd \
+-V \
+-q $QUEUE_LIST \
+-p $PRIORITY \
+-N X1"_"$SGE_SM_TAG \
+-hold_jid J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-QC_REPORT_PREP_QC.log \
+$SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
+$SAMTOOLS_DIR \
+$DATAMASH_DIR \
+$CORE_PATH \
+$PROJECT \
+$SM_TAG
+}
+
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_SAMPLE_ARRAY
 # HC_BAM_TO_CRAM
 # echo sleep 0.1s
 # HC_INDEX_CRAM
@@ -1658,71 +1687,56 @@ $SM_TAG
 # echo sleep 0.1s
 # RUN_TITV_NOVEL
 # echo sleep 0.1s
-# done
+QC_REPORT_PREP
+echo sleep 0.1
+done
 
-# #####################################################
-# ### JOIN THE PER CHROMOSOME VERIFYBAMID REPORTS #####
-# #####################################################
-#
-# BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID_CHR ()
-# {
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in {{1..22},{X,Y}};
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.09-A.01_VERIFYBAMID_"${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}"_"${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}"_"chr$CHROMOSOME","
-#  	done
-#  done
-# }
-#
-#  CAT_VERIFYBAMID_CHR ()
-#  {
-# echo \
-# qsub \
-# -N H.09-A.01-A.01_JOIN_VERIFYBAMID_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[5]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} \
-# $HOLD_ID_PATH \
-# -o $CORE_PATH/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]}/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}/LOGS/${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}_${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]}.CAT_VERIFYBAMID_CHR.log \
-# $SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
-# $CORE_PATH \
-# ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[0]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[1]} ${PLATFORM_UNIT_ARRAY_VERIFY_BAM[2]}
-#  }
-#
-# for SAMPLE in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-#  do
-#  	CREATE_PLATFORM_UNIT_ARRAY_VERIFY_BAM
-# 	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID_CHR
-# 	CAT_VERIFYBAMID_CHR
-# 	echo sleep 1s
-#  done
-#
-# ######### FINISH UP #################
-#
-# ### QC REPORT PREP ###
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {print $1,$20,$8,$21,$22,$23,$24}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 -k 3 \
-# | uniq \
-# | awk 'BEGIN {FS="\t"}
-# {split($3,smtag,"[@]"); print "qsub","-N","X.01-QC_REPORT_PREP_"$1"_"smtag[1]"_"smtag[2],\
-# "-hold_jid","S.16-A.01-A.01_REFORMAT_ANNOVAR_"smtag[1]"_"smtag[2]"_"$2"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/LOGS/"$3"_"$1".QC_REPORT_PREP.log",\
-# "'$SCRIPT_DIR'""/X.01-QC_REPORT_PREP.sh",\
-# "'$SAMTOOLS_DIR'","'$CORE_PATH'","'$DATAMASH_DIR'",$1,$2,$3,$4,$5,$6,$7"\n""sleep 1s"}'
-#
-# ### END PROJECT TASKS ###
-#
-# awk 'BEGIN {FS="\t"; OFS="\t"} {split($8,smtag,"[@]"); print $1,smtag[1]"_"smtag[2]}' \
-# ~/CGC_PIPELINE_TEMP/$MANIFEST_PREFIX.$PED_PREFIX.join.txt \
-# | sort -k 1 -k 2 \
+#############################
+##### END PROJECT TASKS #####
+#############################
+
+# Maybe I'll make this a function and throw it into a loop, but today is not that day.
+# I think that i will have to make this a look to handle multiple projects...maybe not
+# but again, today is not that day.
+
+awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
+$SAMPLE_SHEET \
+| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
+| sort -k 1,1 -k 2,2 \
+| uniq \
+| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
+| awk 'BEGIN {FS="\t"} \
+gsub (/,/,",X1_",$2) \
+{print "qsub",\
+"-S /bin/bash",\
+"-cwd",\
+"-V",\
+"-q","'$QUEUE_LIST'",\
+"-p","'$PRIORITY'",\
+"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
+"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
+"-j y",\
+"-hold_jid","X1_"$2, \
+"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
+"'$CORE_PATH'","'$DATAMASH_DIR'",$1"\n""sleep 0.1s"}'
+
+# awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
+# $SAMPLE_SHEET \
+# | awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
+# | sort -k 1,1 -k 2,2 \
 # | uniq \
 # | $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
-# | awk 'BEGIN {FS="\t"}
-# gsub (/,/,",X.01-QC_REPORT_PREP_"$1"_",$2) \
-# {print "qsub","-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
-# "-hold_jid","X.01-QC_REPORT_PREP_"$1"_"$2,\
+# | awk 'BEGIN {FS="\t"} \
+# gsub (/,/,",X.01-QC_REPORT_PREP_QC_"$1"_",$2) \
+# {print "qsub",\
+# "-S /bin/bash",\
+# "-cwd",\
+# "-V",\
+# "-q","'$QUEUE_LIST'",\
+# "-p","'$PRIORITY'",\
+# "-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 # "-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
+# "-j y",\
+# "-hold_jid","X.01-QC_REPORT_PREP_QC_"$1"_"$2, \
 # "'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-# "'$CORE_PATH'","'$DATAMASH_DIR'",$1"\n""sleep 1s"}'
-#
+# "'$CORE_PATH'","'$DATAMASH_DIR'",$1"\n""sleep 0.1s"}'
