@@ -17,7 +17,6 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
 set
 
@@ -48,10 +47,10 @@ INPUT=$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG \
 REFERENCE_SEQUENCE=$REF_GENOME \
 DB_SNP=$DBSNP \
-INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTiTv.picard_2.bed" \
+INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard_2.bed" \
 PROGRAM=CollectGcBiasMetrics \
 PROGRAM=CollectSequencingArtifactMetrics \
-PROGRAM=CollectQualityYieldMetrics 
+PROGRAM=CollectQualityYieldMetrics
 
 END_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 
@@ -60,16 +59,16 @@ HOSTNAME=`hostname`
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,COLLECT_MULTIPLE_METRICS,"$HOSTNAME","$START_COLLECT_MULTIPLE_METRICS","$END_COLLECT_MULTIPLE_METRICS \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $$JAVA_1_8/java -jar $PICARD_DIR/picard.jar \
+echo $JAVA_1_8/java -jar $PICARD_DIR/picard.jar \
 CollectMultipleMetrics \
 INPUT=$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG \
 REFERENCE_SEQUENCE=$REF_GENOME \
 DB_SNP=$DBSNP \
-INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTiTv.picard_2.bed" \
+INTERVALS=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard_2.bed" \
 PROGRAM=CollectGcBiasMetrics \
 PROGRAM=CollectSequencingArtifactMetrics \
-PROGRAM=CollectQualityYieldMetrics  \
+PROGRAM=CollectQualityYieldMetrics \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

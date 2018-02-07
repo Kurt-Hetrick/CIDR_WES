@@ -37,6 +37,8 @@ SAMTOOLS_0118_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-0.1.18"
 	# Need to talk to Chris Dwan about thiis
 CIDRSEQSUITE_6_JAVA_DIR="/mnt/research/tools/LINUX/JAVA/jre1.7.0_45/bin"
 CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
+SAMBAMBA_DIR="/mnt/research/tools/LINUX/SAMBAMBA/sambamba_v0.6.7"
+GATK_DIR_4011="/mnt/research/tools/LINUX/GATK/gatk-4.0.1.1"
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
@@ -244,12 +246,12 @@ $SEQUENCER_MODEL \
 $REF_GENOME
 }
 
-# for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_PLATFORM_UNIT_ARRAY
-# RUN_BWA
-# echo sleep 0.1s
-# done
+for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_PLATFORM_UNIT_ARRAY
+RUN_BWA
+echo sleep 0.1s
+done
 
 ###############################################################################
 # create a hold job id qsub command line based on the number of ###############
@@ -258,27 +260,27 @@ $REF_GENOME
 # I want to clean this up eventually, but not in the mood for it right now. ###
 ###############################################################################
 
-# awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
-# $SAMPLE_SHEET \
-# | awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
-# | sort -k 1,1 -k 2,2 -k 3,3 \
-# | uniq \
-# | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
-# | awk 'BEGIN {FS="\t"} \
-# gsub(/,/,",A.01-BWA_"$2"_",$3) \
-# gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
-# {print "qsub",\
-# "-S /bin/bash",\
-# "-cwd",\
-# "-V",\
-# "-q","'$QUEUE_LIST'",\
-# "-p","'$PRIORITY'",\
-# "-N","B.01-MERGE_BAM_"$5"_"$1,\
-# "-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
-# "-j y",\
-# "-hold_jid","A.01-BWA_"$5"_"$3, \
-# "'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
-# "'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
+awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
+$SAMPLE_SHEET \
+| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
+| sort -k 1,1 -k 2,2 -k 3,3 \
+| uniq \
+| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
+| awk 'BEGIN {FS="\t"} \
+gsub(/,/,",A.01-BWA_"$2"_",$3) \
+gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
+{print "qsub",\
+"-S /bin/bash",\
+"-cwd",\
+"-V",\
+"-q","'$QUEUE_LIST'",\
+"-p","'$PRIORITY'",\
+"-N","B.01-MERGE_BAM_"$5"_"$1,\
+"-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
+"-j y",\
+"-hold_jid","A.01-BWA_"$5"_"$3, \
+"'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
+"'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
 ###################################################
@@ -794,42 +796,42 @@ $BAIT_BED \
 $TARGET_BED
 }
 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_SAMPLE_ARRAY
-# MARK_DUPLICATES
-# echo sleep 0.1s
-# RUN_BQSR
-# echo sleep 0.1s
-# PRINT_READS
-# echo sleep 0.1s
-# BAM_TO_CRAM
-# echo sleep 0.1s
-# INDEX_CRAM
-# echo sleep 0.1s
-# MD5SUM_CRAM
-# echo sleep 0.1s
-# POST_BQSR_TABLE
-# echo sleep 0.1s
-# ANALYZE_COVARIATES
-# echo sleep 0.1s
-# DOC_CODING
-# echo sleep 0.1s
-# DOC_BAIT
-# echo sleep 0.1s
-# DOC_TARGET
-# echo sleep 0.1s
-# ANEUPLOIDY_CHECK
-# echo sleep 0.1s
-# COLLECT_MULTIPLE_METRICS
-# echo sleep 0.1s
-# COLLECT_HS_METRICS
-# echo sleep 0.1s
-# SELECT_VERIFYBAMID_VCF
-# echo sleep 0.1s
-# RUN_VERIFYBAMID
-# echo sleep 0.1s
-# done
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_SAMPLE_ARRAY
+MARK_DUPLICATES
+echo sleep 0.1s
+RUN_BQSR
+echo sleep 0.1s
+PRINT_READS
+echo sleep 0.1s
+BAM_TO_CRAM
+echo sleep 0.1s
+INDEX_CRAM
+echo sleep 0.1s
+MD5SUM_CRAM
+echo sleep 0.1s
+POST_BQSR_TABLE
+echo sleep 0.1s
+ANALYZE_COVARIATES
+echo sleep 0.1s
+DOC_CODING
+echo sleep 0.1s
+DOC_BAIT
+echo sleep 0.1s
+DOC_TARGET
+echo sleep 0.1s
+ANEUPLOIDY_CHECK
+echo sleep 0.1s
+COLLECT_MULTIPLE_METRICS
+echo sleep 0.1s
+COLLECT_HS_METRICS
+echo sleep 0.1s
+SELECT_VERIFYBAMID_VCF
+echo sleep 0.1s
+RUN_VERIFYBAMID
+echo sleep 0.1s
+done
 
 #####################################
 #####################################
@@ -889,19 +891,19 @@ $SM_TAG \
 $CHROMOSOME
 }
 
-# # Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
-# 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_SAMPLE_ARRAY
-# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | egrep -v "X|Y|MT" | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-# 		do
-# 		CALL_SELECT_VERIFYBAMID_VCF_CHR
-# 		echo sleep 0.1s
-# 		CALL_VERIFYBAMID_CHR
-# 		echo sleep 0.1s
-# 		done
-# 	done
+# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
+
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_SAMPLE_ARRAY
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | egrep -v "X|Y|MT" | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+		do
+		CALL_SELECT_VERIFYBAMID_VCF_CHR
+		echo sleep 0.1s
+		CALL_VERIFYBAMID_CHR
+		echo sleep 0.1s
+		done
+	done
 
 ####################################
 # VERIFYBAMID BY CHROMOSOME GATHER #
@@ -945,13 +947,13 @@ $SM_TAG \
 $TARGET_BED
 }
 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# do
-#	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
-#	CREATE_SAMPLE_ARRAY
-#	CALL_VERIFYBAMID_CHR_GATHER
-#	echo sleep 0.1s
-# done
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
+CREATE_SAMPLE_ARRAY
+CALL_VERIFYBAMID_CHR_GATHER
+echo sleep 0.1s
+done
 
 ###############################################################
 
@@ -1026,37 +1028,37 @@ $DBSNP \
 $CHROMOSOME
 }
 
-# # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
-# 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-# do
-# CREATE_SAMPLE_ARRAY
-# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-# 		do
-# 		CALL_HAPLOTYPE_CALLER
-# 		echo sleep 0.1s
-# 		CALL_GENOTYPE_GVCF
-# 		echo sleep 0.1s
-# 		done
-# 	done
+# Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
+
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+do
+CREATE_SAMPLE_ARRAY
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+		do
+		CALL_HAPLOTYPE_CALLER
+		echo sleep 0.1s
+		CALL_GENOTYPE_GVCF
+		echo sleep 0.1s
+		done
+	done
 
 ###########################
 # HAPLOTYPE CALLER GATHER #
 ###########################
 
-# # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
-# 
-# BUILD_HOLD_ID_PATH(){
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH="-hold_jid "
-# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-#  	do
-#  		HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-#  		HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
-#  	done
-#  done
-# }
+# GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
+
+BUILD_HOLD_ID_PATH(){
+	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+	do
+	HOLD_ID_PATH="-hold_jid "
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+ 	do
+ 		HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+ 		HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
+ 	done
+ done
+}
 
 CALL_HAPLOTYPE_CALLER_GVCF_GATHER ()
 {
@@ -1105,19 +1107,19 @@ $TARGET_BED
 # GENOTYPE GVCF GATHER #
 ########################
 
-# # GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
-# 
-# BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER(){
-# 	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-# 	do
-# 	HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-# 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-#  	do
-#  		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-#  		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
-#  	done
-#  done
-# }
+# GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
+
+BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER(){
+	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+	do
+	HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+ 	do
+ 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+ 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+ 	done
+ done
+}
 
 CALL_GENOTYPE_GVCF_GATHER ()
 {
@@ -1141,18 +1143,18 @@ $REF_GENOME \
 $TARGET_BED
 }
 
-# for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-#  do
-# 	BUILD_HOLD_ID_PATH
-# 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER	
-# 	CREATE_SAMPLE_ARRAY
-# 	CALL_HAPLOTYPE_CALLER_GVCF_GATHER
-# 	echo sleep 0.1s
-# 	CALL_HAPLOTYPE_CALLER_BAM_GATHER
-# 	echo sleep 0.1s
-# 	CALL_GENOTYPE_GVCF_GATHER
-# 	echo sleep 0.1s
-#  done
+for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+ do
+	BUILD_HOLD_ID_PATH
+	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER	
+	CREATE_SAMPLE_ARRAY
+	CALL_HAPLOTYPE_CALLER_GVCF_GATHER
+	echo sleep 0.1s
+	CALL_HAPLOTYPE_CALLER_BAM_GATHER
+	echo sleep 0.1s
+	CALL_GENOTYPE_GVCF_GATHER
+	echo sleep 0.1s
+ done
 
 ###########################################################
 ### HC_BAM TO CRAM; VCF BREAKOUTS, FILTERING, METRICS #####
@@ -1645,48 +1647,48 @@ $SM_TAG
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
 CREATE_SAMPLE_ARRAY
-# HC_BAM_TO_CRAM
-# echo sleep 0.1s
-# HC_INDEX_CRAM
-# echo sleep 0.1s
-# SELECT_SNV
-# echo sleep 0.1s
-# SELECT_INDEL
-# echo sleep 0.1s
-# SELECT_MIXED
-# echo sleep 0.1s
-# FILTER_SNV
-# echo sleep 0.1s
-# FILTER_INDEL
-# echo sleep 0.1s
-# FILTER_MIXED
-# echo sleep 0.1s
-# BAIT_PASS_SNV
-# echo sleep 0.1s
-# TARGET_PASS_SNV
-# echo sleep 0.1s
-# TARGET_PASS_SNV_CONCORDANCE
-# echo sleep 0.1s
-# BAIT_PASS_INDEL
-# echo sleep 0.1s
-# TARGET_PASS_INDEL
-# echo sleep 0.1s
-# BAIT_PASS_MIXED
-# echo sleep 0.1s
-# TARGET_PASS_MIXED
-# echo sleep 0.1s
-# SELECT_TITV_ALL
-# echo sleep 0.1s
-# SELECT_TITV_KNOWN
-# echo sleep 0.1s
-# SELECT_TITV_NOVEL
-# echo sleep 0.1s
-# RUN_TITV_ALL
-# echo sleep 0.1s
-# RUN_TITV_KNOWN
-# echo sleep 0.1s
-# RUN_TITV_NOVEL
-# echo sleep 0.1s
+HC_BAM_TO_CRAM
+echo sleep 0.1s
+HC_INDEX_CRAM
+echo sleep 0.1s
+SELECT_SNV
+echo sleep 0.1s
+SELECT_INDEL
+echo sleep 0.1s
+SELECT_MIXED
+echo sleep 0.1s
+FILTER_SNV
+echo sleep 0.1s
+FILTER_INDEL
+echo sleep 0.1s
+FILTER_MIXED
+echo sleep 0.1s
+BAIT_PASS_SNV
+echo sleep 0.1s
+TARGET_PASS_SNV
+echo sleep 0.1s
+TARGET_PASS_SNV_CONCORDANCE
+echo sleep 0.1s
+BAIT_PASS_INDEL
+echo sleep 0.1s
+TARGET_PASS_INDEL
+echo sleep 0.1s
+BAIT_PASS_MIXED
+echo sleep 0.1s
+TARGET_PASS_MIXED
+echo sleep 0.1s
+SELECT_TITV_ALL
+echo sleep 0.1s
+SELECT_TITV_KNOWN
+echo sleep 0.1s
+SELECT_TITV_NOVEL
+echo sleep 0.1s
+RUN_TITV_ALL
+echo sleep 0.1s
+RUN_TITV_KNOWN
+echo sleep 0.1s
+RUN_TITV_NOVEL
+echo sleep 0.1s
 QC_REPORT_PREP
 echo sleep 0.1
 done

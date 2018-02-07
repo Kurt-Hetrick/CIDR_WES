@@ -108,7 +108,7 @@ $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
 ##### "MEDIAN_INSERT_SIZE","MEAN_INSERT_SIZE","STANDARD_DEVIATION_INSERT_SIZE" #####
 #############################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $1,$5,$6}' \
+awk 'BEGIN {OFS="\t"} NR==8 {print $1,$6,$7}' \
 $CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -122,7 +122,7 @@ $CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R1","PCT_ADAPTER_R1" ###################
 ##########################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $7,$9,$13,$14,$15,$18,$22}' \
+awk 'BEGIN {OFS="\t"} NR==8 {print $7,$9,$13,$14,$15,$18,$24}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -136,21 +136,22 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R2","PCT_ADAPTER_R2" ###################
 ##########################################################################
 
-awk 'BEGIN {OFS="\t"} NR==9 {print $7,$9,$13,$14,$15,$18,$22}' \
+awk 'BEGIN {OFS="\t"} NR==9 {print $7,$9,$13,$14,$15,$18,$24}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 
-#######################################################################################
-##### ALIGNMENT SUMMARY METRICS FOR PAIR ##############################################
-#######################################################################################
-##### THIS THE HEADER #################################################################
-##### "TOTAL_READS","RAW_GIGS","PCT_PF_READS_ALIGNED_PAIR" ############################
-##### "PF_MISMATCH_RATE_PAIR","PF_HQ_ERROR_RATE_PAIR","PF_INDEL_RATE_PAIR" ############
-##### "PCT_READS_ALIGNED_IN_PAIRS_PAIR","STRAND_BALANCE_PAIR","PCT_CHIMERAS_PAIR" #####
-#######################################################################################
+################################################################################################
+##### ALIGNMENT SUMMARY METRICS FOR PAIR #######################################################
+################################################################################################
+##### THIS THE HEADER ##########################################################################
+##### "TOTAL_READS","RAW_GIGS","PCT_PF_READS_ALIGNED_PAIR" #####################################
+##### "PF_MISMATCH_RATE_PAIR","PF_HQ_ERROR_RATE_PAIR","PF_INDEL_RATE_PAIR" #####################
+##### "PCT_READS_ALIGNED_IN_PAIRS_PAIR","STRAND_BALANCE_PAIR","PCT_CHIMERAS_PAIR" ##############
+##### "PF_HQ_ALIGNED_Q20_BASES_PAIR","MEAN_READ_LENGTH","PCT_PF_READS_IMPROPER_PAIRS_PAIR" #####
+################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==10 {print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$20,$21}' \
+awk 'BEGIN {OFS="\t"} NR==10 {print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -160,9 +161,10 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##########################################################################################################
 ##### THIS IS THE HEADER #################################################################################
 ##### "UNMAPPED_READS","READ_PAIR_OPTICAL_DUPLICATES","PERCENT_DUPLICATION","ESTIMATED_LIBRARY_SIZE" #####
+##### "SECONDARY_OR_SUPPLEMENTARY_READS" #################################################################
 ##########################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $4,$7,$8,$9}' \
+awk 'BEGIN {OFS="\t"} NR==8 {print $5,$8,$9,$10,$4}' \
 $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -175,11 +177,11 @@ $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 ##### "PF_UQ_GIGS_ALIGNED","PCT_SELECTED_BASES","MEAN_BAIT_COVERAGE","MEAN_TARGET_COVERAGE","MEDIAN_TARGET_COVERAGE" #####
 ##### "ZERO_CVG_TARGETS_PCT","PCT_EXC_MAPQ","PCT_EXC_BASEQ","PCT_EXC_OVERLAP","PCT_EXC_OFF_TARGET" #######################
 ##### "PCT_TARGET_BASES_20X","PCT_TARGET_BASES_30X","PCT_TARGET_BASES_40X","PCT_TARGET_BASES_50X" ########################
-##### "AT_DROPOUT","GC_DROPOUT","HET_SNP_SENSITIVITY","HET_SNP_Q"} #######################################################
+##### "AT_DROPOUT","GC_DROPOUT","HET_SNP_SENSITIVITY","HET_SNP_Q","BAIT_SET","PCT_USABLE_BASES_ON_BAIT"} #################
 ##########################################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $2,$3,$4,$12,($14/1000000000),$19,$22,$23,$24,$28,$30,$31,$32,$33,\
-$38,$39,$40,$41,$50,$51,$52,$53}' \
+awk 'BEGIN {OFS="\t"} NR==8 {print $2,$3,$4,$12,($14/1000000000),$19,$22,$23,$24,$29,$31,$32,$33,$34,\
+$39,$40,$41,$42,$50,$51,$52,$53,$1,$26}' \
 $CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"

@@ -38,7 +38,7 @@ START_FINAL_BAM=`date '+%s'`
 $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --analysis_type PrintReads \
 --reference_sequence $REF_GENOME \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
+--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 -nct 8 \
 --static_quantized_quals 10 \
 --static_quantized_quals 20 \
@@ -58,7 +58,7 @@ echo $SM_TAG"_"$PROJECT",E.01,FINAL_BAM,"$HOSTNAME","$START_FINAL_BAM","$END_FIN
 echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --analysis_type PrintReads \
 --reference_sequence $REF_GENOME \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
+--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 -nct 8 \
 --static_quantized_quals 10 \
 --static_quantized_quals 20 \
