@@ -17,14 +17,13 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
 set
 
 echo
 
 JAVA_1_8=$1
-GATK_DIR=$2
+GATK_DIR_4011=$2
 CORE_PATH=$3
 
 PROJECT=$4
@@ -40,16 +39,17 @@ BAIT_BED=${10}
 
 START_PERFORM_BQSR=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
---analysis_type BaseRecalibrator \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
---reference_sequence $REF_GENOME \
--knownSites $KNOWN_INDEL_1 \
--knownSites $KNOWN_INDEL_2 \
--knownSites $DBSNP \
+$JAVA_1_8/java -jar \
+$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+BaseRecalibrator \
+--use-original-qualities \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--reference $REF_GENOME \
+--known-sites $KNOWN_INDEL_1 \
+--known-sites $KNOWN_INDEL_2 \
+--known-sites $DBSNP \
 --intervals $BAIT_BED \
--nct 8 \
--o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
+--output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
 
 END_PERFORM_BQSR=`date '+%s'`
 
@@ -58,16 +58,17 @@ HOSTNAME=`hostname`
 echo $SM_TAG"_"$PROJECT",D.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$END_PERFORM_BQSR \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
---analysis_type BaseRecalibrator \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
---reference_sequence $REF_GENOME \
--knownSites $KNOWN_INDEL_1 \
--knownSites $KNOWN_INDEL_2 \
--knownSites $DBSNP \
+echo $JAVA_1_8/java -jar \
+$GATK_DIR_4011/GenomeAnalysisTK.jar \
+BaseRecalibrator \
+--use-original-qualities \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--reference $REF_GENOME \
+--known-sites $KNOWN_INDEL_1 \
+--known-sites $KNOWN_INDEL_2 \
+--known-sites $DBSNP \
 --intervals $BAIT_BED \
--nct 8 \
--o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+--output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

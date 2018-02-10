@@ -24,7 +24,7 @@ set
 echo
 
 JAVA_1_8=$1
-GATK_DIR=$2
+GATK_DIR_4011=$2
 CORE_PATH=$3
 
 PROJECT=$4
@@ -35,9 +35,10 @@ REF_GENOME=$6
 
 START_ANALYZE_COVARIATES=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
---analysis_type AnalyzeCovariates \
---reference_sequence $REF_GENOME \
+$JAVA_1_8/java -jar \
+$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+AnalyzeCovariates \
+--reference $REF_GENOME \
 -before $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 -after $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \
 -plots $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/PDF/$SM_TAG".BQSR.pdf"

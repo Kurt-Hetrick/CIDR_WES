@@ -259,6 +259,15 @@ done
 # only launch when every lane for a sample is done being processed by bwa mem #
 # I want to clean this up eventually, but not in the mood for it right now. ###
 ###############################################################################
+###############################################################################
+# NOTE: I WILL EVENTUALLY PASS THE SEQUENCER MODEL AS A VARIABLE HERE #########
+# THIS IS SO THAT THE PIXEL DISTANCE CAN BE MODIFIED IN MARK DUPLICATES #######
+###############################################################################
+#########################################################################################
+# I am setting the heap space and garbage collector threads now #########################
+# doing this does drastically decrease the load average ( the gc thread specification ) #
+#########################################################################################
+
 
 awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
 $SAMPLE_SHEET \
@@ -275,12 +284,12 @@ gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 "-V",\
 "-q","'$QUEUE_LIST'",\
 "-p","'$PRIORITY'",\
-"-N","B.01-MERGE_BAM_"$5"_"$1,\
-"-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MERGE_BAM_FILES.log",\
+"-N","C.01-MARK_DUPLICATES_"$5"_"$1,\
+"-o","'$CORE_PATH'/"$1"/LOGS/"$2"-MARK_DUPLICATES.log",\
 "-j y",\
 "-hold_jid","A.01-BWA_"$5"_"$3, \
-"'$SCRIPT_DIR'""/B.01_MERGE_SORT_AGGRO.sh",\
-"'$JAVA_1_8'","'$PICARD_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
+"'$SCRIPT_DIR'""/C.01_MARK_DUPLICATES.sh",\
+"'$JAVA_1_8'","'$PICARD_DIR'","'$SAMBAMBA_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
 ###################################################
@@ -362,34 +371,31 @@ KNOWN_INDEL_1=${SAMPLE_ARRAY[12]}
 KNOWN_INDEL_2=${SAMPLE_ARRAY[13]}
 }
 
-#########################################################################################
-# I am setting the heap space and garbage collector threads now #########################
-# doing this does drastically decrease the load average ( the gc thread specification ) #
-#########################################################################################
-
-MARK_DUPLICATES ()
-{
-echo \
-qsub \
--S /bin/bash \
--cwd \
--V \
--q $QUEUE_LIST \
--p $PRIORITY \
--N C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MARK_DUPLICATES.log" \
--j y \
--hold_jid B.01-MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/C.01_MARK_DUPLICATES.sh \
-$JAVA_1_8 \
-$PICARD_DIR \
-$CORE_PATH \
-$PROJECT \
-$SM_TAG
-}
+# MARK_DUPLICATES ()
+# {
+# echo \
+# qsub \
+# -S /bin/bash \
+# -cwd \
+# -V \
+# -q $QUEUE_LIST \
+# -p $PRIORITY \
+# -N C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
+# -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MARK_DUPLICATES.log" \
+# -j y \
+# -hold_jid B.01-MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
+# $SCRIPT_DIR/C.01_MARK_DUPLICATES.sh \
+# $JAVA_1_8 \
+# $PICARD_DIR \
+# $CORE_PATH \
+# $PROJECT \
+# $SM_TAG
+# }
 
 #############################################
 ## using data only in the baited intervals ##
+#############################################
+## REMINDER TO HANDLE THE NEW JAR FILE NAME #
 #############################################
 
 RUN_BQSR ()
@@ -407,7 +413,7 @@ qsub \
 -hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 $JAVA_1_8 \
-$GATK_DIR \
+$GATK_DIR_4011 \
 $CORE_PATH \
 $PROJECT \
 $SM_TAG \
@@ -424,7 +430,7 @@ $BAIT_BED
 # retain original Q score  ###
 ##############################
 
-PRINT_READS ()
+APPLY_BQSR ()
 {
 echo \
 qsub \
@@ -433,13 +439,13 @@ qsub \
 -V \
 -q $QUEUE_LIST \
 -p $PRIORITY \
--N E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-PRINT_READS.log" \
+-N E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-APPLY_BQSR.log" \
 -j y \
 -hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/E.01_PRINT_READS.sh \
+$SCRIPT_DIR/E.01_APPLY_BQSR.sh \
 $JAVA_1_8 \
-$GATK_DIR \
+$GATK_DIR_4011 \
 $CORE_PATH \
 $PROJECT \
 $SM_TAG \
@@ -462,7 +468,7 @@ qsub \
 -N H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
 -j y \
--hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/H.08_SELECT_VERIFYBAMID_VCF.sh \
 $JAVA_1_8 \
 $GATK_DIR \
@@ -515,7 +521,7 @@ qsub \
 -N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-BAM_TO_CRAM.log" \
 -j y \
--hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/F.01_BAM_TO_CRAM.sh \
 $SAMTOOLS_DIR \
 $CORE_PATH \
@@ -628,9 +634,9 @@ $SM_TAG \
 $REF_GENOME
 }
 
-################################################
-# CREATE  DEPTH OF COVERAGE FOR ALL UCSC EXONS #
-################################################
+###############################################
+# CREATE DEPTH OF COVERAGE FOR ALL UCSC EXONS #
+###############################################
 
 DOC_CODING ()
 {
@@ -656,9 +662,9 @@ $SM_TAG \
 $REF_GENOME
 }
 
-##############################################
-# CREATE  DEPTH OF COVERAGE FOR BED SUPERSET #
-##############################################
+#############################################
+# CREATE DEPTH OF COVERAGE FOR BED SUPERSET #
+#############################################
 
 DOC_BAIT ()
 {
@@ -796,14 +802,15 @@ $BAIT_BED \
 $TARGET_BED
 }
 
+# taking out the post BQSR and analyze covariates until i update them to gatk 4
+# also need to look into R for analyze covariates
+
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
 CREATE_SAMPLE_ARRAY
-MARK_DUPLICATES
-echo sleep 0.1s
 RUN_BQSR
 echo sleep 0.1s
-PRINT_READS
+APPLY_BQSR
 echo sleep 0.1s
 BAM_TO_CRAM
 echo sleep 0.1s
@@ -811,10 +818,10 @@ INDEX_CRAM
 echo sleep 0.1s
 MD5SUM_CRAM
 echo sleep 0.1s
-POST_BQSR_TABLE
-echo sleep 0.1s
-ANALYZE_COVARIATES
-echo sleep 0.1s
+# POST_BQSR_TABLE
+# echo sleep 0.1s
+# ANALYZE_COVARIATES
+# echo sleep 0.1s
 DOC_CODING
 echo sleep 0.1s
 DOC_BAIT
@@ -857,7 +864,7 @@ qsub \
 -N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
 -j y \
--hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
 $JAVA_1_8 \
 $GATK_DIR \
@@ -992,7 +999,7 @@ qsub \
 -N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
 -j y \
--hold_jid E.01-PRINT_READS"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
 $SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
 $JAVA_1_8 \
 $GATK_DIR \
@@ -1434,7 +1441,7 @@ qsub \
 -V \
 -q $QUEUE_LIST \
 -p $PRIORITY \
--N J.01-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+-N J.02-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
 -hold_jid J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-TARGET_PASS_INDEL_QC.log \
 $SCRIPT_DIR/J.02-A.01-A.02_INDEL_TARGET_PASS.sh \
@@ -1630,11 +1637,17 @@ J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
-J.01-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+J.02-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT,\
-H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
+H.03-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT,\
+H.04-DOC_BAIT"_"$SGE_SM_TAG"_"$PROJECT,\
+H.05-A.01_CHROM_DEPTH"_"$SGE_SM_TAG"_"$PROJECT,\
+H.06-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.07-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
+H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
+H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG-QC_REPORT_PREP_QC.log \
 $SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
 $SAMTOOLS_DIR \

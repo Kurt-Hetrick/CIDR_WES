@@ -17,7 +17,6 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
 set
 
@@ -25,24 +24,37 @@ echo
 
 JAVA_1_8=$1
 PICARD_DIR=$2
-CORE_PATH=$3
+SAMBAMBA_DIR=$3
+CORE_PATH=$4
 
-PROJECT=$4
-SM_TAG=$5
+PROJECT=$5
+SM_TAG=$6
+
+INPUT_BAM_FILE_STRING=$7
+
+INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
 
 ## --Mark Duplicates with Picard, write a duplicate report
+## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.
 
 START_MARK_DUPLICATES=`date '+%s'`
 
 $JAVA_1_8/java -jar \
 -Xmx16g \
 -XX:ParallelGCThreads=4 \
-$PICARD_DIR/picard.jar MarkDuplicates \
-INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
-OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+$PICARD_DIR/picard.jar \
+MarkDuplicates \
+ASSUME_SORT_ORDER=queryname \
+$INPUT \
+OUTPUT=/dev/stdout \
 VALIDATION_STRINGENCY=SILENT \
 METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
-CREATE_INDEX=true
+COMPRESSION_LEVEL=0 \
+| $SAMBAMBA_DIR/sambamba \
+sort \
+-t 4 \
+-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+/dev/stdin
 
 END_MARK_DUPLICATES=`date '+%s'`
 
@@ -54,12 +66,19 @@ echo $SM_TAG"_"$PROJECT",C.01,MARK_DUPLICATES,"$HOSTNAME","$START_MARK_DUPLICATE
 echo $JAVA_1_8/java -jar \
 -Xmx16g \
 -XX:ParallelGCThreads=4 \
-$PICARD_DIR/picard.jar MarkDuplicates \
-INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bam" \
-OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+$PICARD_DIR/picard.jar \
+MarkDuplicates \
+ASSUME_SORT_ORDER=queryname \
+$INPUT \
+OUTPUT=/dev/stdout \
 VALIDATION_STRINGENCY=SILENT \
 METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
-CREATE_INDEX=true \
+COMPRESSION_LEVEL=0 \
+| $SAMBAMBA_DIR/sambamba \
+sort \
+-t 4 \
+-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+/dev/stdin \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
