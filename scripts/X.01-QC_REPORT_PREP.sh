@@ -47,7 +47,7 @@ SM_TAG=$5
 $SAMTOOLS_DIR/samtools view -H \
 $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 | grep ^@RG \
-| awk '{split($5,SMtag,":"); split($6,PU,":"); split($3,Library,":"); print "'$PROJECT'" "\t" SMtag[2] "\t" PU[2] "\t" Library[2]}' \
+| awk '{split($9,SMtag,":"); split($8,PU,":"); split($5,Library,":"); print "'$PROJECT'" "\t" SMtag[2] "\t" PU[2] "\t" Library[2]}' \
 | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 unique 4 | sed 's/,/;/g' \
 | $DATAMASH_DIR/datamash transpose \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"

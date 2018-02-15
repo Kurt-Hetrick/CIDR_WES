@@ -40,6 +40,7 @@ START_DOC_CODING=`date '+%s'`
 $JAVA_1_8/java -jar \
 $GATK_DIR/GenomeAnalysisTK.jar \
 --analysis_type DepthOfCoverage \
+--disable_auto_index_creation_and_locking_when_reading_rods \
 --reference_sequence $REF_GENOME \
 --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 -geneList:REFSEQ $GENE_LIST \
@@ -65,6 +66,7 @@ echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,DOC_CODING,"$HOSTNAME","$START_DOC_COD
 echo $JAVA_1_8/java -jar \
 $GATK_DIR/GenomeAnalysisTK.jar \
 --analysis_type DepthOfCoverage \
+--disable_auto_index_creation_and_locking_when_reading_rods \
 --reference_sequence $REF_GENOME \
 --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 -geneList:REFSEQ $GENE_LIST \
