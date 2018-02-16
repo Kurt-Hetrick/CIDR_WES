@@ -99,8 +99,8 @@ $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
 # normalize by the AUTOSOMAL MEAN DEPTH
 # remove 21p, X.PARp and X.PARq
 
-awk 'BEGIN {print "SM_TAG","CHROM","ARM","TOTAL_COVERAGE","TOTAL_TARGETS","MEAN_DEPTH","NORM_DEPTH"} \
-{print $1,$2,$3,$4,$5,$4/$5,$4/$5/"'$AUTOSOMAL_MEAN_DEPTH'"}' \
+awk 'BEGIN {print "SM_TAG","CHROM","ARM","TOTAL_COVERAGE","TOTAL_TARGETS","MEAN_DEPTH","NORM_DEPTH","AUTO_MEAN_DEPTH"} \
+{print $1,$2,$3,$4,$5,$4/$5,$4/$5/"'$AUTOSOMAL_MEAN_DEPTH'","'$AUTOSOMAL_MEAN_DEPTH'"}' \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
 | sed 's/ /\t/g' \
 | awk '$2!="21"||$3!="p" {print $0}' \
