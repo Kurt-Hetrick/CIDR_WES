@@ -59,3 +59,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+# if file is not present exit !=0
+
+ls $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_INDEL.vcf.gz.tbi"

@@ -36,7 +36,7 @@ zcat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Known.vcf.gz" \
 | $SAMTOOLS_0118_DIR/bcftools/vcfutils.pl \
 qstats \
 /dev/stdin \
->| /$CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Known_.titv.txt"
+>| $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Known_.titv.txt"
 
 END_RUN_TITV_KNOWN=`date '+%s'`
 
@@ -44,3 +44,7 @@ HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT",M.01,RUN_TITV_KNOWN,"$HOSTNAME","$START_RUN_TITV_KNOWN","$END_RUN_TITV_KNOWN \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
+
+# if file is not present exit !=0
+
+ls $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Known_.titv.txt"

@@ -37,11 +37,6 @@ $SAMTOOLS_DIR/samtools \
 index \
 $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram"
 
-# make a copy/rename the cram index file since their appears to be two useable standards
-
-cp $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram.crai" \
-$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.crai"
-
 END_INDEX_HC_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
@@ -55,3 +50,8 @@ $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+# make a copy/rename the cram index file since their appears to be two useable standards
+
+cp $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram.crai" \
+$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.crai"

@@ -41,24 +41,6 @@ START_HAPLOTYPE_CALLER=`date '+%s'`
 
 # I'm Adding more annotations so I want this year for the moment in case things start crashing.
 
-# $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
-# -T HaplotypeCaller \
-# -R $REF_GENOME \
-# --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
-# -L $BAIT_BED \
-# -L $CHROMOSOME \
-# --interval_set_rule INTERSECTION \
-# --variant_index_type LINEAR \
-# --variant_index_parameter 128000 \
-# --max_alternate_alleles 3 \
-# --annotation FractionInformativeReads \
-# --annotation StrandBiasBySample \
-# --annotation StrandAlleleCountsBySample \
-# --annotation AlleleBalanceBySample \
-# --annotation AlleleBalance \
-# -pairHMM VECTOR_LOGLESS_CACHING \
-# -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf"
-
 # Setting read_filter overclipped. this is in broad's wdl.
 # not sure if it going to do anything extra, but we'll see.
 # https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_hellbender_engine_filters_OverclippedReadFilter.php
@@ -135,3 +117,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+# if file is not present exit !=0
+
+ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz.tbi"

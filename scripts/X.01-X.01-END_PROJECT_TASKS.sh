@@ -179,5 +179,3 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
 echo Project finished at `date` >> $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
 
 # todo: oxidation report?
-
-# chmod 770 -R $CORE_PATH/$PROJECT

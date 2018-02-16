@@ -104,3 +104,7 @@ org.broadinstitute.gatk.tools.CatVariants \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+# if file is not present exit !=0
+
+ls $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz.tbi"
