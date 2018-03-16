@@ -12,11 +12,11 @@ CORE_PATH="/mnt/research/active"
 
 # Generate a list of active queue and remove the ones that I don't want to use
 
-QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
+QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
 
 # EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
-PRIORITY="-1000"
+PRIORITY="-1021"
 
 #####################
 # PIPELINE PROGRAMS #
@@ -34,7 +34,6 @@ VERIFY_DIR="/mnt/research/tools/LINUX/verifyBamID/verifyBamID_1.1.3/verifyBamID/
 SAMTOOLS_0118_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-0.1.18"
 	# Becasue I didn't want to go through compiling this yet for version 1.6...I'm hoping that Keith will eventually do a full OS install of RHEL7 instead of his
 	# typical stripped down installations so I don't have to install multiple libraries again
-	# Need to talk to Chris Dwan about thiis
 CIDRSEQSUITE_6_JAVA_DIR="/mnt/research/tools/LINUX/JAVA/jre1.7.0_45/bin"
 CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
 SAMBAMBA_DIR="/mnt/research/tools/LINUX/SAMBAMBA/sambamba_v0.6.7"
@@ -215,6 +214,8 @@ KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
 # Use bwa mem to do the alignments; pipe to samblaster to add mate tags; pipe to picard's AddOrReplaceReadGroups to handle the bam header #
 ###########################################################################################################################################
 
+BWA_QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|lemon.q" | datamash collapse 1 | awk '{print $1}'`
+
 RUN_BWA ()
 {
 echo \
@@ -222,7 +223,7 @@ qsub \
 -S /bin/bash \
 -cwd \
 -V \
--q $QUEUE_LIST \
+-q $BWA_QUEUE_LIST \
 -p $PRIORITY \
 -N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
@@ -267,7 +268,6 @@ done
 # I am setting the heap space and garbage collector threads now #########################
 # doing this does drastically decrease the load average ( the gc thread specification ) #
 #########################################################################################
-
 
 awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
 $SAMPLE_SHEET \
@@ -371,27 +371,6 @@ KNOWN_INDEL_1=${SAMPLE_ARRAY[12]}
 KNOWN_INDEL_2=${SAMPLE_ARRAY[13]}
 }
 
-# MARK_DUPLICATES ()
-# {
-# echo \
-# qsub \
-# -S /bin/bash \
-# -cwd \
-# -V \
-# -q $QUEUE_LIST \
-# -p $PRIORITY \
-# -N C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
-# -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-MARK_DUPLICATES.log" \
-# -j y \
-# -hold_jid B.01-MERGE_BAM"_"$SGE_SM_TAG"_"$PROJECT \
-# $SCRIPT_DIR/C.01_MARK_DUPLICATES.sh \
-# $JAVA_1_8 \
-# $PICARD_DIR \
-# $CORE_PATH \
-# $PROJECT \
-# $SM_TAG
-# }
-
 #############################################
 ## using data only in the baited intervals ##
 #############################################
@@ -451,59 +430,6 @@ $PROJECT \
 $SM_TAG \
 $REF_GENOME
 }
-
-######################################
-# CREATE VCF FOR VERIFYBAMID METRICS #
-######################################
-
-SELECT_VERIFYBAMID_VCF ()
-{
-echo \
-qsub \
--S /bin/bash \
--cwd \
--V \
--q $QUEUE_LIST \
--p $PRIORITY \
--N H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
--j y \
--hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/H.08_SELECT_VERIFYBAMID_VCF.sh \
-$JAVA_1_8 \
-$GATK_DIR \
-$CORE_PATH \
-$VERIFY_VCF \
-$PROJECT \
-$SM_TAG \
-$REF_GENOME \
-$TITV_BED
-}
-
-###################
-# RUN VERIFYBAMID #
-###################
-
-RUN_VERIFYBAMID ()
-{
-echo \
-qsub \
--S /bin/bash \
--cwd \
--V \
--q $QUEUE_LIST \
--p $PRIORITY \
--N H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-VERIFYBAMID.log" \
--j y \
--hold_jid H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/H.08-A.01_VERIFYBAMID.sh \
-$CORE_PATH \
-$VERIFY_DIR \
-$PROJECT \
-$SM_TAG
-}
-
 
 #####################################################
 # create a lossless cram, although the bam is lossy #
@@ -578,11 +504,11 @@ $PROJECT \
 $SM_TAG
 }
 
-#########################################################################
-# generate the post bqsr q score values to compare to the original ones #
-#########################################################################
+######################################
+# CREATE VCF FOR VERIFYBAMID METRICS #
+######################################
 
-POST_BQSR_TABLE ()
+SELECT_VERIFYBAMID_VCF ()
 {
 echo \
 qsub \
@@ -591,28 +517,26 @@ qsub \
 -V \
 -q $QUEUE_LIST \
 -p $PRIORITY \
--N H.02-POST_BQSR_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-POST_BQSR_TABLE.log" \
+-N H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
 -j y \
--hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/H.02_POST_BQSR_TABLE.sh \
+-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.08_SELECT_VERIFYBAMID_VCF.sh \
 $JAVA_1_8 \
 $GATK_DIR \
 $CORE_PATH \
+$VERIFY_VCF \
 $PROJECT \
 $SM_TAG \
 $REF_GENOME \
-$KNOWN_INDEL_1 \
-$KNOWN_INDEL_2 \
-$DBSNP \
-$BAIT_BED
+$TITV_BED
 }
 
-#######################################
-# CREATE A PDF OF THE RESULTS OF BQSR #
-#######################################
+###################
+# RUN VERIFYBAMID #
+###################
 
-ANALYZE_COVARIATES ()
+RUN_VERIFYBAMID ()
 {
 echo \
 qsub \
@@ -621,17 +545,15 @@ qsub \
 -V \
 -q $QUEUE_LIST \
 -p $PRIORITY \
--N H.02-A.01-ANALYZE_COVARIATES"_"$SGE_SM_TAG"_"$PROJECT \
--o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-ANALYZE_COVARIATES.log" \
+-N H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG"-VERIFYBAMID.log" \
 -j y \
--hold_jid H.02-POST_BQSR_TABLE"_"$SGE_SM_TAG"_"$PROJECT \
-$SCRIPT_DIR/H.02-A.01_ANALYZE_COVARIATES.sh \
-$JAVA_1_8 \
-$GATK_DIR \
+-hold_jid H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
+$SCRIPT_DIR/H.08-A.01_VERIFYBAMID.sh \
 $CORE_PATH \
+$VERIFY_DIR \
 $PROJECT \
-$SM_TAG \
-$REF_GENOME
+$SM_TAG
 }
 
 ###############################################
@@ -818,10 +740,10 @@ INDEX_CRAM
 echo sleep 0.1s
 MD5SUM_CRAM
 echo sleep 0.1s
-# POST_BQSR_TABLE
-# echo sleep 0.1s
-# ANALYZE_COVARIATES
-# echo sleep 0.1s
+SELECT_VERIFYBAMID_VCF
+echo sleep 0.1s
+RUN_VERIFYBAMID
+echo sleep 0.1s
 DOC_CODING
 echo sleep 0.1s
 DOC_BAIT
@@ -833,10 +755,6 @@ echo sleep 0.1s
 COLLECT_MULTIPLE_METRICS
 echo sleep 0.1s
 COLLECT_HS_METRICS
-echo sleep 0.1s
-SELECT_VERIFYBAMID_VCF
-echo sleep 0.1s
-RUN_VERIFYBAMID
 echo sleep 0.1s
 done
 
@@ -918,7 +836,11 @@ CREATE_SAMPLE_ARRAY
 
 #################################################################################
 
-# GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
+#####################################
+# i seem to have screwed this up....
+######################################
+
+# GATHER UP THE PER CHROMOSOME PER SAMPLE VERIFYBAMID OUTPUT FILES
 # I THINK THAT I SHOULD BE ABLE TO INCORPORATE THIS INTO THE ABOVE LOOP.
 
 BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
@@ -956,27 +878,11 @@ $TARGET_BED
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
-BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
 CREATE_SAMPLE_ARRAY
+BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
 CALL_VERIFYBAMID_CHR_GATHER
 echo sleep 0.1s
 done
-
-###############################################################
-
-# GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
-
-BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER(){
-	for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-	do
-	HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
- 	do
- 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
- 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
- 	done
- done
-}
 
 ############################
 # HAPLOTYPE CALLER SCATTER #
@@ -1049,10 +955,10 @@ CREATE_SAMPLE_ARRAY
 		done
 	done
 
-###########################
-# HAPLOTYPE CALLER GATHER #
-###########################
-
+# ###########################
+# # HAPLOTYPE CALLER GATHER #
+# ###########################
+# 
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF
 
 BUILD_HOLD_ID_PATH(){
@@ -1152,9 +1058,9 @@ $TARGET_BED
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
  do
+ 	CREATE_SAMPLE_ARRAY
 	BUILD_HOLD_ID_PATH
 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER	
-	CREATE_SAMPLE_ARRAY
 	CALL_HAPLOTYPE_CALLER_GVCF_GATHER
 	echo sleep 0.1s
 	CALL_HAPLOTYPE_CALLER_BAM_GATHER
@@ -1734,24 +1640,3 @@ gsub (/,/,",X1_",$2) \
 "-hold_jid","X1_"$2, \
 "'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
 "'$CORE_PATH'","'$DATAMASH_DIR'",$1"\n""sleep 0.1s"}'
-
-# awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
-# $SAMPLE_SHEET \
-# | awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
-# | sort -k 1,1 -k 2,2 \
-# | uniq \
-# | $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
-# | awk 'BEGIN {FS="\t"} \
-# gsub (/,/,",X.01-QC_REPORT_PREP_QC_"$1"_",$2) \
-# {print "qsub",\
-# "-S /bin/bash",\
-# "-cwd",\
-# "-V",\
-# "-q","'$QUEUE_LIST'",\
-# "-p","'$PRIORITY'",\
-# "-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
-# "-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
-# "-j y",\
-# "-hold_jid","X.01-QC_REPORT_PREP_QC_"$1"_"$2, \
-# "'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-# "'$CORE_PATH'","'$DATAMASH_DIR'",$1"\n""sleep 0.1s"}'
