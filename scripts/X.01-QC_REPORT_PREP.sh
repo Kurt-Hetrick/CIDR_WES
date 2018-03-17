@@ -108,10 +108,18 @@ $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
 ##### "MEDIAN_INSERT_SIZE","MEAN_INSERT_SIZE","STANDARD_DEVIATION_INSERT_SIZE" #####
 #############################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $1,$6,$7}' \
-$CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" \
-| $DATAMASH_DIR/datamash transpose \
->> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" ]]
+	then
+		echo -e NaN'\t'NaN'\t'NaN \
+		| $DATAMASH_DIR/datamash transpose \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	else
+		awk 'BEGIN {OFS="\t"} NR==8 {print $1,$6,$7}' \
+		$CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" \
+		| $DATAMASH_DIR/datamash transpose \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+fi
 
 ##########################################################################
 ##### ALIGNMENT SUMMARY METRICS FOR READ 1 ###############################
