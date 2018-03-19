@@ -130,7 +130,7 @@ fi
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R1","PCT_ADAPTER_R1" ###################
 ##########################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $7,$9,$13,$14,$15,$18,$24}' \
+awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0"; else print $7,$9,$13,$14,$15,$18,$24}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -144,7 +144,7 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R2","PCT_ADAPTER_R2" ###################
 ##########################################################################
 
-awk 'BEGIN {OFS="\t"} NR==9 {print $7,$9,$13,$14,$15,$18,$24}' \
+awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0" ; else print $7,$9,$13,$14,$15,$18,$24}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -159,7 +159,7 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "PF_HQ_ALIGNED_Q20_BASES_PAIR","MEAN_READ_LENGTH","PCT_PF_READS_IMPROPER_PAIRS_PAIR" #####
 ################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==10 {print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
+awk 'BEGIN {OFS="\t"} NR==10 {if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; else print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -172,7 +172,7 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "SECONDARY_OR_SUPPLEMENTARY_READS" #################################################################
 ##########################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {print $5,$8,$9,$10,$4}' \
+awk 'BEGIN {OFS="\t"} NR==8 {if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4 ; else print $5,$8,$9,$10,$4}' \
 $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
