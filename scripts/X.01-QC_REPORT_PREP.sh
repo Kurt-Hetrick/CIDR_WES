@@ -101,21 +101,21 @@ $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 
-#############################################################################################
-##### INSERT SIZE ###########################################################################
-#############################################################################################
-##### THIS IS THE HEADER ####################################################################
-##### "MEDIAN_INSERT_SIZE","MEAN_INSERT_SIZE","STANDARD_DEVIATION_INSERT_SIZE" #####
-#############################################################################################
+######################################################################################################
+##### INSERT SIZE ####################################################################################
+######################################################################################################
+##### THIS IS THE HEADER #############################################################################
+##### "MEDIAN_INSERT_SIZE","MEAN_INSERT_SIZE","STANDARD_DEVIATION_INSERT_SIZE","MAD_INSERT_SIZE" #####
+######################################################################################################
 
 if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" ]]
 	then
-		echo -e NaN'\t'NaN'\t'NaN \
+		echo -e NaN'\t'NaN'\t'NaN'\t'NaN \
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 
 	else
-		awk 'BEGIN {OFS="\t"} NR==8 {print $1,$6,$7}' \
+		awk 'BEGIN {OFS="\t"} NR==8 {print $1,$6,$7,$3}' \
 		$CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" \
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
