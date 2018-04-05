@@ -22,8 +22,8 @@ set
 
 echo
 
-CIDRSEQSUITE_6_JAVA_DIR=$1
-CIDRSEQSUITE_6_1_1_DIR=$2
+JAVA_1_8=$1
+CIDRSEQSUITE_7_5_0_DIR=$2
 VERACODE_CSV=$3
 
 CORE_PATH=$4
@@ -31,25 +31,76 @@ PROJECT=$5
 SM_TAG=$6
 TARGET_BED=$7
 
+# mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
+
 mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
+
+# decompress the target vcf file into the temporary sub-folder
 
 zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
 
-$CIDRSEQSUITE_6_JAVA_DIR/java -jar \
-$CIDRSEQSUITE_6_1_1_DIR/CIDRSeqSuite.jar \
--pipeline -concordance \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG \
-$CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/ \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG \
-$TARGET_BED \
-$VERACODE_CSV
+# look for a final report and store it as a variable
 
-mv $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
+FINAL_REPORT_FILE_TEST=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG*)
+
+# if final report exists containing the full sm-tag, then cidrseqsuite magic
+
+if [[ ! -z "$FINAL_REPORT_FILE_TEST" ]];then
+
+	FINAL_REPORT=$FINAL_REPORT_FILE_TEST
+
+# if it does not exist, then look for the string before the delimeter (either a @ or -), take the first element
+# look for a final report that contains that
+# the assumption will be that this will happen when...hmmm...maybe i should not be making this assumption
+
+elif [[ $SM_TAG != [0-9]* ]]; then
+	
+	HAPMAP=${SM_TAG%[@-]*}
+
+	FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
+
+else
+
+	echo
+	echo At this time, you are looking for a final report that does not exist or fails to meet the current logic for finding a final report.
+	echo Please talk to Kurt, because he loves to talk.
+	echo
+
+	FINAL_REPORT="FILE_DOES_NOT_EXIST"
+
+fi
+
+# -single_sample_concordance
+# Performs concordance between one vcf file and one final report. The vcf must be single sample.
+# [1] path_to_vcf_file
+# [2] path_to_final_report_file
+# [3] path_to_bed_file
+# [4] path_to_liftover_file
+# [5] path_to_output_directory
+
+$JAVA_1_8/java -jar \
+$CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
+-single_sample_concordance \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+$FINAL_REPORT \
+$TARGET_BED \
+$VERACODE_CSV \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG
+
+echo \
+$JAVA_1_8/java -jar \
+$CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
+-single_sample_concordance \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+$FINAL_REPORT \
+$TARGET_BED \
+$VERACODE_CSV \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG \
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv"
 
-mv $CORE_PATH/$PROJECT/TEMP/$SM_TAG/missing_data.csv \
-$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_missing_data.csv"
-
-mv $CORE_PATH/$PROJECT/TEMP/$SM_TAG/discordant_data.csv \
+mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_discordant_calls.txt"

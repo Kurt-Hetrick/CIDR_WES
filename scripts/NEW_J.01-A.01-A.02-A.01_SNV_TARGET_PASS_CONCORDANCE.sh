@@ -46,20 +46,28 @@ FINAL_REPORT_FILE_TEST=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Repo
 
 # if final report exists containing the full sm-tag, then cidrseqsuite magic
 
-if [[ ! -z "$FINAL_REPORT_FILE_TEST" ]]
+if [[ ! -z "$FINAL_REPORT_FILE_TEST" ]];then
 
-then
-FINAL_REPORT=$FINAL_REPORT_FILE_TEST
+	FINAL_REPORT=$FINAL_REPORT_FILE_TEST
 
 # if it does not exist, then look for the string before the delimeter (either a @ or -), take the first element
 # look for a final report that contains that
 # the assumption will be that this will happen when...hmmm...maybe i should not be making this assumption
 
+elif [[ $SM_TAG != [0-9]* ]]; then
+	
+	HAPMAP=${SM_TAG%[@-]*}
+
+	FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
+
 else
 
-HAPMAP=${SM_TAG%[@-]*}
+	echo
+	echo At this time, you are looking for a final report that does not exist or fails to meet the current logic for finding a final report.
+	echo Please talk to Kurt, because he loves to talk.
+	echo
 
-FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
+	FINAL_REPORT="FILE_DOES_NOT_EXIST"
 
 fi
 
@@ -89,10 +97,10 @@ $FINAL_REPORT \
 $TARGET_BED \
 $VERACODE_CSV \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG \
->> 
+>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-mv $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
+mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv"
 
-mv $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
+mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_discordant_calls.txt"
