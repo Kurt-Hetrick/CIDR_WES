@@ -38,6 +38,7 @@ CIDRSEQSUITE_6_JAVA_DIR="/mnt/research/tools/LINUX/JAVA/jre1.7.0_45/bin"
 CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
 SAMBAMBA_DIR="/mnt/research/tools/LINUX/SAMBAMBA/sambamba_v0.6.7"
 GATK_DIR_4011="/mnt/research/tools/LINUX/GATK/gatk-4.0.1.1"
+CIDRSEQSUITE_7_5_0_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/7.5.0"
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
 # VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
