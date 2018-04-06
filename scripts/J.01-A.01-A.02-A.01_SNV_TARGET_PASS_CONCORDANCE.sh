@@ -50,9 +50,9 @@ if [[ ! -z "$FINAL_REPORT_FILE_TEST" ]];then
 
 	FINAL_REPORT=$FINAL_REPORT_FILE_TEST
 
-# if it does not exist, then look for the string before the delimeter (either a @ or -), take the first element
-# look for a final report that contains that
-# the assumption will be that this will happen when...hmmm...maybe i should not be making this assumption
+# if it does not exist, and if the $SM_TAG does not begin with an integer then split $SM_TAG On a @ or -\
+# look for a final report that contains that that first element of the $SM_TAG
+# bonus feature. if this first tests true but the file still does not exist then cidrseqsuite magic files b/c no file exists
 
 elif [[ $SM_TAG != [0-9]* ]]; then
 	
@@ -61,6 +61,8 @@ elif [[ $SM_TAG != [0-9]* ]]; then
 	FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
 
 else
+
+# both conditions fails then echo the below message and give a dummy value for the $FINAL_REPORT
 
 	echo
 	echo At this time, you are looking for a final report that does not exist or fails to meet the current logic for finding a final report.
