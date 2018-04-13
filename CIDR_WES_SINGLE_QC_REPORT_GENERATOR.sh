@@ -133,6 +133,7 @@ echo \
 "PERCENT_SNV_ON_BAIT_SNP138",\
 "COUNT_SNV_ON_TARGET",\
 "PERCENT_SNV_ON_TARGET_SNP138",\
+"HET:HOM_TARGET",\
 "ALL_TI_TV_COUNT",\
 "ALL_TI_TV_RATIO",\
 "KNOWN_TI_TV_COUNT",\
@@ -373,16 +374,16 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 		
-		################################################################
-		##### GENERATE COUNT PCT,IN DBSNP FOR ON TARGET SNVS ###########
-		################################################################
-		##### "COUNT_SNV_ON_TARGET","PERCENT_SNV_ON_TARGET_SNP138" ##### 
-		################################################################
+		####################################################################################
+		##### GENERATE COUNT PCT,IN DBSNP FOR ON TARGET SNVS ###############################
+		####################################################################################
+		##### "COUNT_SNV_ON_TARGET","PERCENT_SNV_ON_TARGET_SNP138""\t""HET:HOM_TARGET" ##### 
+		####################################################################################
 		
 		zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-		END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
-		else {print "0","NaN"}}' \
+		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} \
+		END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(SNV_COUNT-HET_COUNT)} \
+		else {print "0","NaN","NaN"}}'
 		| sed 's/ /\t/g' \
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"

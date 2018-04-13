@@ -255,7 +255,7 @@ else {print "0","NaN"}}' \
 #######################################################################################
 
 zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^1\/1/)} \
+| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} \
 END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(SNV_COUNT-HET_COUNT)} \
 else {print "0","NaN","NaN"}}' \
 | sed 's/ /\t/g' \
