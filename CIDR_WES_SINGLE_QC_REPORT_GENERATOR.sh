@@ -148,6 +148,7 @@ echo \
 "ALL_INDEL_TARGET_PCT_SNP138",\
 "COUNT_BIALLELIC_INDEL_TARGET",\
 "BIALLELIC_INDEL_TARGET_PCT_SNP138",\
+"BIALLELIC_ID_RATIO",\
 "COUNT_MIXED_ON_BAIT",\
 "PERCENT_MIXED_ON_BAIT_SNP138",\
 "COUNT_MIXED_ON_TARGET",\
@@ -447,6 +448,7 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		#####################################################################################################################################
 		##### THIS IS THE HEADER ############################################################################################################
 		##### "COUNT_ALL_INDEL_TARGET","ALL_INDEL_TARGET_PCT_SNP138","COUNT_BIALLELIC_INDEL_TARGET","BIALLELIC_INDEL_TARGET_PCT_SNP138" #####
+		##### "BIALLELIC_ID_RATIO" ##########################################################################################################
 		#####################################################################################################################################
 		
 		zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" \
@@ -454,9 +456,11 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		{INDEL_BIALLELIC+=($5!~",")} \
 		{DBSNP_COUNT+=($3~"rs")} \
 		{DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
-		END {if (INDEL_BIALLELIC==""&&INDEL_COUNT=="") print "0","NaN","0","NaN"; \
-		else if (INDEL_BIALLELIC==0&&INDEL_COUNT>=1) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN"; \
-		else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100}' \
+		{BIALLELIC_INSERTION+=(length($5)-length($4))>0&&$5!~","} \
+		{BIALLELIC_DELETION+=(length($5)-length($4))<0&&$5!~","} \
+		END {if (INDEL_BIALLELIC==""&&INDEL_COUNT=="") print "0","NaN","0","NaN","NaN"; \
+		else if (INDEL_BIALLELIC==0&&INDEL_COUNT>=1) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN","NaN"; \
+		else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100},(BIALLELIC_INSERTION/BIALLELIC_DELETION)' \
 		| sed 's/ /\t/g' \
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
