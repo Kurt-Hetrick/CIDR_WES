@@ -27,7 +27,7 @@ DATAMASH=$2
 
 PROJECT=$3
 
-# SAMPLE_SHEET=$4
+SAMPLE_SHEET=$4
 
 TIMESTAMP=`date '+%F.%H-%M-%S'`s
 

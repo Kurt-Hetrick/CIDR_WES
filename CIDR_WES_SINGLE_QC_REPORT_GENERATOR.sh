@@ -185,6 +185,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "PROJECT","SM_TAG","RG_PU","Library_Name" #########
 		#########################################################
 		
+		# ben, you are using the sample sheet
+
 		$SAMTOOLS_DIR/samtools view -H \
 		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 		| grep ^@RG \
@@ -202,6 +204,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### X_AVG_DP,X_NORM_DP,Y_AVG_DP,Y_NORM_DP #####
 		#################################################
 		
+		# ben, this is totally new
+
 		awk 'BEGIN {OFS="\t"} $2=="X"&&$3=="whole" {print $6,$7} $2=="Y"&&$3=="whole" {print $6,$7}' \
 		$CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/$SM_TAG".chrom_count_report.txt" \
 		| paste - - \
@@ -217,6 +221,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "PERCENT_TOTAL_CONC","COUNT_HET_BEADCHIP","SENSITIVITY_2_HET" ######
 		##########################################################################
 		
+		# this should be same, but headers probably have changed.
+
 		if [ -f $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv" ];
 		then
 			awk 1 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv" \
@@ -236,6 +242,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "VERIFYBAM_FREEMIX","VERIFYBAM_#SNPS","VERIFYBAM_FREELK1","VERIFYBAM_FREELK0","VERIFYBAM_DIFF_LK0_LK1","VERIFYBAM_AVG_DP" #####
 		#####################################################################################################################################
 		
+		# the same, but headers may have been reformatted
+
 		awk 'BEGIN {OFS="\t"} NR>1 {print $7*100,$4,$8,$9,($9-$8),$6}' \
 		$CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
 		| $DATAMASH_DIR/datamash transpose \
@@ -247,6 +255,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "MEDIAN_INSERT_SIZE","MEAN_INSERT_SIZE","STANDARD_DEVIATION_INSERT_SIZE","MAD_INSERT_SIZE" #####
 		######################################################################################################
 		
+		# same report, but file might be slightly different (more fields or reordered)...I believe MAD_INSERT_SIZE is new
+
 		if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/INSERT_SIZE/METRICS/$SM_TAG".insert_size_metrics.txt" ]]
 			then
 				echo -e NaN'\t'NaN'\t'NaN'\t'NaN \
@@ -268,6 +278,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "PCT_READS_ALIGNED_IN_PAIRS_R1","PCT_ADAPTER_R1" ################################################
 		#######################################################################################################
 		
+		# same report, but different input (more fields or reordered)...added or removed metrics
+
 		awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0","0"; else print $7,$9,$11,$13,$14,$15,$18,$24}' \
 		$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 		| $DATAMASH_DIR/datamash transpose \
@@ -281,6 +293,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "PCT_READS_ALIGNED_IN_PAIRS_R2","PCT_ADAPTER_R2" ################################################
 		#######################################################################################################
 		
+		# same report, but different input (more fields or reordered)...added or removed metrics
+
 		awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0","0" ; else print $7,$9,$11,$13,$14,$15,$18,$24}' \
 		$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 		| $DATAMASH_DIR/datamash transpose \
@@ -295,6 +309,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "PF_HQ_ALIGNED_Q20_BASES_PAIR","MEAN_READ_LENGTH","PCT_PF_READS_IMPROPER_PAIRS_PAIR" #####
 		################################################################################################
 		
+		# same report, but different input (more fields or reordered)...added or removed metrics
+
 		awk 'BEGIN {OFS="\t"} NR==10 {if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; else print 	$2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
 		$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 		| $DATAMASH_DIR/datamash transpose \
@@ -308,6 +324,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "UNPAIRED_READ_DUPLICATES","UNPAIRED_READS_EXAMINED","UNPAIRED_DUP_RATE" ##############################
 		#############################################################################################################
 		
+		# same report, but different input (more fields or reordered)...added or removed metrics
+
 		awk 'BEGIN {OFS="\t"} NR==8 {if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; else print $5,$8,$9,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
 		$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 		| $DATAMASH_DIR/datamash transpose \
@@ -323,6 +341,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "AT_DROPOUT","GC_DROPOUT","THEORETICAL_HET_SENSITIVITY","HET_SNP_Q","BAIT_SET","PCT_USABLE_BASES_ON_BAIT" #######################################
 		#######################################################################################################################################################
 		
+		# same report, but different input (more fields or reordered)...added or removed metrics
+
 		awk 'BEGIN {FS="\t";OFS="\t"} NR==8 {if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
 		$36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
 		else if ($12!="?") print $2,$3,$4,$12,($14/1000000000),$19,$21,$22,$23,$24,$25,$29,$31,$32,$33,$34,\
@@ -339,6 +359,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### Cref_Q,Gref_Q ##########################
 		##############################################
 		
+		# totally new
+
 		grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
 		| sed '/^$/d' \
 		| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref"  {print $5}' \
@@ -353,6 +375,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### Deamination_Q,OxoG_Q #################################
 		############################################################
 		
+		# totally new
+
 		grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapter_summary_metrics.txt" \
 		| sed '/^$/d' \
 		| awk 'BEGIN {OFS="\t"} $12=="Deamination"||$12=="OxoG"  {print $5}' \
@@ -367,6 +391,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "COUNT_SNV_ON_BAIT","PERCENT_SNV_ON_BAIT_SNP138" #####
 		############################################################
 		
+		# probably the same, but input file is compressed
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_SNV.vcf.gz" \
 		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
 		END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
@@ -381,6 +407,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "COUNT_SNV_ON_TARGET","PERCENT_SNV_ON_TARGET_SNP138""\t""HET:HOM_TARGET" ##### 
 		####################################################################################
 		
+		# same, but adding the last metric (input file is compressed)
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
 		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} \
 		END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(SNV_COUNT-HET_COUNT)} \
@@ -394,7 +422,9 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		####################################################
 		##### "ALL_TI_TV_COUNT","ALL_TI_TV_RATIO" ##########
 		####################################################
-		
+
+		# same
+
 		awk 'BEGIN {OFS="\t"} END {if ($2!="") {print $2,$6} \
 		else {print "0","NaN"}}' \
 		$CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_All_.titv.txt" \
@@ -406,6 +436,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		######################################################
 		##### "KNOWN_TI_TV_COUNT","KNOWN_TI_TV_RATIO" ########
 		######################################################
+
+		# same
 		
 		awk 'BEGIN {OFS="\t"} END {if ($2!="") {print $2,$6} \
 		else {print "0","NaN"}}' \
@@ -419,6 +451,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "NOVEL_TI_TV_COUNT",NOVEL_TI_TV_RATIO" #########
 		######################################################
 		
+		# same
+
 		awk 'BEGIN {OFS="\t"} END {if ($2!="") {print $2,$6} \
 		else {print "0","NaN"}}' \
 		$CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Novel_.titv.txt" \
@@ -431,6 +465,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "COUNT_ALL_INDEL_BAIT","ALL_INDEL_BAIT_PCT_SNP138","COUNT_BIALLELIC_INDEL_BAIT","BIALLELIC_INDEL_BAIT_PCT_SNP138" #####
 		#############################################################################################################################
 		
+		# newish...but might have been in the multi-sample qc report...partially (input is compressed)
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_INDEL.vcf.gz" \
 		| awk '{INDEL_COUNT++NR} \
 		{INDEL_BIALLELIC+=($5!~",")} \
@@ -451,6 +487,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "BIALLELIC_ID_RATIO" ##########################################################################################################
 		#####################################################################################################################################
 		
+		# newish...but might have been in the multi-sample qc report...partially (input is compressed)
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" \
 		| awk '{INDEL_COUNT++NR} \
 		{INDEL_BIALLELIC+=($5!~",")} \
@@ -473,6 +511,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "COUNT_MIXED_ON_BAIT""\t""PERCENT_MIXED_ON_BAIT_SNP138"} ##### 
 		####################################################################
 		
+		# all new
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
 		| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
 		END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
@@ -488,6 +528,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### "COUNT_MIXED_ON_TARGET""\t""PERCENT_MIXED_ON_TARGET_SNP138" ##### 
 		#######################################################################
 		
+		# all new
+
 		zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
 		| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
 		END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
@@ -500,6 +542,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		##### tranpose from rows to columns #####
 		#########################################
 	
+		# formatting
+
 		cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt" \
 		| $DATAMASH_DIR/datamash transpose \
 		>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/$SM_TAG".QC_REPORT_PREP.txt"
