@@ -27,6 +27,8 @@ DATAMASH=$2
 
 PROJECT=$3
 
+# SAMPLE_SHEET=$4
+
 TIMESTAMP=`date '+%F.%H-%M-%S'`s
 
 # combining all the individual qc reports for the project and adding the header.
@@ -170,6 +172,42 @@ cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 | sed 's/ /,/g' \
 | sed 's/\t/,/g' \
 >| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"
+
+###########################################################################
+##### Make a QC report for just the samples in this batch per project ##### 
+###########################################################################
+
+SAMPLE_SHEET_NAME=`basename $SAMPLE_SHEET .csv`
+
+# For each project in the sample sheet make a qc report containing only those samples in sample sheet.
+# Create the headers for the new files using the header from the all sample sheet.
+
+head -n 1 $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv" \
+> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+
+CREATE_SAMPLE_ARRAY ()
+{
+SAMPLE_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $8=="'$SM_TAG'" {print $8}' | sort | uniq`)
+
+#  8  SM_Tag=sample ID
+SM_TAG=${SAMPLE_ARRAY[0]}
+# SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
+## Don't need to do this unless I make this a sge submitter.
+}
+
+for SM_TAG in $(awk 'BEGIN {FS=","} $1=="'$PROJECT'" {print $8}' $SAMPLE_SHEET | sort | uniq );
+	do
+		CREATE_SAMPLE_ARRAY
+
+		cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/$SM_TAG".QC_REPORT_PREP.txt" \
+		>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+	done
+
+sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv" \
+> $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+
+######################################################################
+
 
 # Concatenate all aneuploidy reports together
 
