@@ -224,7 +224,16 @@ cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep
 | sed 's/\t/,/g' \
 >| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"
 
+
+# Clean up the Wall Clock minutes tracker.
+
+awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/ {print $1,$2,$3,$4,$5,$6,($6-$5)}' \
+$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
+| awk 'BEGIN {print "SAMPLE_GROUP,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN"} {print $0}' \
+>|$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
+
 # Summarize Wall Clock times
+# This is probably garbage. I'll look at this later
 
 sed 's/,/\t/g' $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
 | sort -k 1,1 -k 2,2 -k 3,3 \
