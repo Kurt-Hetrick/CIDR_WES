@@ -255,9 +255,10 @@ else {print "0","NaN"}}' \
 #######################################################################################
 
 zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} \
-END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(SNV_COUNT-HET_COUNT)} \
-else {print "0","NaN","NaN"}}' \
+| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} {VAR_HOM+=($10 ~ /^1\/1/)} \
+END {if (SNV_COUNT!=""&&VAR_HOM!="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(VAR_HOM); \
+else if (SNV_COUNT!=""&&VAR_HOM=="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,"NaN"; \
+else print "0","NaN","NaN"}' \
 | sed 's/ /\t/g' \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -335,8 +336,9 @@ zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarg
 {DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
 {BIALLELIC_INSERTION+=(length($5)-length($4))>0&&$5!~","} \
 {BIALLELIC_DELETION+=(length($5)-length($4))<0&&$5!~","} \
-END {if (INDEL_BIALLELIC==""&&INDEL_COUNT=="") print "0","NaN","0","NaN","NaN"; \
-else if (INDEL_BIALLELIC==0&&INDEL_COUNT>=1) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN","NaN"; \
+END {if (INDEL_COUNT=="") print "0","NaN","0","NaN","NaN"; \
+else if (INDEL_COUNT!=""&&INDEL_BIALLELIC==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN","NaN"; \
+else if (INDEL_COUNT!=""&&INDEL_BIALLELIC>=1&&BIALLELIC_DELETION==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,"NaN"; \
 else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,(BIALLELIC_INSERTION/BIALLELIC_DELETION)}' \
 | sed 's/ /\t/g' \
 | $DATAMASH_DIR/datamash transpose \
