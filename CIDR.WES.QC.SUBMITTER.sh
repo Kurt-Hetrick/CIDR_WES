@@ -16,7 +16,7 @@ QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort |
 
 # EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
-PRIORITY="-1021"
+PRIORITY="-10"
 
 #####################
 # PIPELINE PROGRAMS #
