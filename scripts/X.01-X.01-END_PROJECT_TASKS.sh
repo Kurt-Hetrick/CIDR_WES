@@ -171,6 +171,25 @@ cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 {print $0}' \
 | sed 's/ /,/g' \
 | sed 's/\t/,/g' \
+>| $CORE_PATH/$PROJECT/REPORTS/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv"
+
+# Take all of the lab prep metrics and meta data reports generated to date.
+	# grab the header
+	# cat all of the records (removing the header)
+	# sort on the sm_tag and reverse numerical sort on epoch time (newest time comes first)
+	# when sm_tag is duplicated take the first record (the last time that sample was generated)
+	# join with the newest all project qc report on sm_tag
+
+
+(cat  $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/*LAB_PREP_METRICS.csv \
+	| head -n 1 ; \
+	cat $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/*LAB_PREP_METRICS.csv \
+	| grep -v "^SM_TAG" \
+	| sort -t',' -k 1,1 -k 40,40nr) \
+| awk 'BEGIN {FS=",";OFS=","} !x[$1]++ {print $0}' \
+| join -t , -1 2 -2 1 \
+$CORE_PATH/$PROJECT/REPORTS/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
+/dev/stdin \
 >| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"
 
 ###########################################################################
@@ -206,9 +225,9 @@ for SM_TAG in $(awk 'BEGIN {FS=","} $1=="'$PROJECT'" {print $8}' $SAMPLE_SHEET |
 sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".txt" \
 >| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
 
-######################################################
-##### Join with LAB QC PREP METRICS AND METADATA #####
-######################################################
+#########################################################################
+##### Join with LAB QC PREP METRICS AND METADATA at the batch level #####
+#########################################################################
 
 join -t , -1 2 -2 1 \
 $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv" \
