@@ -18,6 +18,8 @@ QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort |
 
 PRIORITY="-10"
 
+PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
+
 #####################
 # PIPELINE PROGRAMS #
 #####################
@@ -237,7 +239,7 @@ KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
 # Use bwa mem to do the alignments; pipe to samblaster to add mate tags; pipe to picard's AddOrReplaceReadGroups to handle the bam header #
 ###########################################################################################################################################
 
-BWA_QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|lemon.q" | datamash collapse 1 | awk '{print $1}'`
+BWA_QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
 
 RUN_BWA ()
 {
@@ -267,7 +269,8 @@ $RUN_DATE \
 $SM_TAG \
 $CENTER \
 $SEQUENCER_MODEL \
-$REF_GENOME
+$REF_GENOME \
+$PIPELINE_VERSION
 }
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
