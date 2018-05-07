@@ -47,7 +47,7 @@ SM_TAG=$5
 $SAMTOOLS_DIR/samtools view -H \
 $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 | grep ^@RG \
-| awk 'BEGIN {OFS="\t"} {split($9,SMtag,":"); split($8,PU,":"); split($5,Library,":"); split(Library[2],Library_Unit,"_"); \
+| awk 'BEGIN {OFS="\t"} {split($10,SMtag,":"); split($9,PU,":"); split($6,Library,":"); split(Library[2],Library_Unit,"_"); \
 print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
 Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
 | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 unique 4 unique 5 unique 6 unique 7 unique 8 unique 9 unique 10 unique 11 unique 12 \
