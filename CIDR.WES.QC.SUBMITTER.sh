@@ -305,7 +305,7 @@ $SAMPLE_SHEET \
 | uniq \
 | $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
 | awk 'BEGIN {FS="\t"} \
-gsub(/,/,",A.01-BWA_"$2"_",$3) \
+gsub(/,/,",A.01-BWA_"$5"_",$3) \
 gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
 {print "qsub",\
 "-S /bin/bash",\
