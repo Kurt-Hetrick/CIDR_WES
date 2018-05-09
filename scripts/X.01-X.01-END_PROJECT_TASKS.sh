@@ -29,7 +29,7 @@ PROJECT=$3
 
 SAMPLE_SHEET=$4
 
-TIMESTAMP=`date '+%F.%H-%M-%S'`s
+TIMESTAMP=`date '+%F.%H-%M-%S'`
 
 # combining all the individual qc reports for the project and adding the header.
 
@@ -171,7 +171,7 @@ cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 {print $0}' \
 | sed 's/ /,/g' \
 | sed 's/\t/,/g' \
->| $CORE_PATH/$PROJECT/REPORTS/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv"
+>| $CORE_PATH/$PROJECT/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv"
 
 # Take all of the lab prep metrics and meta data reports generated to date.
 	# grab the header
@@ -188,7 +188,7 @@ cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 	| sort -t',' -k 1,1 -k 40,40nr) \
 | awk 'BEGIN {FS=",";OFS=","} !x[$1]++ {print $0}' \
 | join -t , -1 2 -2 1 \
-$CORE_PATH/$PROJECT/REPORTS/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
+$CORE_PATH/$PROJECT/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
 /dev/stdin \
 >| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"
 
@@ -201,8 +201,8 @@ SAMPLE_SHEET_NAME=`basename $SAMPLE_SHEET .csv`
 # For each project in the sample sheet make a qc report containing only those samples in sample sheet.
 # Create the headers for the new files using the header from the all sample sheet.
 
-head -n 1 $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv" \
-> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+head -n 1 $CORE_PATH/$PROJECT/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
+>| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
 
 CREATE_SAMPLE_ARRAY ()
 {
@@ -223,16 +223,16 @@ for SM_TAG in $(awk 'BEGIN {FS=","} $1=="'$PROJECT'" {print $8}' $SAMPLE_SHEET |
 	done
 
 sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".txt" \
->| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
 
 #########################################################################
 ##### Join with LAB QC PREP METRICS AND METADATA at the batch level #####
 #########################################################################
 
 join -t , -1 2 -2 1 \
-$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv" \
+$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv" \
 $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
->| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAMP".csv"
+>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
 
 #######################################################
 ##### Concatenate all aneuploidy reports together #####
