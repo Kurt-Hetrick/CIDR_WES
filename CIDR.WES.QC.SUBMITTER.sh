@@ -12,11 +12,11 @@ CORE_PATH="/mnt/research/active"
 
 # Generate a list of active queue and remove the ones that I don't want to use
 
-QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
+QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q" | datamash collapse 1 | awk '{print $1}'`
 
 # EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
-PRIORITY="-10"
+PRIORITY="-15"
 
 PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
@@ -30,7 +30,10 @@ JAVA_1_8="/mnt/research/tools/LINUX/JAVA/jdk1.8.0_73/bin"
 PICARD_DIR="/mnt/research/tools/LINUX/PICARD/picard-2.17.0"
 DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6"
 GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
-SAMTOOLS_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-1.6"
+# This is samtools version 1.5
+# I have no idea why other users other than me cannot index a cram file with a version of samtools that I built from the source
+# Apparently the version that I built with Anaconda works for other users, but it performs REF_CACHE first...
+SAMTOOLS_DIR="/isilon/sequencing/Kurt/Programs/PYTHON/Anaconda2-5.0.0.1/bin/"
 BEDTOOLS_DIR="/mnt/research/tools/LINUX/BEDTOOLS/bedtools-2.22.0/bin"
 VERIFY_DIR="/mnt/research/tools/LINUX/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
 SAMTOOLS_0118_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-0.1.18"
@@ -170,7 +173,11 @@ done
 
 CREATE_PLATFORM_UNIT_ARRAY ()
 {
-PLATFORM_UNIT_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' | sort | uniq`)
+PLATFORM_UNIT_ARRAY=(`awk 1 $SAMPLE_SHEET \
+	| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+	| awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
+	| sort \
+	| uniq`)
 
 #  1  Project=the Seq Proj folder name
 PROJECT=${PLATFORM_UNIT_ARRAY[0]}
@@ -239,7 +246,14 @@ KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
 # Use bwa mem to do the alignments; pipe to samblaster to add mate tags; pipe to picard's AddOrReplaceReadGroups to handle the bam header #
 ###########################################################################################################################################
 
-BWA_QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q" | datamash collapse 1 | awk '{print $1}'`
+BWA_QUEUE_LIST=`qstat -f -s r \
+| egrep -v "^[0-9]|^-|^queue" \
+| cut -d @ -f 1 \
+| sort \
+| uniq \
+| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q" \
+| datamash collapse 1 \
+| awk '{print $1}'`
 
 RUN_BWA ()
 {
