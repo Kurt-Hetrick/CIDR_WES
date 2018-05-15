@@ -53,5 +53,5 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 # make a copy/rename the cram index file since their appears to be two useable standards
 
-cp $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram.crai" \
+cp -rvf $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram.crai" \
 $CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.crai"
