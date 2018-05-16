@@ -63,52 +63,52 @@ PCT_CHIMERAS_PAIR,The percentage of reads that map outside of a maximum insert s
 PF_HQ_ALIGNED_Q20_BASES_PAIR,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
 MEAN_READ_LENGTH,The mean read length of the set of reads examined. When looking at the data for a single lane with equal length reads this number is just the read length. When looking at data for merged lanes with differing read lengths this is the mean read length of all reads.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
 PCT_PF_READS_IMPROPER_PAIRS_PAIR,"The number of (primary) aligned reads that are **not** ""properly"" aligned in pairs (as per SAM flag 0x2).",CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
-UNMAPPED_READS,"The total number of unmapped reads examined. (Primary, non-supplemental)",,,
-READ_PAIR_OPTICAL_DUPLICATES,"The number of read pairs duplicates that were caused by optical duplication. Value is always < READ_PAIR_DUPLICATES, which counts all duplicates regardless of source.",,,
-PERCENT_DUPLICATION,The fraction of mapped sequence that is marked as duplicate.,,,
-ESTIMATED_LIBRARY_SIZE,The estimated number of unique molecules in the library based on PE duplication.,,,
-SECONDARY_OR_SUPPLEMENTARY_READS,The number of reads that were either secondary or supplementary,,,
-READ_PAIR_DUPLICATES,The number of read pairs that were marked as duplicates.,,,
-READ_PAIRS_EXAMINED,"The number of mapped read pairs examined. (Primary, non-supplemental)",,,
-PAIRED_DUP_RATE,READ_PAIR_DUPLICATES/READ_PAIRS_EXAMINED,,,
-UNPAIRED_READ_DUPLICATES,The number of fragments that were marked as duplicates.,,,
-UNPAIRED_READS_EXAMINED,"The number of mapped reads examined which did not have a mapped mate pair, either because the read is unpaired, or the read is paired to an unmapped mate.",,,
-UNPAIRED_DUP_RATE,UNPAIRED_READ_DUPLICATES/UNPAIRED_READS_EXAMINED,,,
-GENOME_SIZE,The number of bases in the reference genome used for alignment.,,,
-BAIT_TERRITORY,The number of bases which are localized to one or more baits.,,,
-TARGET_TERRITORY,The unique number of target bases in the experiment,,,
-PCT_PF_UQ_READS_ALIGNED,"The fraction of reads that aligned to the reference genome,  are not marked as duplicates with a mapping score > 0 from the total number of PF reads.",,,
-PF_UQ_GIGS_ALIGNED,The number of bases in PF_UQ_READS_ALIGNED. Accounts for clipping and gaps.,,,
-PCT_SELECTED_BASES,The fraction of PF_BASES_ALIGNED located on or near a baited region (ON_BAIT_BASES + NEAR_BAIT_BASES)/PF_BASES_ALIGNED.,,,
-ON_BAIT_VS_SELECTED,"The fraction of bases on or near baits that are covered by baits, ON_BAIT_BASES/(ON_BAIT_BASES + NEAR_BAIT_BASES).",,,
-MEAN_BAIT_COVERAGE,The mean coverage of all baits in the experiment.,,,
-MEAN_TARGET_COVERAGE,The mean coverage of a target region.,,,
-MEDIAN_TARGET_COVERAGE,The median coverage of a target region.,,,
-MAX_TARGET_COVERAGE,The maximum coverage of reads that mapped to target regions of an experiment.,,,
-ZERO_CVG_TARGETS_PCT,The fraction of targets that did not reach coverage=1 over any base.,,,
-PCT_EXC_MAPQ,The fraction of aligned bases that were filtered out because they were in reads with low mapping quality (<20).,,,
-PCT_EXC_BASEQ,The fraction of aligned bases that were filtered out because they were of low base quality (<10).,,,
-PCT_EXC_OVERLAP,The fraction of aligned bases that were filtered out because they were the second observation from an insert with overlapping reads.,,,
-PCT_EXC_OFF_TARGET,The fraction of aligned bases that were filtered out because they did not align over a target base.,,,
-PCT_TARGET_BASES_1X,The fraction of all target bases achieving 1X or greater coverage.,,,
-PCT_TARGET_BASES_2X,The fraction of all target bases achieving 2X or greater coverage.,,,
-PCT_TARGET_BASES_10X,The fraction of all target bases achieving 10X or greater coverage.,,,
-PCT_TARGET_BASES_20X,The fraction of all target bases achieving 20X or greater coverage.,,,
-PCT_TARGET_BASES_30X,The fraction of all target bases achieving 30X or greater coverage.,,,
-PCT_TARGET_BASES_40X,The fraction of all target bases achieving 40X or greater coverage.,,,
-PCT_TARGET_BASES_50X,The fraction of all target bases achieving 50X or greater coverage.,,,
-PCT_TARGET_BASES_100X,The fraction of all target bases achieving 100X or greater coverage.,,,
-HS_LIBRARY_SIZE,The estimated number of unique molecules in the selected part of the library.,,,
-AT_DROPOUT,"A measure of how undercovered <= 50% GC regions are relative to the mean. For each GC bin [0..50] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. AT DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC<=50% regions mapped elsewhere.",,,
-GC_DROPOUT,"A measure of how undercovered >= 50% GC regions are relative to the mean. For each GC bin [50..100] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. GC DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC>=50% regions mapped elsewhere.",,,
-THEORETICAL_HET_SENSITIVITY,The theoretical HET SNP sensitivity.,,,
-HET_SNP_Q,The Phred Scaled Q Score of the theoretical HET SNP sensitivity.,,,
-BAIT_SET,"The union of baits, target and ti/tv bed files used.",,,
-PCT_USABLE_BASES_ON_BAIT,"The number of aligned, de-duped, on-bait bases out of the PF bases available.",,,
-Cref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",,,
-Gref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",,,
-DEAMINATION_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",,,
-OxoG_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",,,
+UNMAPPED_READS,"The total number of unmapped reads examined. (Primary, non-supplemental)",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIR_OPTICAL_DUPLICATES,"The number of read pairs duplicates that were caused by optical duplication. Value is always < READ_PAIR_DUPLICATES, which counts all duplicates regardless of source.",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+PERCENT_DUPLICATION,The fraction of mapped sequence that is marked as duplicate.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+ESTIMATED_LIBRARY_SIZE,The estimated number of unique molecules in the library based on PE duplication.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+SECONDARY_OR_SUPPLEMENTARY_READS,The number of reads that were either secondary or supplementary,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIR_DUPLICATES,The number of read pairs that were marked as duplicates.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIRS_EXAMINED,"The number of mapped read pairs examined. (Primary, non-supplemental)",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+PAIRED_DUP_RATE,READ_PAIR_DUPLICATES/READ_PAIRS_EXAMINED,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_READ_DUPLICATES,The number of fragments that were marked as duplicates.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_READS_EXAMINED,"The number of mapped reads examined which did not have a mapped mate pair, either because the read is unpaired, or the read is paired to an unmapped mate.",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_DUP_RATE,UNPAIRED_READ_DUPLICATES/UNPAIRED_READS_EXAMINED,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+GENOME_SIZE,The number of bases in the reference genome used for alignment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+BAIT_TERRITORY,The number of bases which are localized to one or more baits.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+TARGET_TERRITORY,The unique number of target bases in the experiment,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_PF_UQ_READS_ALIGNED,"The fraction of reads that aligned to the reference genome,  are not marked as duplicates with a mapping score > 0 from the total number of PF reads.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PF_UQ_GIGS_ALIGNED,The number of bases in PF_UQ_READS_ALIGNED. Accounts for clipping and gaps.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_SELECTED_BASES,The fraction of PF_BASES_ALIGNED located on or near a baited region (ON_BAIT_BASES + NEAR_BAIT_BASES)/PF_BASES_ALIGNED.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+ON_BAIT_VS_SELECTED,"The fraction of bases on or near baits that are covered by baits, ON_BAIT_BASES/(ON_BAIT_BASES + NEAR_BAIT_BASES).",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MEAN_BAIT_COVERAGE,The mean coverage of all baits in the experiment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MEAN_TARGET_COVERAGE,The mean coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MEDIAN_TARGET_COVERAGE,The median coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MAX_TARGET_COVERAGE,The maximum coverage of reads that mapped to target regions of an experiment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+ZERO_CVG_TARGETS_PCT,The fraction of targets that did not reach coverage=1 over any base.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_MAPQ,The fraction of aligned bases that were filtered out because they were in reads with low mapping quality (<20).,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_BASEQ,The fraction of aligned bases that were filtered out because they were of low base quality (<10).,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_OVERLAP,The fraction of aligned bases that were filtered out because they were the second observation from an insert with overlapping reads.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_OFF_TARGET,The fraction of aligned bases that were filtered out because they did not align over a target base.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_1X,The fraction of all target bases achieving 1X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_2X,The fraction of all target bases achieving 2X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_10X,The fraction of all target bases achieving 10X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_20X,The fraction of all target bases achieving 20X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_30X,The fraction of all target bases achieving 30X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_40X,The fraction of all target bases achieving 40X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_50X,The fraction of all target bases achieving 50X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_100X,The fraction of all target bases achieving 100X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+HS_LIBRARY_SIZE,The estimated number of unique molecules in the selected part of the library.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+AT_DROPOUT,"A measure of how undercovered <= 50% GC regions are relative to the mean. For each GC bin [0..50] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. AT DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC<=50% regions mapped elsewhere.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+GC_DROPOUT,"A measure of how undercovered >= 50% GC regions are relative to the mean. For each GC bin [50..100] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. GC DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC>=50% regions mapped elsewhere.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+THEORETICAL_HET_SENSITIVITY,The theoretical HET SNP sensitivity.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+HET_SNP_Q,The Phred Scaled Q Score of the theoretical HET SNP sensitivity.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+BAIT_SET,"The union of baits, target and ti/tv bed files used.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_USABLE_BASES_ON_BAIT,"The number of aligned, de-duped, on-bait bases out of the PF bases available.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+Cref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.PreAdapterSummaryMetrics
+Gref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.PreAdapterSummaryMetrics
+DEAMINATION_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+OxoG_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 COUNT_SNV_ON_BAIT,Count of PASSING SNVs from the Bait Bed file,,,
 PERCENT_SNV_ON_BAIT_SNP138,Percent of PASSING SNVs from the Bait Bed file that are in dbSNP 138,,,
 COUNT_SNV_ON_TARGET,Count of PASSING SNVs from the Target Bed file,,,
@@ -122,17 +122,17 @@ NOVEL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and ar
 NOVEL_TI_TV_RATIO,Ti/Tv ratio of NOVEL_TI_TV_COUNT,vcfutils.pl qstats,,
 COUNT_ALL_INDEL_BAIT,Count of all PASSING indels on bait,,,
 ALL_INDEL_BAIT_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on bait,,,
-COUNT_BIALLELIC_INDEL_BAIT,,,,
-BIALLELIC_INDEL_BAIT_PCT_SNP138,,,,
-COUNT_ALL_INDEL_TARGET,,,,
-ALL_INDEL_TARGET_PCT_SNP138,,,,
-COUNT_BIALLELIC_INDEL_TARGET,,,,
-BIALLELIC_INDEL_TARGET_PCT_SNP138,,,,
-BIALLELIC_ID_RATIO,,,,
-COUNT_MIXED_ON_BAIT,,,,
-PERCENT_MIXED_ON_BAIT_SNP138,,,,
-COUNT_MIXED_ON_TARGET,,,,
-PERCENT_MIXED_ON_TARGET_SNP138,,,,
+COUNT_BIALLELIC_INDEL_BAIT,Count of PASSING biallelic indels on bait,,,
+BIALLELIC_INDEL_BAIT_PCT_SNP138,Pct of PASSING biallelic indels on bait in dbSNP 138,,,
+COUNT_ALL_INDEL_TARGET,Count of all PASSING indels on target,,,
+ALL_INDEL_TARGET_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on target,,,
+COUNT_BIALLELIC_INDEL_TARGET,Count of PASSING biallelic indels on target,,,
+BIALLELIC_INDEL_TARGET_PCT_SNP138,Pct of PASSING biallelic indels on target in dbSNP 138,,,
+BIALLELIC_ID_RATIO,Insertion/Deletion ratio for PASSING biallelic indels on target,,,
+COUNT_MIXED_ON_BAIT,Count of PASSING mixed variants on bait,,,
+PERCENT_MIXED_ON_BAIT_SNP138,Pct of PASSING mixed variants on bait in dbSNP 138,,,
+COUNT_MIXED_ON_TARGET,Count of PASSING mixed variants on target,,,
+PERCENT_MIXED_ON_TARGET_SNP138,Pct of PASSING mixed variants on target in dbSNP 138,,,
 Shear DNA Amount,,,,
 QC2 Analysis Region[Range] Size [BP],,,,
 QC2 Analysis Estimated Total DNA,,,,
@@ -171,4 +171,4 @@ Population,,,,
 Sample One Probs,,,,
 Sample Two Probs,,,,
 Sample Three Probs,,,,
-EPOCH_TIME,,,,
+EPOCH_TIME,unix time that qc report for sample was generated,,,
