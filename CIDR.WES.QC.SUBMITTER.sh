@@ -12,7 +12,14 @@ CORE_PATH="/mnt/research/active"
 
 # Generate a list of active queue and remove the ones that I don't want to use
 
-QUEUE_LIST=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q" | datamash collapse 1 | awk '{print $1}'`
+QUEUE_LIST=`qstat -f -s r \
+| egrep -v "^[0-9]|^-|^queue" \
+| cut -d @ -f 1 \
+| sort \
+| uniq \
+| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q" \
+| datamash collapse 1 \
+| awk '{print $1}'`
 
 # EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 

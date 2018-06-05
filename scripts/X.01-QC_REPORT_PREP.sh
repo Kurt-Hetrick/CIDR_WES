@@ -212,8 +212,10 @@ $CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metri
 
 grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
 | sed '/^$/d' \
-| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref"  {print $5}' \
+| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
 | paste - - \
+| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
+| sed 's/,/;/g' \
 | awk 'BEGIN {OFS="\t"} {print $0}' \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -227,8 +229,10 @@ grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_su
 
 grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapter_summary_metrics.txt" \
 | sed '/^$/d' \
-| awk 'BEGIN {OFS="\t"} $12=="Deamination"||$12=="OxoG"  {print $5}' \
+| awk 'BEGIN {OFS="\t"} $12=="Deamination"||$12=="OxoG" {print $5}' \
 | paste - - \
+| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
+| sed 's/,/;/g' \
 | awk 'BEGIN {OFS="\t"} {print $0}' \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -376,8 +380,39 @@ else print "0","NaN"}' \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 
+# see how many libraries are in the samples...should probably do this from the cram header, but meh, some other time.
+# this is to be tested against at the end.
 
+MULTIPLE_LIBRARY=`grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
+| sed '/^$/d' \
+| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
+| paste - - \
+| awk 'END {print NR}'`
+
+# tranpose from rows to list
 
 cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >| $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/$SM_TAG".QC_REPORT_PREP.txt"
+
+# check the exit signal at this point.
+
+SCRIPT_STATUS=`echo $?`
+
+# -eq and -ne are used for integer comparisons
+# = and != are string comparisons
+
+# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+# if the exit does equal zero then check to see if there is only one library, if so then exit 0
+# if exit is zero and there is multiple libraries then exit = 3. this will get pushed out to the sge accounting db so that 
+	# there is an indication that there are multiple libraries, which could be due to a sample sheet screw-up.
+
+if [ "$SCRIPT_STATUS" -ne 0 ]
+ then
+	exit $SCRIPT_STATUS
+elif [ "$MULTIPLE_LIBRARY" -eq 1 ]
+ then
+	exit 0
+else
+	exit 3
+fi
