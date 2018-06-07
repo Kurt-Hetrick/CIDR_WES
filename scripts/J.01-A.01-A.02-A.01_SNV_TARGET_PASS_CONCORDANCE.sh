@@ -42,7 +42,7 @@ zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.
 
 # look for a final report and store it as a variable
 
-FINAL_REPORT_FILE_TEST=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG*)
+FINAL_REPORT_FILE_TEST=$(ls -tr $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG* | tail -n 1)
 
 # if final report exists containing the full sm-tag, then cidrseqsuite magic
 
@@ -100,6 +100,8 @@ $TARGET_BED \
 $VERACODE_CSV \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
 $CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv"
