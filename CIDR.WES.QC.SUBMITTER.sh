@@ -27,6 +27,10 @@ PRIORITY="-15"
 
 PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
+# load gcc 5.1.0 for programs like verifyBamID
+## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
+module load gcc/5.1.0
+
 #####################
 # PIPELINE PROGRAMS #
 #####################
