@@ -55,11 +55,10 @@ CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
 SAMBAMBA_DIR="/mnt/research/tools/LINUX/SAMBAMBA/sambamba_v0.6.7"
 GATK_DIR_4011="/mnt/research/tools/LINUX/GATK/gatk-4.0.1.1"
 CIDRSEQSUITE_7_5_0_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/7.5.0"
-LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.1"
+LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.2"
+	# Copied from \\isilon-cifs\sequencing\CIDRSeqSuiteSoftware\RELEASES\7.0.0\QC_REPORT\EnhancedSequencingQCReport.jar
 
 # JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
-# VERIFY_DIR="/isilon/cgc/PROGRAMS/verifyBamID_20120620/bin/"
-# TABIX_DIR="/isilon/cgc/PROGRAMS/tabix-0.2.6"
 # VCFTOOLS_DIR="/isilon/cgc/PROGRAMS/vcftools_0.1.12b/bin"
 # PLINK2_DIR="/isilon/cgc/PROGRAMS/PLINK2"
 # KING_DIR="/isilon/cgc/PROGRAMS/KING/Linux-king19"
@@ -77,18 +76,9 @@ VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes
 DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/b37/dbsnp_138.b37.excluding_sites_after_129.vcf"
 VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 
-# HAPMAP="/isilon/cgc/PIPELINE_FILES/hapmap_3.3.b37.vcf"
-# OMNI_1KG="/isilon/cgc/PIPELINE_FILES/1000G_omni2.5.b37.vcf"
-# HI_CONF_1KG_PHASE1_SNP="/isilon/cgc/PIPELINE_FILES/1000G_phase1.snps.high_confidence.b37.vcf"
-# MILLS_1KG_GOLD_INDEL="/isilon/cgc/PIPELINE_FILES/Mills_and_1000G_gold_standard.indels.b37.vcf"
-# PHASE3_1KG_AUTOSOMES="/isilon/cgc/PIPELINE_FILES/ALL.autosomes.phase3_shapeit2_mvncall_integrated_v5.20130502.sites.vcf.gz"
-
 #################################
 ##### MAKE A DIRECTORY TREE #####
 #################################
-
-# NEED TO FIGURE OUT HOW TO PUSH OUT A PIPELINE VERSION.
-# PIPELINE_VERSION=``
 
 # make the project directory tree structure
 # create an error for all metadata for a sample to pass through various part of the pipeline.
