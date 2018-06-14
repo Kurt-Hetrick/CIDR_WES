@@ -31,6 +31,10 @@ PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. l
 ## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
 module load gcc/5.1.0
 
+# explicitly setting this b/c not everybody has had the $HOME directory transferred and I'm not going to through
+# and figure out who does and does not have this set correctly
+umask 0007
+
 #####################
 # PIPELINE PROGRAMS #
 #####################
