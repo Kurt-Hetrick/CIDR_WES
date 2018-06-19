@@ -95,7 +95,11 @@ VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg1
 
 CREATE_PROJECT_ARRAY ()
 {
-PROJECT_ARRAY=(`awk 1 $SAMPLE_SHEET | sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' | awk 'BEGIN {FS=","} $1=="'$PROJECT_NAME'" {print $1}' | sort | uniq`)
+PROJECT_ARRAY=(`awk 1 $SAMPLE_SHEET \
+	| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+	| awk 'BEGIN {FS=","} $1=="'$PROJECT_NAME'" {print $1}' \
+	| sort \
+	| uniq`)
 
 #  1  Project=the Seq Proj folder name
 SEQ_PROJECT=${PROJECT_ARRAY[0]}

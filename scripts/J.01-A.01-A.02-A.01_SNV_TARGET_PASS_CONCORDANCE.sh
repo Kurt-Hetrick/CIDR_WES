@@ -40,7 +40,7 @@ mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
 zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
 
-# look for a final report and store it as a variable
+# look for a final report and store it as a variable. if there are multiple ones, then take the newest one
 
 FINAL_REPORT_FILE_TEST=$(ls -tr $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG* | tail -n 1)
 

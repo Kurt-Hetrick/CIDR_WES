@@ -50,7 +50,19 @@ $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 | awk 'BEGIN {OFS="\t"} {split($10,SMtag,":"); split($9,PU,":"); split($6,Library,":"); split(Library[2],Library_Unit,"_"); \
 print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
 Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
-| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 unique 4 unique 5 unique 6 unique 7 unique 8 unique 9 unique 10 unique 11 unique 12 \
+| $DATAMASH_DIR/datamash \
+-s \
+-g 1,2 \
+collapse 3 \
+unique 4 \
+unique 5 \
+unique 6 \
+unique 7 \
+unique 8 \
+unique 9 \
+unique 10 \
+unique 11 \
+unique 12 \
 | sed 's/,/;/g' \
 | $DATAMASH_DIR/datamash transpose \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -162,7 +174,9 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "PF_HQ_ALIGNED_Q20_BASES_PAIR","MEAN_READ_LENGTH","PCT_PF_READS_IMPROPER_PAIRS_PAIR" #####
 ################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==10 {if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
+awk 'BEGIN {OFS="\t"} \
+NR==10 \
+{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
 else print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
 $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 | $DATAMASH_DIR/datamash transpose \
@@ -177,7 +191,10 @@ $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics
 ##### "UNPAIRED_READ_DUPLICATES","UNPAIRED_READS_EXAMINED","UNPAIRED_DUP_RATE" ##############################
 #############################################################################################################
 
-awk 'BEGIN {OFS="\t"} NR==8 {if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; else print $5,$8,$9,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
+awk 'BEGIN {OFS="\t"} \
+NR==8 \
+{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
+else print $5,$8,$9,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
 $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 | $DATAMASH_DIR/datamash transpose \
 >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -190,10 +207,12 @@ $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 ##### "PF_UQ_GIGS_ALIGNED","PCT_SELECTED_BASES","ON_BAIT_VS_SELECTED","MEAN_BAIT_COVERAGE","MEAN_TARGET_COVERAGE","MEDIAN_TARGET_COVERAGE","MAX_TARGET_COVERAGE" #########
 ##### "ZERO_CVG_TARGETS_PCT","PCT_EXC_MAPQ","PCT_EXC_BASEQ","PCT_EXC_OVERLAP","PCT_EXC_OFF_TARGET" #######################################################################
 ##### "PCT_TARGET_BASES_1X","PCT_TARGET_BASES_2X","PCT_TARGET_BASES_10X","PCT_TARGET_BASES_20X","PCT_TARGET_BASES_30X","PCT_TARGET_BASES_40X","PCT_TARGET_BASES_50X" #####
-##### "PCT_TARGET_BASES_100X","HS_LIBRARY_SIZE","AT_DROPOUT","GC_DROPOUT","THEORETICAL_HET_SENSITIVITY","HET_SNP_Q","BAIT_SET","PCT_USABLE_BASES_ON_BAIT"} #######################
+##### "PCT_TARGET_BASES_100X","HS_LIBRARY_SIZE","AT_DROPOUT","GC_DROPOUT","THEORETICAL_HET_SENSITIVITY","HET_SNP_Q","BAIT_SET","PCT_USABLE_BASES_ON_BAIT"} ###############
 ##########################################################################################################################################################################
 
-awk 'BEGIN {FS="\t";OFS="\t"} NR==8 {if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
+awk 'BEGIN {FS="\t";OFS="\t"} \
+NR==8 \
+{if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
 $36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
 else if ($12!="?") print $2,$3,$4,$12,($14/1000000000),$19,$21,$22,$23,$24,$25,$29,$31,$32,$33,$34,\
 $36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,$26 ; \
@@ -207,7 +226,7 @@ $CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metri
 ##### BAIT BIAS REPORT FOR Cref and Gref #####
 ##############################################
 ##### THIS IS THE HEADER #####################
-##### Cref_Q,Gref_Q ###################
+##### Cref_Q,Gref_Q ##########################
 ##############################################
 
 grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
