@@ -25,7 +25,7 @@ PERCENT_TOTAL_CONC,(COUNT_DISC_HOM + COUNT_CONC_HOM)/(COUNT_DISC_HET + COUNT_DIS
 COUNT_HET_BEADCHIP,Number of genotype array heterozygous calls,cidrseqsuite code,,On Target
 SENSITIVITY_2_HET,Percent of heterozygous array genotypes that are also called as non-reference bases in the sequencing data,cidrseqsuite code,PASS only,On Target
 SNP_ARRAY,SNP array used to calculate concordance/sensitivity,cidrseqsuite code,,On Target
-VERIFYBAM_FREEMIX,Sequence-only estimate of contamination (0-1 scale),verifyBamID,,
+VERIFYBAM_FREEMIX_PCT,Sequence-only estimate of contamination (PERCENTAGE),verifyBamID,,
 VERIFYBAM_#SNPS,Number of sites used for verifybamID contamination,verifyBamID,,
 VERIFYBAM_FREELK1, Maximum log-likelihood of the sequence reads given estimated contamination under sequence-only method,verifyBamID,,
 VERIFYBAM_FREELK0,Log-likelihood of the sequence reads given no contamination under sequence-only method,verifyBamID,,
