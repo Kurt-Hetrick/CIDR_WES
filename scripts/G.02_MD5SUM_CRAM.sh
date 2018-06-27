@@ -33,7 +33,7 @@ SM_TAG=$3
 START_MD5SUM_CRAM=`date '+%s'`
 
 md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
->> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
+>| $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
 
 END_MD5SUM_CRAM=`date '+%s'`
 
