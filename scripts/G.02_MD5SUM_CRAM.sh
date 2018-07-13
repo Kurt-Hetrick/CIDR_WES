@@ -35,6 +35,9 @@ START_MD5SUM_CRAM=`date '+%s'`
 md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
 >| $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
 
+md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.crai" \
+>> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
+
 END_MD5SUM_CRAM=`date '+%s'`
 
 HOSTNAME=`hostname`
