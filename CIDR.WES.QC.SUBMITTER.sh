@@ -6,7 +6,9 @@ SAMPLE_SHEET=$1
 
 SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 
-# CORE VARIABLES
+##################
+# CORE VARIABLES #
+##################
 
 	# Directory where sequencing projects are located
 
@@ -175,13 +177,13 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			$SAMPLE_SHEET
 		}
 
-SETUP_PROJECT ()
-{
-	CREATE_PROJECT_ARRAY
-	MAKE_PROJ_DIR_TREE
-	RUN_LAB_PREP_METRICS
-	echo Project started at `date` >> $CORE_PATH/$SEQ_PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
-}
+	SETUP_PROJECT ()
+	{
+		CREATE_PROJECT_ARRAY
+		MAKE_PROJ_DIR_TREE
+		RUN_LAB_PREP_METRICS
+		echo Project started at `date` >> $CORE_PATH/$SEQ_PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
+	}
 
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
 	do
@@ -199,114 +201,114 @@ for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort 
 # create an array at the platform level so that bwa mem can add metadata to the header #
 ########################################################################################
 
-CREATE_PLATFORM_UNIT_ARRAY ()
-{
-	PLATFORM_UNIT_ARRAY=(`awk 1 $SAMPLE_SHEET \
-		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
-		| awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
-		| sort \
-		| uniq`)
+	CREATE_PLATFORM_UNIT_ARRAY ()
+	{
+		PLATFORM_UNIT_ARRAY=(`awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+			| awk 'BEGIN {FS=","} $8$2$3$4=="'$PLATFORM_UNIT'" {split($19,INDEL,";"); print $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$12,$15,$16,$17,$18,INDEL[1],INDEL[2]}' \
+			| sort \
+			| uniq`)
 
-	#  1  Project=the Seq Proj folder name
-	PROJECT=${PLATFORM_UNIT_ARRAY[0]}
+		#  1  Project=the Seq Proj folder name
+		PROJECT=${PLATFORM_UNIT_ARRAY[0]}
 
-	#  2  FCID=flowcell that sample read group was performed on
-	FCID=${PLATFORM_UNIT_ARRAY[1]}
+		#  2  FCID=flowcell that sample read group was performed on
+		FCID=${PLATFORM_UNIT_ARRAY[1]}
 
-	#  3  Lane=lane of flowcell that sample read group was performed on]
-	LANE=${PLATFORM_UNIT_ARRAY[2]}
+		#  3  Lane=lane of flowcell that sample read group was performed on]
+		LANE=${PLATFORM_UNIT_ARRAY[2]}
 
-	#  4  Index=sample barcode
-	INDEX=${PLATFORM_UNIT_ARRAY[3]}
+		#  4  Index=sample barcode
+		INDEX=${PLATFORM_UNIT_ARRAY[3]}
 
-	#  5  Platform=type of sequencing chemistry matching SAM specification
-	PLATFORM=${PLATFORM_UNIT_ARRAY[4]}
+		#  5  Platform=type of sequencing chemistry matching SAM specification
+		PLATFORM=${PLATFORM_UNIT_ARRAY[4]}
 
-	#  6  Library_Name=library group of the sample read group, Used during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
-	LIBRARY=${PLATFORM_UNIT_ARRAY[5]}
+		#  6  Library_Name=library group of the sample read group, Used during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
+		LIBRARY=${PLATFORM_UNIT_ARRAY[5]}
 
-	#  7  Date=should be the run set up date to match the seq run folder name, but it has been arbitrarily populated
-	RUN_DATE=${PLATFORM_UNIT_ARRAY[6]}
+		#  7  Date=should be the run set up date to match the seq run folder name, but it has been arbitrarily populated
+		RUN_DATE=${PLATFORM_UNIT_ARRAY[6]}
 
-	#  8  SM_Tag=sample ID
-	SM_TAG=${PLATFORM_UNIT_ARRAY[7]}
-	SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
+		#  8  SM_Tag=sample ID
+		SM_TAG=${PLATFORM_UNIT_ARRAY[7]}
+		SGE_SM_TAG=$(echo $SM_TAG | sed 's/@/_/g') # If there is an @ in the qsub or holdId name it breaks
 
-	#  9  Center=the center/funding mechanism
-	CENTER=${PLATFORM_UNIT_ARRAY[8]}
+		#  9  Center=the center/funding mechanism
+		CENTER=${PLATFORM_UNIT_ARRAY[8]}
 
-	# 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
-	# “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
-	SEQUENCER_MODEL=${PLATFORM_UNIT_ARRAY[9]}
+		# 10  Description=Generally we use to denote the sequencer setting (e.g. rapid run)
+		# “HiSeq-X”, “HiSeq-4000”, “HiSeq-2500”, “HiSeq-2000”, “NextSeq-500”, or “MiSeq”.
+		SEQUENCER_MODEL=${PLATFORM_UNIT_ARRAY[9]}
 
-	#############################
-	# 11  Seq_Exp_ID ### SKIP ###
-	#############################
+		#############################
+		# 11  Seq_Exp_ID ### SKIP ###
+		#############################
 
-	# 12  Genome_Ref=the reference genome used in the analysis pipeline
-	REF_GENOME=${PLATFORM_UNIT_ARRAY[10]}
+		# 12  Genome_Ref=the reference genome used in the analysis pipeline
+		REF_GENOME=${PLATFORM_UNIT_ARRAY[10]}
 
-	###########################
-	# 13  Operator ### SKIP ###
-	##########################################
-	# 14  Extra_VCF_Filter_Params ### SKIP ###
-	##########################################
+		###########################
+		# 13  Operator ### SKIP ###
+		##########################################
+		# 14  Extra_VCF_Filter_Params ### SKIP ###
+		##########################################
 
-	# 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
-	TITV_BED=${PLATFORM_UNIT_ARRAY[11]}
+		# 15  TS_TV_BED_File=where ucsc coding exons overlap with bait and target bed files
+		TITV_BED=${PLATFORM_UNIT_ARRAY[11]}
 
-	# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
-	# Used for limited where to run base quality score recalibration on where to create gvcf files.
-	BAIT_BED=${PLATFORM_UNIT_ARRAY[12]}
+		# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
+		# Used for limited where to run base quality score recalibration on where to create gvcf files.
+		BAIT_BED=${PLATFORM_UNIT_ARRAY[12]}
 
-	# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
-	TARGET_BED=${PLATFORM_UNIT_ARRAY[13]}
+		# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
+		TARGET_BED=${PLATFORM_UNIT_ARRAY[13]}
 
-	# 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
-	DBSNP=${PLATFORM_UNIT_ARRAY[14]}
+		# 18  KNOWN_SITES_VCF=used to annotate ID field in VCF file. masking in base call quality score recalibration.
+		DBSNP=${PLATFORM_UNIT_ARRAY[14]}
 
-	# 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
-	KNOWN_INDEL_1=${PLATFORM_UNIT_ARRAY[15]}
-	KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
-}
+		# 19  KNOWN_INDEL_FILES=used for BQSR masking, sensitivity in local realignment.
+		KNOWN_INDEL_1=${PLATFORM_UNIT_ARRAY[15]}
+		KNOWN_INDEL_2=${PLATFORM_UNIT_ARRAY[16]}
+	}
 
 ###########################################################################################################################################
 # Use bwa mem to do the alignments; pipe to samblaster to add mate tags; pipe to picard's AddOrReplaceReadGroups to handle the bam header #
 ###########################################################################################################################################
 
-RUN_BWA ()
-{
-	echo \
-	qsub \
-	-S /bin/bash \
-	-cwd \
-	-V \
-	-q $BWA_QUEUE_LIST \
-	-p $PRIORITY \
-	-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
-	-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
-	-j y \
-	$SCRIPT_DIR/A.01_BWA.sh \
-	$BWA_DIR \
-	$SAMBLASTER_DIR \
-	$JAVA_1_8 \
-	$PICARD_DIR \
-	$CORE_PATH \
-	$PROJECT \
-	$FCID \
-	$LANE \
-	$INDEX \
-	$PLATFORM \
-	$LIBRARY \
-	$RUN_DATE \
-	$SM_TAG \
-	$CENTER \
-	$SEQUENCER_MODEL \
-	$REF_GENOME \
-	$PIPELINE_VERSION \
-	$BAIT_BED \
-	$TARGET_BED
-}
+	RUN_BWA ()
+	{
+		echo \
+		qsub \
+		-S /bin/bash \
+		-cwd \
+		-V \
+		-q $BWA_QUEUE_LIST \
+		-p $PRIORITY \
+		-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
+		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
+		-j y \
+		$SCRIPT_DIR/A.01_BWA.sh \
+		$BWA_DIR \
+		$SAMBLASTER_DIR \
+		$JAVA_1_8 \
+		$PICARD_DIR \
+		$CORE_PATH \
+		$PROJECT \
+		$FCID \
+		$LANE \
+		$INDEX \
+		$PLATFORM \
+		$LIBRARY \
+		$RUN_DATE \
+		$SM_TAG \
+		$CENTER \
+		$SEQUENCER_MODEL \
+		$REF_GENOME \
+		$PIPELINE_VERSION \
+		$BAIT_BED \
+		$TARGET_BED
+	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
 	do
