@@ -31,7 +31,6 @@ echo
 	SM_TAG=$5
 
 # next script will cat everything together and add the header.
-
 # dirty validations count NF, if not X, then say haha you suck try again and don't write to cat file.
 
 #########################################################
