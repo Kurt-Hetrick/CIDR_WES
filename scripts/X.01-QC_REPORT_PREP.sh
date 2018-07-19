@@ -144,12 +144,18 @@ echo
 ##### "VERIFYBAM_FREEMIX","VERIFYBAM_#SNPS","VERIFYBAM_FREELK1","VERIFYBAM_FREELK0","VERIFYBAM_DIFF_LK0_LK1","VERIFYBAM_AVG_DP" #####
 #####################################################################################################################################
 
-# NEED TO ADD IN WHEN A FILE DOES NOT EXIST
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 
-	awk 'BEGIN {OFS="\t"} NR>1 {print $7*100,$4,$8,$9,($9-$8),$6}' \
-	$CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
-	| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+		else
+			awk 'BEGIN {OFS="\t"} NR>1 {print $7*100,$4,$8,$9,($9-$8),$6}' \
+			$CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ######################################################################################################
 ##### INSERT SIZE ####################################################################################
