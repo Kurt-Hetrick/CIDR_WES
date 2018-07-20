@@ -23,15 +23,18 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-BAIT_BED=$7
-CHROMOSOME=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	BAIT_BED=$7
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	CHROMOSOME=$8
 
 ## -----Haplotype Caller-----
 
@@ -39,45 +42,41 @@ CHROMOSOME=$8
 
 START_HAPLOTYPE_CALLER=`date '+%s'`
 
-# I'm Adding more annotations so I want this year for the moment in case things start crashing.
-
 # Setting read_filter overclipped. this is in broad's wdl.
-# not sure if it going to do anything extra, but we'll see.
 # https://software.broadinstitute.org/gatk/documentation/tooldocs/current/org_broadinstitute_hellbender_engine_filters_OverclippedReadFilter.php
-# I'm struggling to think if I should use the bamout argument here.
 
 # I'm pushing the freemix value to the contamination fraction
 
 FREEMIX=`awk 'NR==2 {print $7}' $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM"`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T HaplotypeCaller \
--R $REF_GENOME \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--L $BAIT_BED \
--L $CHROMOSOME \
---interval_set_rule INTERSECTION \
---variant_index_type LINEAR \
---variant_index_parameter 128000 \
---emitRefConfidence GVCF \
---max_alternate_alleles 3 \
--pairHMM VECTOR_LOGLESS_CACHING \
---read_filter OverclippedRead \
---annotation AS_BaseQualityRankSumTest \
---annotation AS_FisherStrand \
---annotation AS_MappingQualityRankSumTest \
---annotation AS_RMSMappingQuality \
---annotation AS_ReadPosRankSumTest \
---annotation AS_StrandOddsRatio \
---annotation FractionInformativeReads \
---annotation StrandBiasBySample \
---annotation StrandAlleleCountsBySample \
---annotation AlleleBalanceBySample \
---annotation AlleleBalance \
---emitDroppedReads \
--bamout $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC."$CHROMOSOME".bam" \
---contamination_fraction_to_filter $FREEMIX \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T HaplotypeCaller \
+	-R $REF_GENOME \
+	--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	-L $CHROMOSOME \
+	--interval_set_rule INTERSECTION \
+	--variant_index_type LINEAR \
+	--variant_index_parameter 128000 \
+	--emitRefConfidence GVCF \
+	--max_alternate_alleles 3 \
+	-pairHMM VECTOR_LOGLESS_CACHING \
+	--read_filter OverclippedRead \
+	--annotation AS_BaseQualityRankSumTest \
+	--annotation AS_FisherStrand \
+	--annotation AS_MappingQualityRankSumTest \
+	--annotation AS_RMSMappingQuality \
+	--annotation AS_ReadPosRankSumTest \
+	--annotation AS_StrandOddsRatio \
+	--annotation FractionInformativeReads \
+	--annotation StrandBiasBySample \
+	--annotation StrandAlleleCountsBySample \
+	--annotation AlleleBalanceBySample \
+	--annotation AlleleBalance \
+	--emitDroppedReads \
+	-bamout $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC."$CHROMOSOME".bam" \
+	--contamination_fraction_to_filter $FREEMIX \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz"
 
 END_HAPLOTYPE_CALLER=`date '+%s'`
 
@@ -90,7 +89,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T HaplotypeCaller \
 -R $REF_GENOME \
 --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--L $BAIT_BED \
+-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 -L $CHROMOSOME \
 --interval_set_rule INTERSECTION \
 --variant_index_type LINEAR \

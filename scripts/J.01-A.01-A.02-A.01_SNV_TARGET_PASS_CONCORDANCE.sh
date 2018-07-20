@@ -22,43 +22,46 @@ set
 
 echo
 
-JAVA_1_8=$1
-CIDRSEQSUITE_7_5_0_DIR=$2
-VERACODE_CSV=$3
+# INPUT VARIABLES
 
-CORE_PATH=$4
-PROJECT=$5
-SM_TAG=$6
-TARGET_BED=$7
+	JAVA_1_8=$1
+	CIDRSEQSUITE_7_5_0_DIR=$2
+	VERACODE_CSV=$3
+	
+	CORE_PATH=$4
+	PROJECT=$5
+	SM_TAG=$6
+	TARGET_BED=$7
+		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
 # mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
 
-mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
+	mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
 
 # decompress the target vcf file into the temporary sub-folder
 
-zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
->| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
+	zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
+	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
 
 # look for a final report and store it as a variable. if there are multiple ones, then take the newest one
 
-FINAL_REPORT_FILE_TEST=$(ls -tr $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG* | tail -n 1)
+	FINAL_REPORT_FILE_TEST=$(ls -tr $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$SM_TAG* | tail -n 1)
 
 # if final report exists containing the full sm-tag, then cidrseqsuite magic
 
 if [[ ! -z "$FINAL_REPORT_FILE_TEST" ]];then
-
-	FINAL_REPORT=$FINAL_REPORT_FILE_TEST
+	
+		FINAL_REPORT=$FINAL_REPORT_FILE_TEST
 
 # if it does not exist, and if the $SM_TAG does not begin with an integer then split $SM_TAG On a @ or -\
 # look for a final report that contains that that first element of the $SM_TAG
 # bonus feature. if this first tests true but the file still does not exist then cidrseqsuite magic files b/c no file exists
 
-elif [[ $SM_TAG != [0-9]* ]]; then
+	elif [[ $SM_TAG != [0-9]* ]]; then
+		
+		HAPMAP=${SM_TAG%[@-]*}
 	
-	HAPMAP=${SM_TAG%[@-]*}
-
-	FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
+		FINAL_REPORT=$(ls $CORE_PATH/$PROJECT/Pretesting/Final_Genotyping_Reports/*$HAPMAP* | head -n 1)
 
 else
 
@@ -81,14 +84,14 @@ fi
 # [4] path_to_liftover_file
 # [5] path_to_output_directory
 
-$JAVA_1_8/java -jar \
-$CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
--single_sample_concordance \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
-$FINAL_REPORT \
-$TARGET_BED \
-$VERACODE_CSV \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG
+	$JAVA_1_8/java -jar \
+	$CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
+	-single_sample_concordance \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+	$FINAL_REPORT \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
+	$VERACODE_CSV \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG
 
 echo \
 $JAVA_1_8/java -jar \
@@ -96,15 +99,15 @@ $CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
 -single_sample_concordance \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
 $FINAL_REPORT \
-$TARGET_BED \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 $VERACODE_CSV \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
-$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv"
+	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_concordance.csv" \
+	$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_concordance.csv"
 
-mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
-$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_discordant_calls.txt"
+	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
+	$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_discordant_calls.txt"

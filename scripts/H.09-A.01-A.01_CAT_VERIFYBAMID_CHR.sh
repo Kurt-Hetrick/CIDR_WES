@@ -22,24 +22,33 @@ set
 
 echo
 
-CORE_PATH=$1
-DATAMASH_DIR=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
-TARGET_BED=$5
+	CORE_PATH=$1
+	DATAMASH_DIR=$2
+
+	PROJECT=$3
+	SM_TAG=$4
+	TARGET_BED=$5
+		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
 # REMOVE SEMICOLON BEFORE DO?
 
 echo \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 
-for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
+for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	| sed -r 's/[[:space:]]+/\t/g' \
+	| cut -f 1 \
+	| sort \
+	| uniq \
+	| $DATAMASH_DIR/datamash collapse 1 \
+	| sed 's/,/ /g');
 do
-cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
-| grep -v ^# \
-| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
->> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
+	cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
+		| grep -v ^# \
+		| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
+	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 done
 
 sed -i '/^\s*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"

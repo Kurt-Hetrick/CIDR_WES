@@ -38,13 +38,15 @@ BAIT_NAME=`basename $BAIT_BED .bed`
 
 # Create Picard style Calculate bed files (1-based start)
 
-($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-| grep "@SQ" ; sed 's/\r//g' $BAIT_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
->| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnBait.picard.bed"
+# Now doing this as own module.
 
-($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-| grep "@SQ" ; sed 's/\r//g' $TARGET_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
->| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"
+# ($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+# | grep "@SQ" ; sed 's/\r//g' $BAIT_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
+# >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnBait.picard.bed"
+# 
+# ($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+# | grep "@SQ" ; sed 's/\r//g' $TARGET_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
+# >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"
 
 # NEED TO UPGRADE TO AN EVEN NEWER VERSION OF PICARD TO GET SOME OF THESE PARAMETERS...THAT I WANT
 

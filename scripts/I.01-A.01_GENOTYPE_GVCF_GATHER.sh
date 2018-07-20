@@ -22,69 +22,76 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-TARGET_BED=$7
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	BAIT_BED=$7
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 
 ## -----CONCATENATE SCATTERED RAW VCF FILES INTO A SINGLE GRCh37 reference sorted vcf file-----
 
 # Start with creating a *list file, reference sorted, to put into --variant.
 # Assumption is that this is a correctly sorted GRCh37 reference file as the input reference used
 
-# Put the autosome into a file, sort numerically
-
-sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-| sed -r 's/[[:space:]]+/\t/g' \
-| cut -f 1 \
-| sort \
-| uniq \
-| awk '$1~/^[0-9]/' \
-| sort -k1,1n \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
-
-# Append X if present
-
-sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-| sed -r 's/[[:space:]]+/\t/g' \
-| cut -f 1 \
-| sort \
-| uniq \
-| awk '$1=="X"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
-
-# Append Y if present
-
-sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-| sed -r 's/[[:space:]]+/\t/g' \
-| cut -f 1 \
-| sort \
-| uniq \
-| awk '$1=="Y"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
-
-# Append MT if present
-
-sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-| sed -r 's/[[:space:]]+/\t/g' \
-| cut -f 1 \
-| sort \
-| uniq \
-| awk '$1=="MT"' \
-| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' >> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+	# Put the autosome into a file, sort numerically
+	
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| cut -f 1 \
+			| sort \
+			| uniq \
+			| awk '$1~/^[0-9]/' \
+			| sort -k1,1n \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+	
+	# Append X if present
+	
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| cut -f 1 \
+			| sort \
+			| uniq \
+			| awk '$1=="X"' \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+	
+	# Append Y if present
+	
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| cut -f 1 \
+			| sort \
+			| uniq \
+			| awk '$1=="Y"' \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
+	
+	# Append MT if present
+	
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| cut -f 1 \
+			| sort \
+			| uniq \
+			| awk '$1=="MT"' \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 
 START_GENOTYPE_GVCF_GATHER=`date '+%s'`
 
-$JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
-org.broadinstitute.gatk.tools.CatVariants \
--R $REF_GENOME \
---assumeSorted \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list" \
---outputFile $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz"
+	$JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
+	org.broadinstitute.gatk.tools.CatVariants \
+	-R $REF_GENOME \
+	--assumeSorted \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list" \
+	--outputFile $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz"
 
 END_GENOTYPE_GVCF_GATHER=`date '+%s'`
 

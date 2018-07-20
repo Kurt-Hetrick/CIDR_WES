@@ -445,6 +445,28 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	## REMINDER TO HANDLE THE NEW JAR FILE NAME #
 	#############################################
 
+		FIX_BED_FILES ()
+		{
+			echo \
+			qsub \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
+			-N A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BED_FILES.log" \
+			-j y \
+			$SCRIPT_DIR/A.00_FIX_BED.sh \
+			$SAMTOOLS_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$BAIT_BED \
+			$TARGET_BED \
+			$TITV_BED
+		}
+
 		RUN_BQSR ()
 		{
 			echo \
@@ -457,7 +479,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
 			-j y \
-			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 			$JAVA_1_8 \
 			$GATK_DIR_4011 \
@@ -761,8 +783,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$DBSNP \
-			$TARGET_BED
+			$DBSNP
 		}
 
 	#######################
@@ -834,82 +855,82 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 #####################################
 #####################################
 
-#####################################
-# VERIFYBAMID BY CHROMOSOME SCATTER #
-#####################################
+	#####################################
+	# VERIFYBAMID BY CHROMOSOME SCATTER #
+	#####################################
 
-	# make per chromosome/target bed file intersection vcf files for each sample
+		# make per chromosome/target bed file intersection vcf files for each sample
 
-		CALL_SELECT_VERIFYBAMID_VCF_CHR ()
-		{
-			echo \
-			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
-			-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
-			-j y \
-			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
-			$JAVA_1_8 \
-			$GATK_DIR \
-			$CORE_PATH \
-			$VERIFY_VCF \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME \
-			$TARGET_BED \
-			$CHROMOSOME
-		}
+			CALL_SELECT_VERIFYBAMID_VCF_CHR ()
+			{
+				echo \
+				qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+				-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
+				-j y \
+				-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$VERIFY_VCF \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$TARGET_BED \
+				$CHROMOSOME
+			}
 
-		CALL_VERIFYBAMID_CHR ()
-		{
-			echo \
-			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
-			-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
-			-j y \
-			-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-			$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
-			$CORE_PATH \
-			$VERIFY_DIR \
-			$PROJECT \
-			$SM_TAG \
-			$CHROMOSOME
-		}
+			CALL_VERIFYBAMID_CHR ()
+			{
+				echo \
+				qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+				-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
+				-j y \
+				-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
+				$CORE_PATH \
+				$VERIFY_DIR \
+				$PROJECT \
+				$SM_TAG \
+				$CHROMOSOME
+			}
 
-	# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
+		# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
 
-		for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-		do
-			CREATE_SAMPLE_ARRAY
-				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-					| sed -r 's/[[:space:]]+/\t/g' \
-					| cut -f 1 \
-					| egrep -v "X|Y|MT" \
-					| sort \
-					| uniq \
-					| $DATAMASH_DIR/datamash collapse 1 \
-					| sed 's/,/ /g');
-					do
-						CALL_SELECT_VERIFYBAMID_VCF_CHR
-						echo sleep 0.1s
-						CALL_VERIFYBAMID_CHR
-						echo sleep 0.1s
+			for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
+			do
+				CREATE_SAMPLE_ARRAY
+					for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+						| sed -r 's/[[:space:]]+/\t/g' \
+						| cut -f 1 \
+						| egrep -v "X|Y|MT" \
+						| sort \
+						| uniq \
+						| $DATAMASH_DIR/datamash collapse 1 \
+						| sed 's/,/ /g');
+						do
+							CALL_SELECT_VERIFYBAMID_VCF_CHR
+							echo sleep 0.1s
+							CALL_VERIFYBAMID_CHR
+							echo sleep 0.1s
+						done
 					done
-				done
 
-####################################
-# VERIFYBAMID BY CHROMOSOME GATHER #
-####################################
+	####################################
+	# VERIFYBAMID BY CHROMOSOME GATHER #
+	####################################
 
 #################################################################################
 
@@ -1076,7 +1097,7 @@ CREATE_SAMPLE_ARRAY
 		$PROJECT \
 		$SM_TAG \
 		$REF_GENOME \
-		$TARGET_BED
+		$BAIT_BED
 	}
 
 	CALL_HAPLOTYPE_CALLER_BAM_GATHER ()
@@ -1097,7 +1118,7 @@ CREATE_SAMPLE_ARRAY
 		$CORE_PATH \
 		$PROJECT \
 		$SM_TAG \
-		$TARGET_BED
+		$BAIT_BED
 	}
 
 ########################

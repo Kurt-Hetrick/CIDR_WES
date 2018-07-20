@@ -23,35 +23,37 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR_4011=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-KNOWN_INDEL_1=$7
-KNOWN_INDEL_2=$8
-DBSNP=$9
-BAIT_BED=${10}
+	JAVA_1_8=$1
+	GATK_DIR_4011=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	KNOWN_INDEL_1=$7
+	KNOWN_INDEL_2=$8
+	DBSNP=$9
+	BAIT_BED=${10}
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 
 ## --Generate post BQSR table--
 ## SEEMS DIFFERENT THAN GATK 3. NO PRE AND POST BQSR TABLE COMMANDS...
 
 START_AFTER_BQSR=`date '+%s'`
 
-$JAVA_1_8/java -jar \
-$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
-BaseRecalibrator \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---reference $REF_GENOME \
---known-sites $KNOWN_INDEL_1 \
---known-sites $KNOWN_INDEL_2 \
---known-sites $DBSNP \
---intervals $BAIT_BED \
--BQSR $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
---output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr"
-
+	$JAVA_1_8/java -jar \
+	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+	BaseRecalibrator \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	--reference $REF_GENOME \
+	--known-sites $KNOWN_INDEL_1 \
+	--known-sites $KNOWN_INDEL_2 \
+	--known-sites $DBSNP \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	-BQSR $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+	--output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr"
 
 END_AFTER_BQSR=`date '+%s'`
 
@@ -67,7 +69,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -knownSites $KNOWN_INDEL_1 \
 -knownSites $KNOWN_INDEL_2 \
 -knownSites $DBSNP \
---intervals $BAIT_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 -nct 8 \
 -BQSR $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 -o $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_AFTER_BQSR.bqsr" \

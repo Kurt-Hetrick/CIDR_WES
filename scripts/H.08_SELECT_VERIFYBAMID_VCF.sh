@@ -23,29 +23,32 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
-VERIFY_VCF=$4
+# INPUT VARIABLES
 
-PROJECT=$5
-SM_TAG=$6
-REF_GENOME=$7
-TITV_BED=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	VERIFY_VCF=$4
+	
+	PROJECT=$5
+	SM_TAG=$6
+	REF_GENOME=$7
+	TITV_BED=$8
+		TITV_BED_NAME=(`basename $TITV_BED_NAME .bed`)
 
 ## --Creating an on the fly VCF file to be used as the reference for verifyBamID--
 ## --remove X and Y data
 
 START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T SelectVariants \
---reference_sequence $REF_GENOME \
---variant $VERIFY_VCF \
--L $TITV_BED \
--XL X \
--XL Y \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T SelectVariants \
+	--reference_sequence $REF_GENOME \
+	--variant $VERIFY_VCF \
+	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
+	-XL X \
+	-XL Y \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
 
 END_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
@@ -58,7 +61,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
 --reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $TITV_BED \
+-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
 -XL X \
 -XL Y \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \

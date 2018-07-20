@@ -22,27 +22,30 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-TARGET_BED=$7
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	TARGET_BED=$7
+		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
 # Filter to just on INDELS
 
 START_INDEL_TARGET_PASS=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T SelectVariants \
---disable_auto_index_creation_and_locking_when_reading_rods \
--R $REF_GENOME \
---excludeFiltered \
---intervals $TARGET_BED \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_INDEL_FLAGGED.vcf.gz" \
--o $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T SelectVariants \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-R $REF_GENOME \
+	--excludeFiltered \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_INDEL_FLAGGED.vcf.gz" \
+	-o $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz"
 
 END_INDEL_TARGET_PASS=`date '+%s'`
 
@@ -56,7 +59,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --disable_auto_index_creation_and_locking_when_reading_rods \
 -R $REF_GENOME \
 --excludeFiltered \
---intervals $TARGET_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_INDEL_FLAGGED.vcf.gz" \
 -o $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

@@ -23,37 +23,40 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
-TARGET_BED=$4
-GENE_LIST=$5
+# INPUT VARIABLES
 
-PROJECT=$6
-SM_TAG=$7
-REF_GENOME=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	TARGET_BED=$4
+		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
+	GENE_LIST=$5
+	
+	PROJECT=$6
+	SM_TAG=$7
+	REF_GENOME=$8
 
 ### --Depth of Coverage On Target--
 
 START_DOC_TARGET=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T DepthOfCoverage \
---disable_auto_index_creation_and_locking_when_reading_rods \
---reference_sequence $REF_GENOME \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--geneList:REFSEQ $GENE_LIST \
---intervals $TARGET_BED \
--mmq 20 \
--mbq 10 \
---outputFormat csv \
--omitBaseOutput \
--o $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED" \
--ct 10 \
--ct 15 \
--ct 20 \
--ct 30 \
--ct 50
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T DepthOfCoverage \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	--reference_sequence $REF_GENOME \
+	--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	-geneList:REFSEQ $GENE_LIST \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
+	-mmq 20 \
+	-mbq 10 \
+	--outputFormat csv \
+	-omitBaseOutput \
+	-o $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED" \
+	-ct 10 \
+	-ct 15 \
+	-ct 20 \
+	-ct 30 \
+	-ct 50
 
 END_DOC_TARGET=`date '+%s'`
 
@@ -68,7 +71,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --reference_sequence $REF_GENOME \
 --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
 -geneList:REFSEQ $GENE_LIST \
---intervals $TARGET_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 -mmq 20 \
 -mbq 10 \
 --outputFormat csv \
@@ -85,35 +88,35 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_counts" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_counts.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_counts" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_counts.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_proportions" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_proportions.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_proportions" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_cumulative_coverage_proportions.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_gene_summary" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_gene_summary.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_gene_summary" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_gene_summary.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_statistics" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_statistics.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_statistics" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_statistics.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_statistics" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_statistics.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_statistics" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_statistics.csv"
 
 #####
 
-mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_summary" \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_summary.csv"
+	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_summary" \
+	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_summary.csv"

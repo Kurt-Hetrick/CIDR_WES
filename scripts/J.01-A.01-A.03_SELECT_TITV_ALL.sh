@@ -22,27 +22,30 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-TITV_BED=$7
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	TITV_BED=$7
+		TITV_BED_NAME=(`basename $TITV_BED_NAME .bed`)
 
 # Filter to just on SNVS
 
 START_SELECT_TITV_ALL=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T SelectVariants \
---disable_auto_index_creation_and_locking_when_reading_rods \
--R $REF_GENOME \
---excludeFiltered \
---intervals $TITV_BED \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_All.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T SelectVariants \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-R $REF_GENOME \
+	--excludeFiltered \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_All.vcf.gz"
 
 END_SELECT_TITV_ALL=`date '+%s'`
 
@@ -56,7 +59,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --disable_auto_index_creation_and_locking_when_reading_rods \
 -R $REF_GENOME \
 --excludeFiltered \
---intervals $TITV_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
 --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_All.vcf.gz" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

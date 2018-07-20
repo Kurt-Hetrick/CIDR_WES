@@ -31,7 +31,8 @@ echo
 	PROJECT=$4
 	SM_TAG=$5
 	REF_GENOME=$6
-	TARGET_BED=$7
+	BAIT_BED=$7
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 
 ## -----CONCATENATE SCATTERED g.vcf FILES INTO A SINGLE GRCh37 reference sorted g.vcf file-----
 
@@ -40,7 +41,7 @@ echo
 
 	# Put the autosome into a file, sort numerically
 
-		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| sort \
@@ -52,7 +53,7 @@ echo
 
 	# Append X if present
 
-		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| sort \
@@ -63,7 +64,7 @@ echo
 
 	# Append Y if present
 
-		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| sort \
@@ -74,7 +75,7 @@ echo
 
 	# Append MT if present
 
-		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| sort \

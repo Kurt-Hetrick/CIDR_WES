@@ -22,29 +22,32 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-TITV_BED=$7
-DBSNP_129=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	TITV_BED=$7
+		TITV_BED_NAME=(`basename $TITV_BED_NAME .bed`)
+	DBSNP_129=$8
 
 # Filter to just on SNVS
 
 START_SELECT_TITV_NOVEL=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T SelectVariants \
---disable_auto_index_creation_and_locking_when_reading_rods \
--R $REF_GENOME \
---excludeFiltered \
---intervals $TITV_BED \
---discordance $DBSNP_129 \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Novel.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T SelectVariants \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-R $REF_GENOME \
+	--excludeFiltered \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
+	--discordance $DBSNP_129 \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Novel.vcf.gz"
 
 END_SELECT_TITV_NOVEL=`date '+%s'`
 
@@ -58,7 +61,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --disable_auto_index_creation_and_locking_when_reading_rods \
 -R $REF_GENOME \
 --excludeFiltered \
---intervals $TITV_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
 --concordance $DBSNP_129 \
 --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz" \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Novel.vcf.gz" \

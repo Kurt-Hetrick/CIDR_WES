@@ -22,34 +22,36 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR_4011=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-KNOWN_INDEL_1=$7
-KNOWN_INDEL_2=$8
-DBSNP=$9
-BAIT_BED=${10}
+	JAVA_1_8=$1
+	GATK_DIR_4011=$2
+	CORE_PATH=$3
+	
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	KNOWN_INDEL_1=$7
+	KNOWN_INDEL_2=$8
+	DBSNP=$9
+	BAIT_BED=${10}
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 
 ## --BQSR using data only from the baited intervals
-## --I am actually going to downsample here, b/c it actually makes more sense to do so.
 
 START_PERFORM_BQSR=`date '+%s'`
 
-$JAVA_1_8/java -jar \
-$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
-BaseRecalibrator \
---use-original-qualities \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
---reference $REF_GENOME \
---known-sites $KNOWN_INDEL_1 \
---known-sites $KNOWN_INDEL_2 \
---known-sites $DBSNP \
---intervals $BAIT_BED \
---output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
+	$JAVA_1_8/java -jar \
+	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+	BaseRecalibrator \
+	--use-original-qualities \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+	--reference $REF_GENOME \
+	--known-sites $KNOWN_INDEL_1 \
+	--known-sites $KNOWN_INDEL_2 \
+	--known-sites $DBSNP \
+	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	--output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
 
 END_PERFORM_BQSR=`date '+%s'`
 
@@ -67,7 +69,7 @@ BaseRecalibrator \
 --known-sites $KNOWN_INDEL_1 \
 --known-sites $KNOWN_INDEL_2 \
 --known-sites $DBSNP \
---intervals $BAIT_BED \
+--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 --output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
