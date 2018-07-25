@@ -1739,6 +1739,8 @@ done
 	"-V",\
 	"-q","'$QUEUE_LIST'",\
 	"-p","'$PRIORITY'",\
+	"-m","e",\
+	"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
 	"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 	"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 	"-j y",\
