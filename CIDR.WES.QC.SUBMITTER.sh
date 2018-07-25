@@ -307,7 +307,8 @@ for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort 
 		$REF_GENOME \
 		$PIPELINE_VERSION \
 		$BAIT_BED \
-		$TARGET_BED
+		$TARGET_BED \
+		$TITV_BED
 	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );

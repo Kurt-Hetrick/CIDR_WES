@@ -22,39 +22,41 @@ set
 
 echo
 
-JAVA_1_8=$1
-PICARD_DIR=$2
-SAMBAMBA_DIR=$3
-CORE_PATH=$4
+# INPUT VARIABLES
 
-PROJECT=$5
-SM_TAG=$6
+	JAVA_1_8=$1
+	PICARD_DIR=$2
+	SAMBAMBA_DIR=$3
+	CORE_PATH=$4
 
-INPUT_BAM_FILE_STRING=$7
+	PROJECT=$5
+	SM_TAG=$6
 
-INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
+	INPUT_BAM_FILE_STRING=$7
+
+	INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
 
 ## --Mark Duplicates with Picard, write a duplicate report
 ## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.
 
 START_MARK_DUPLICATES=`date '+%s'`
 
-$JAVA_1_8/java -jar \
--Xmx16g \
--XX:ParallelGCThreads=4 \
-$PICARD_DIR/picard.jar \
-MarkDuplicates \
-ASSUME_SORT_ORDER=queryname \
-$INPUT \
-OUTPUT=/dev/stdout \
-VALIDATION_STRINGENCY=SILENT \
-METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
-COMPRESSION_LEVEL=0 \
-| $SAMBAMBA_DIR/sambamba \
-sort \
--t 4 \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
-/dev/stdin
+	$JAVA_1_8/java -jar \
+		-Xmx16g \
+		-XX:ParallelGCThreads=4 \
+		$PICARD_DIR/picard.jar \
+		MarkDuplicates \
+		ASSUME_SORT_ORDER=queryname \
+		$INPUT \
+		OUTPUT=/dev/stdout \
+		VALIDATION_STRINGENCY=SILENT \
+		METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
+		COMPRESSION_LEVEL=0 \
+	| $SAMBAMBA_DIR/sambamba \
+		sort \
+		-t 4 \
+		-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+		/dev/stdin
 
 END_MARK_DUPLICATES=`date '+%s'`
 
