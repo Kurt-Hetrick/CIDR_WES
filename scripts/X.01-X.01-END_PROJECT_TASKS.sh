@@ -22,12 +22,14 @@ set
 
 echo
 
-CORE_PATH=$1
-DATAMASH=$2
+# INPUT VARIABLES
 
-PROJECT=$3
+	CORE_PATH=$1
+	DATAMASH=$2
 
-SAMPLE_SHEET=$4
+	PROJECT=$3
+
+	SAMPLE_SHEET=$4
 
 TIMESTAMP=`date '+%F.%H-%M-%S'`
 
@@ -229,39 +231,39 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAM
 ##### Join with LAB QC PREP METRICS AND METADATA at the batch level #####
 #########################################################################
 
-join -t , -1 2 -2 1 \
-$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv" \
-$CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
->| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
+	join -t , -1 2 -2 1 \
+	$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv" \
+	$CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
+	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
 
 #######################################################
 ##### Concatenate all aneuploidy reports together #####
 #######################################################
 
-( cat $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/*.chrom_count_report.txt | grep "^SM_TAG" | uniq ; \
-cat $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/*.chrom_count_report.txt | grep -v "SM_TAG" ) \
-| sed 's/\t/,/g' \
->| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"
+	( cat $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/*.chrom_count_report.txt | grep "^SM_TAG" | uniq ; \
+	cat $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/*.chrom_count_report.txt | grep -v "SM_TAG" ) \
+	| sed 's/\t/,/g' \
+	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"
 
 #######################################################################
 ##### Concatenate all per chromosome verifybamID reports together #####
 #######################################################################
 
-( cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep "^#" | uniq ; \
-cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep -v "^#" ) \
-| sed 's/\t/,/g' \
->| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"
+	( cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep "^#" | uniq ; \
+	cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep -v "^#" ) \
+	| sed 's/\t/,/g' \
+	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"
 
 ####################################################
 ##### Clean up the Wall Clock minutes tracker. #####
 ####################################################
 
-awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/ \
-{print $1,$2,$3,$4,$5,$6,($6-$5)/60,strftime("%F.%H-%M-%S",$5),strftime("%F.%H-%M-%S",$6)}' \
-$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
-| awk 'BEGIN {print "SAMPLE_GROUP,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN,TIMESTAMP_START,TIMESTAMP_END"} \
-{print $0}' \
->|$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
+	awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/ \
+	{print $1,$2,$3,$4,$5,$6,($6-$5)/60,strftime("%F.%H-%M-%S",$5),strftime("%F.%H-%M-%S",$6)}' \
+	$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
+	| awk 'BEGIN {print "SAMPLE_GROUP,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN,TIMESTAMP_START,TIMESTAMP_END"} \
+	{print $0}' \
+	>|$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
 
 #############################################################
 ##### Summarize Wall Clock times ############################

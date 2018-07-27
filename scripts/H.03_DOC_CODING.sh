@@ -23,38 +23,40 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
-CODING_BED=$4
-GENE_LIST=$5
+# INPUT VARIABLES
 
-PROJECT=$6
-SM_TAG=$7
-REF_GENOME=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+	CODING_BED=$4
+	GENE_LIST=$5
+
+	PROJECT=$6
+	SM_TAG=$7
+	REF_GENOME=$8
 
 ### --Depth of Coverage ALL UCSC CODING EXONS--
 
 START_DOC_CODING=`date '+%s'`
 
-$JAVA_1_8/java -jar \
-$GATK_DIR/GenomeAnalysisTK.jar \
---analysis_type DepthOfCoverage \
---disable_auto_index_creation_and_locking_when_reading_rods \
---reference_sequence $REF_GENOME \
---input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--geneList:REFSEQ $GENE_LIST \
---intervals $CODING_BED \
--mmq 20 \
--mbq 10 \
---outputFormat csv \
--omitBaseOutput \
--ct 10 \
--ct 15 \
--ct 20 \
--ct 30 \
--ct 50 \
--o $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/UCSC/$SM_TAG".UCSC_CODING"
+	$JAVA_1_8/java -jar \
+	$GATK_DIR/GenomeAnalysisTK.jar \
+	--analysis_type DepthOfCoverage \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	--reference_sequence $REF_GENOME \
+	--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	-geneList:REFSEQ $GENE_LIST \
+	--intervals $CODING_BED \
+	-mmq 20 \
+	-mbq 10 \
+	--outputFormat csv \
+	-omitBaseOutput \
+	-ct 10 \
+	-ct 15 \
+	-ct 20 \
+	-ct 30 \
+	-ct 50 \
+	-o $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/UCSC/$SM_TAG".UCSC_CODING"
 
 END_DOC_CODING=`date '+%s'`
 

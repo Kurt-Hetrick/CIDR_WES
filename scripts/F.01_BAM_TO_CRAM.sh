@@ -22,23 +22,25 @@ set
 
 echo
 
-SAMTOOLS_DIR=$1
-CORE_PATH=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
-REF_GENOME=$5
+	SAMTOOLS_DIR=$1
+	CORE_PATH=$2
+
+	PROJECT=$3
+	SM_TAG=$4
+	REF_GENOME=$5
 
 ## --write lossless cram file. this is the deliverable
 
 START_CRAM=`date '+%s'`
 
-$SAMTOOLS_DIR/samtools \
-view \
--C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--T $REF_GENOME \
--@ 4 \
--o $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram"
+	$SAMTOOLS_DIR/samtools \
+	view \
+	-C $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	-T $REF_GENOME \
+	-@ 4 \
+	-o $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram"
 
 END_CRAM=`date '+%s'`
 

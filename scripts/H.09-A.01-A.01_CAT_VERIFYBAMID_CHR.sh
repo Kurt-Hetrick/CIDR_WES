@@ -37,7 +37,7 @@ echo
 echo \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 
-for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	| sed -r 's/[[:space:]]+/\t/g' \
 	| cut -f 1 \
 	| sort \

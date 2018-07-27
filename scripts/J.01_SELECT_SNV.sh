@@ -22,25 +22,27 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
 
 # Filter to just on SNVS
 
 START_SELECT_SNV=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T SelectVariants \
---disable_auto_index_creation_and_locking_when_reading_rods \
--R $REF_GENOME \
---selectTypeToInclude SNP \
---variant $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_SNV.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T SelectVariants \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-R $REF_GENOME \
+	--selectTypeToInclude SNP \
+	--variant $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz" \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_SNV.vcf.gz"
 
 END_SELECT_SNV=`date '+%s'`
 

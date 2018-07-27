@@ -23,19 +23,22 @@ set
 
 echo
 
-SAMTOOLS_DIR=$1
-CORE_PATH=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
-REF_GENOME=$5
+	SAMTOOLS_DIR=$1
+	CORE_PATH=$2
+
+	PROJECT=$3
+	SM_TAG=$4
+	REF_GENOME=$5
 
 ## --index the cram file
+
 START_INDEX_HC_CRAM=`date '+%s'`
 
-$SAMTOOLS_DIR/samtools \
-index \
-$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram"
+	$SAMTOOLS_DIR/samtools \
+	index \
+	$CORE_PATH/$PROJECT/HC_CRAM/$SM_TAG".HC.cram"
 
 END_INDEX_HC_CRAM=`date '+%s'`
 

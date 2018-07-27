@@ -22,37 +22,39 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
 
 # Filter to just on SNVS
 
 START_FILTER_SNV=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T VariantFiltration \
---disable_auto_index_creation_and_locking_when_reading_rods \
--R $REF_GENOME \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_SNV.vcf.gz" \
---filterExpression "QD < 2.0" \
---filterName "QD" \
---filterExpression "MQ < 30.0" \
---filterName "MQ" \
---filterExpression "FS > 40.0" \
---filterName "FS" \
---filterExpression "MQRankSum < -12.5" \
---filterName "MQRankSum" \
---filterExpression "ReadPosRankSum < -8.0" \
---filterName "ReadPosRankSum" \
---filterExpression "DP < 8.0" \
---filterName "DP" \
---logging_level ERROR \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T VariantFiltration \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-R $REF_GENOME \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_SNV.vcf.gz" \
+	--filterExpression "QD < 2.0" \
+	--filterName "QD" \
+	--filterExpression "MQ < 30.0" \
+	--filterName "MQ" \
+	--filterExpression "FS > 40.0" \
+	--filterName "FS" \
+	--filterExpression "MQRankSum < -12.5" \
+	--filterName "MQRankSum" \
+	--filterExpression "ReadPosRankSum < -8.0" \
+	--filterName "ReadPosRankSum" \
+	--filterExpression "DP < 8.0" \
+	--filterName "DP" \
+	--logging_level ERROR \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz"
 
 END_FILTER_SNV=`date '+%s'`
 

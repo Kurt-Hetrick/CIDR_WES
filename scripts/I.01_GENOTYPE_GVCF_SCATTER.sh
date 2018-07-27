@@ -23,28 +23,30 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
-DBSNP=$7
-CHROMOSOME=$8
+	JAVA_1_8=$1
+	GATK_DIR=$2
+	CORE_PATH=$3
+
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	DBSNP=$7
+	CHROMOSOME=$8
 
 START_GENOTYPE_GVCF=`date '+%s'`
 
-$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
--T GenotypeGVCFs \
--R $REF_GENOME \
---dbsnp $DBSNP \
---disable_auto_index_creation_and_locking_when_reading_rods \
--G Standard \
--G AS_Standard \
--L $CHROMOSOME \
---variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
--o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz"
+	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+	-T GenotypeGVCFs \
+	-R $REF_GENOME \
+	--dbsnp $DBSNP \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
+	-G Standard \
+	-G AS_Standard \
+	-L $CHROMOSOME \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
+	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz"
 
 END_GENOTYPE_GVCF=`date '+%s'`
 

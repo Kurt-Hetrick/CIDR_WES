@@ -33,8 +33,8 @@ echo
 	PROJECT=$5
 	SM_TAG=$6
 	REF_GENOME=$7
-	TITV_BED=$8
-		TITV_BED_NAME=(`basename $TITV_BED_NAME .bed`)
+	TARGET_BED=$8
+		TARGET_BED_NAME=(`basename $TARGET_BED_NAME .bed`)
 
 ## --Creating an on the fly VCF file to be used as the reference for verifyBamID--
 ## --remove X and Y data
@@ -45,7 +45,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	-T SelectVariants \
 	--reference_sequence $REF_GENOME \
 	--variant $VERIFY_VCF \
-	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
+	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	-XL X \
 	-XL Y \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
@@ -61,7 +61,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T SelectVariants \
 --reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
--L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed" \
+-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 -XL X \
 -XL Y \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \

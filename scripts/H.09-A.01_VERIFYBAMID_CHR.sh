@@ -23,24 +23,26 @@ set
 
 echo
 
-CORE_PATH=$1
-VERIFY_DIR=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
-CHROMOSOME=$5
+	CORE_PATH=$1
+	VERIFY_DIR=$2
+
+	PROJECT=$3
+	SM_TAG=$4
+	CHROMOSOME=$5
 
 ## --Running verifyBamID--
 
 START_VERIFYBAMID_CHR=`date '+%s'`
 
-$VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
---out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
---precise \
---verbose \
---maxDepth 2500
+	$VERIFY_DIR/verifyBamID \
+	--bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	--vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
+	--out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
+	--precise \
+	--verbose \
+	--maxDepth 2500
 
 END_VERIFYBAMID_CHR=`date '+%s'`
 

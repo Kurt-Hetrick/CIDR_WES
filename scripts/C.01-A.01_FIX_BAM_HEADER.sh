@@ -22,11 +22,13 @@ set
 
 echo
 
-SAMTOOLS_DIR=$1
-CORE_PATH=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
+	SAMTOOLS_DIR=$1
+	CORE_PATH=$2
+
+	PROJECT=$3
+	SM_TAG=$4
 
 ## --Mark Duplicates with Picard, write a duplicate report
 ## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.

@@ -37,7 +37,15 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| awk '{print $1}'`
 
 	# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
-		QUEUE_LIST_TEMP=`qstat -f -s r | egrep -v "^[0-9]|^-|^queue" | cut -d @ -f 1 | sort | uniq | egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" | datamash collapse 1 | awk '{print $1}'`
+
+		QUEUE_LIST_TEMP=`qstat -f -s r \
+			| egrep -v "^[0-9]|^-|^queue" \
+			| cut -d @ -f 1 \
+			| sort \
+			| uniq \
+			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
+			| datamash collapse 1 \
+			| awk '{print $1}'`
 
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
@@ -280,35 +288,35 @@ for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort 
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $BWA_QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $BWA_QUEUE_LIST \
+			-p $PRIORITY \
 		-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
-		-j y \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
+			-j y \
 		$SCRIPT_DIR/A.01_BWA.sh \
-		$BWA_DIR \
-		$SAMBLASTER_DIR \
-		$JAVA_1_8 \
-		$PICARD_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$FCID \
-		$LANE \
-		$INDEX \
-		$PLATFORM \
-		$LIBRARY \
-		$RUN_DATE \
-		$SM_TAG \
-		$CENTER \
-		$SEQUENCER_MODEL \
-		$REF_GENOME \
-		$PIPELINE_VERSION \
-		$BAIT_BED \
-		$TARGET_BED \
-		$TITV_BED
+			$BWA_DIR \
+			$SAMBLASTER_DIR \
+			$JAVA_1_8 \
+			$PICARD_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$FCID \
+			$LANE \
+			$INDEX \
+			$PLATFORM \
+			$LIBRARY \
+			$RUN_DATE \
+			$SM_TAG \
+			$CENTER \
+			$SEQUENCER_MODEL \
+			$REF_GENOME \
+			$PIPELINE_VERSION \
+			$BAIT_BED \
+			$TARGET_BED \
+			$TITV_BED
 	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
@@ -354,7 +362,13 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				"-j y",\
 				"-hold_jid","A.01-BWA_"$5"_"$3, \
 				"'$SCRIPT_DIR'""/C.01_MARK_DUPLICATES.sh",\
-				"'$JAVA_1_8'","'$PICARD_DIR'","'$SAMBAMBA_DIR'","'$CORE_PATH'",$1,$2,"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
+				"'$JAVA_1_8'",\
+				"'$PICARD_DIR'",\
+				"'$SAMBAMBA_DIR'",\
+				"'$CORE_PATH'",\
+				$1,\
+				$2,\
+				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
 ###################################################
@@ -492,6 +506,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$SM_TAG
 		}
 
+	# run bqsr on the using bait bed file
+
 		RUN_BQSR ()
 		{
 			echo \
@@ -624,6 +640,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	######################################
 	# CREATE VCF FOR VERIFYBAMID METRICS #
 	######################################
+	# USE THE TARGET BED FILE ############
+	######################################
 
 		SELECT_VERIFYBAMID_VCF ()
 		{
@@ -646,7 +664,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$TITV_BED
+				$TARGET_BED
 		}
 
 	###################
@@ -892,46 +910,46 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			{
 				echo \
 				qsub \
-				-S /bin/bash \
-				-cwd \
-				-V \
-				-q $QUEUE_LIST \
-				-p $PRIORITY \
+					-S /bin/bash \
+					-cwd \
+					-V \
+					-q $QUEUE_LIST \
+					-p $PRIORITY \
 				-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
-				-j y \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
+					-j y \
 				-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-				$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
-				$JAVA_1_8 \
-				$GATK_DIR \
-				$CORE_PATH \
-				$VERIFY_VCF \
-				$PROJECT \
-				$SM_TAG \
-				$REF_GENOME \
-				$TARGET_BED \
-				$CHROMOSOME
+					$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
+					$JAVA_1_8 \
+					$GATK_DIR \
+					$CORE_PATH \
+					$VERIFY_VCF \
+					$PROJECT \
+					$SM_TAG \
+					$REF_GENOME \
+					$TARGET_BED \
+					$CHROMOSOME
 			}
 
 			CALL_VERIFYBAMID_CHR ()
 			{
 				echo \
 				qsub \
-				-S /bin/bash \
-				-cwd \
-				-V \
-				-q $QUEUE_LIST \
-				-p $PRIORITY \
+					-S /bin/bash \
+					-cwd \
+					-V \
+					-q $QUEUE_LIST \
+					-p $PRIORITY \
 				-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
-				-j y \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
+					-j y \
 				-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
 				$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
-				$CORE_PATH \
-				$VERIFY_DIR \
-				$PROJECT \
-				$SM_TAG \
-				$CHROMOSOME
+					$CORE_PATH \
+					$VERIFY_DIR \
+					$PROJECT \
+					$SM_TAG \
+					$CHROMOSOME
 			}
 
 		# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
@@ -970,35 +988,45 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 
 	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
 	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
+		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET \
+								| sort \
+								| uniq )
 		do
-		HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | egrep -v "X|Y|MT" | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-	 	do
-	 		HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-	 		HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
+			HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
+			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+									| sed -r 's/[[:space:]]+/\t/g' \
+									| cut -f 1 \
+									| egrep -v "X|Y|MT" \
+									| sort \
+									| uniq \
+									| $DATAMASH_DIR/datamash collapse 1 \
+									| sed 's/,/ /g');
+			do
+				HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+				HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
+			done
 	 	done
-	 done
 	}
 
 	CALL_VERIFYBAMID_CHR_GATHER ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
+		-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \\
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
+			-j y \
 		${HOLD_ID_PATH_CAT_VERIFYBAMID} \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
 		$SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
-		$CORE_PATH \
-		$DATAMASH_DIR \
-		$PROJECT \
-		$SM_TAG \
-		$TARGET_BED
+			$CORE_PATH \
+			$DATAMASH_DIR \
+			$PROJECT \
+			$SM_TAG \
+			$TARGET_BED
 	}
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
@@ -1013,58 +1041,58 @@ done
 # HAPLOTYPE CALLER SCATTER #
 ############################
 
-# THE JOB DEPENDENCY IS THE BAM FILE B/C CRAM SUPORRT WAS BROKEN IN GATK 3.7 AND 3.8
-# WILL WANT TO SWITCH TO CRAM WHEN USING A VERSION OF GATK WHERE THIS NOT BROKEN
-# This is why i have both verifybamId and a bam/cram dependency, b/c verifybamID has to come after the bam file.
-# the freemix value from verifybamID output is pulled as a variable to the haplotype caller script
+	# THE JOB DEPENDENCY IS THE BAM FILE B/C CRAM SUPORRT WAS BROKEN IN GATK 3.7 AND 3.8
+	# WILL WANT TO SWITCH TO CRAM WHEN USING A VERSION OF GATK WHERE THIS NOT BROKEN
+	# This is why i have both verifybamId and a bam/cram dependency, b/c verifybamID has to come after the bam file.
+	# the freemix value from verifybamID output is pulled as a variable to the haplotype caller script
 
-	CALL_HAPLOTYPE_CALLER ()
-	{
-		echo \
-		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
-		-j y \
-		-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
-		$SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$BAIT_BED \
-		$CHROMOSOME
-	}
+		CALL_HAPLOTYPE_CALLER ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
+				-j y \
+			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$BAIT_BED \
+				$CHROMOSOME
+		}
 
-	CALL_GENOTYPE_GVCF ()
-	{
-		echo \
-		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
-		-j y \
-		-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-		$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$DBSNP \
-		$CHROMOSOME
-	}
+		CALL_GENOTYPE_GVCF ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
+				-j y \
+			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+			$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$DBSNP \
+				$CHROMOSOME
+		}
 
 # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
 
@@ -1097,11 +1125,17 @@ CREATE_SAMPLE_ARRAY
 		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
 		do
 		HOLD_ID_PATH="-hold_jid "
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-	 	do
-	 		HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-	 		HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
-	 	done
+			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+									| sed -r 's/[[:space:]]+/\t/g' \
+									| cut -f 1 \
+									| sort \
+									| uniq \
+									| $DATAMASH_DIR/datamash collapse 1 \
+									| sed 's/,/ /g');
+			do
+				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+				HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
+			done
 	 done
 	}
 
@@ -1109,43 +1143,45 @@ CREATE_SAMPLE_ARRAY
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N H.01-A.01_HAPLOTYPE_CALLER_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-HAPLOTYPE_CALLER_GVCF_GATHER.log \
+			-j y \
 		${HOLD_ID_PATH} \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-HAPLOTYPE_CALLER_GVCF_GATHER.log \
 		$SCRIPT_DIR/H.01-A.01_HAPLOTYPE_CALLER_GVCF_GATHER.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$BAIT_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$BAIT_BED
 	}
 
 	CALL_HAPLOTYPE_CALLER_BAM_GATHER ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-HAPLOTYPE_CALLER_BAM_GATHER.log \
+			-j y \
 		${HOLD_ID_PATH} \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-HAPLOTYPE_CALLER_BAM_GATHER.log \
 		$SCRIPT_DIR/H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER.sh \
-		$JAVA_1_8 \
-		$PICARD_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$BAIT_BED
+			$JAVA_1_8 \
+			$PICARD_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$BAIT_BED
 	}
 
 ########################
@@ -1158,49 +1194,56 @@ CREATE_SAMPLE_ARRAY
 	{
 		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
 		do
-		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED | sed -r 's/[[:space:]]+/\t/g' | cut -f 1 | sort | uniq | $DATAMASH_DIR/datamash collapse 1 | sed 's/,/ /g');
-	 	do
-	 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-	 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+			HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+										| sed -r 's/[[:space:]]+/\t/g' \
+										| cut -f 1 \
+										| sort \
+										| uniq \
+										| $DATAMASH_DIR/datamash collapse 1 \
+										| sed 's/,/ /g');
+				do
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+				done
 	 	done
-	 done
 	}
 
 	CALL_GENOTYPE_GVCF_GATHER ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-GENOTYPE_GVCF_GATHER.log \
+			-j y \
 		${HOLD_ID_PATH_GENOTYPE_GVCF_GATHER} \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-GENOTYPE_GVCF_GATHER.log \
 		$SCRIPT_DIR/I.01-A.01_GENOTYPE_GVCF_GATHER.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TARGET_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$BAIT_BED
 	}
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
- do
- 	CREATE_SAMPLE_ARRAY
-	BUILD_HOLD_ID_PATH
-	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER	
-	CALL_HAPLOTYPE_CALLER_GVCF_GATHER
-	echo sleep 0.1s
-	CALL_HAPLOTYPE_CALLER_BAM_GATHER
-	echo sleep 0.1s
-	CALL_GENOTYPE_GVCF_GATHER
-	echo sleep 0.1s
- done
+	do
+		CREATE_SAMPLE_ARRAY
+		BUILD_HOLD_ID_PATH
+		BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER
+		CALL_HAPLOTYPE_CALLER_GVCF_GATHER
+		echo sleep 0.1s
+		CALL_HAPLOTYPE_CALLER_BAM_GATHER
+		echo sleep 0.1s
+		CALL_GENOTYPE_GVCF_GATHER
+		echo sleep 0.1s
+	done
 
 ###########################################################
 ### HC_BAM TO CRAM; VCF BREAKOUTS, FILTERING, METRICS #####
@@ -1214,21 +1257,21 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_BAM_TO_CRAM.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_BAM_TO_CRAM.log" \
+				-j y \
 			-hold_jid H.01-A.02_HAPLOTYPE_CALLER_BAM_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM.sh \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 ##########################################################################################
@@ -1239,190 +1282,198 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_INDEX_CRAM.log" \
-		-j y \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HC_INDEX_CRAM.log" \
+			-j y \
 		-hold_jid H.01-A.02-A.01_HAPLOTYPE_CALLER_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 		$SCRIPT_DIR/H.01-A.02-A.01-A.01_INDEX_HAPLOTYPE_CALLER_CRAM.sh \
-		$SAMTOOLS_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$SAMTOOLS_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	SELECT_SNV ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01_SELECT_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_SNV_QC.log \
+			-j y \
 		-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_SNV_QC.log \
 		$SCRIPT_DIR/J.01_SELECT_SNV.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	SELECT_INDEL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.02_SELECT_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_INDEL_QC.log \
+			-j y \
 		-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_INDEL_QC.log \
 		$SCRIPT_DIR/J.02_SELECT_INDEL.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	SELECT_MIXED ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.03_SELECT_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_MIXED_QC.log \
+			-j y \
 		-hold_jid I.01-A.01_GENOTYPE_GVCF_GATHER"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_MIXED_QC.log \
 		$SCRIPT_DIR/J.03_SELECT_MIXED.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	FILTER_SNV ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_SNV_QC.log \
+			-j y \
 		-hold_jid J.01_SELECT_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_SNV_QC.log \
 		$SCRIPT_DIR/J.01-A.01_FILTER_SNV.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	FILTER_INDEL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_INDEL_QC.log \
+			-j y \
 		-hold_jid J.02_SELECT_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_INDEL_QC.log \
 		$SCRIPT_DIR/J.02-A.01_FILTER_INDEL.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	FILTER_MIXED ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_MIXED_QC.log \
+			-j y \
 		-hold_jid J.03_SELECT_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-FILTER_MIXED_QC.log \
 		$SCRIPT_DIR/J.03-A.01_FILTER_MIXED.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	BAIT_PASS_SNV ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_SNV_QC.log \
+			-j y \
 		-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_SNV_QC.log \
 		$SCRIPT_DIR/J.01-A.01-A.01_SNV_BAIT_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	TARGET_PASS_SNV ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC.log \
+			-j y \
 		-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC.log \
 		$SCRIPT_DIR/J.01-A.01-A.02_SNV_TARGET_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TARGET_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TARGET_BED
 	}
 
 
@@ -1430,234 +1481,247 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST_TEMP \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST_TEMP \
+			-p $PRIORITY \
 		-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+			-j y \
 		-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
 		$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
-		$JAVA_1_8 \
-		$CIDRSEQSUITE_7_5_0_DIR \
-		$VERACODE_CSV \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$TARGET_BED
+			$JAVA_1_8 \
+			$CIDRSEQSUITE_7_5_0_DIR \
+			$VERACODE_CSV \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$TARGET_BED
 	}
 
 	BAIT_PASS_INDEL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_INDEL_QC.log \
+			-j y \
 		-hold_jid J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_INDEL_QC.log \
 		$SCRIPT_DIR/J.02-A.01-A.01_INDEL_BAIT_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	TARGET_PASS_INDEL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.02-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_INDEL_QC.log \
+			-j y \
 		-hold_jid J.02-A.01_FILTER_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_INDEL_QC.log \
 		$SCRIPT_DIR/J.02-A.01-A.02_INDEL_TARGET_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TARGET_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TARGET_BED
 	}
 
 	BAIT_PASS_MIXED ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_MIXED_QC.log \
+			-j y \
 		-hold_jid J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-BAIT_PASS_MIXED_QC.log \
 		$SCRIPT_DIR/J.03-A.01-A.01_MIXED_BAIT_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME
 	}
 
 	TARGET_PASS_MIXED ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_MIXED_QC.log \
+			-j y \
 		-hold_jid J.03-A.01_FILTER_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_MIXED_QC.log \
 		$SCRIPT_DIR/J.03-A.01-A.02_MIXED_TARGET_PASS.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TARGET_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TARGET_BED
 	}
 
 	SELECT_TITV_ALL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01-A.03_SELECT_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_ALL_QC.log \
+			-j y \
 		-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_ALL_QC.log \
 		$SCRIPT_DIR/J.01-A.01-A.03_SELECT_TITV_ALL.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TITV_BED
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TITV_BED
 	}
 
 	SELECT_TITV_KNOWN ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01-A.04_SELECT_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_KNOWN_QC.log \
+			-j y \
 		-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_KNOWN_QC.log \
 		$SCRIPT_DIR/J.01-A.01-A.04_SELECT_TITV_KNOWN.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TITV_BED \
-		$DBSNP_129
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TITV_BED \
+			$DBSNP_129
 	}
 
 	SELECT_TITV_NOVEL ()
 	{
 		echo \
 		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
 		-N J.01-A.01-A.05_SELECT_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_NOVEL_QC.log \
+			-j y \
 		-hold_jid J.01-A.01_FILTER_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-SELECT_TITV_NOVEL_QC.log \
 		$SCRIPT_DIR/J.01-A.01-A.05_SELECT_TITV_NOVEL.sh \
-		$JAVA_1_8 \
-		$GATK_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG \
-		$REF_GENOME \
-		$TITV_BED \
-		$DBSNP_129
+			$JAVA_1_8 \
+			$GATK_DIR \
+			$CORE_PATH \
+			$PROJECT \
+			$SM_TAG \
+			$REF_GENOME \
+			$TITV_BED \
+			$DBSNP_129
 	}
 
-	RUN_TITV_ALL ()
-	{
-		echo \
-		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-hold_jid J.01-A.01-A.03_SELECT_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_ALL_QC.log \
-		$SCRIPT_DIR/J.01-A.01-A.03-A.01_RUN_TITV_ALL.sh \
-		$SAMTOOLS_0118_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG
-	}
+	# run titv
 
-	RUN_TITV_KNOWN ()
-	{
-		echo \
-		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-hold_jid J.01-A.01-A.04_SELECT_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_KNOWN_QC.log \
-		$SCRIPT_DIR/J.01-A.01-A.04-A.01_RUN_TITV_KNOWN.sh \
-		$SAMTOOLS_0118_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG
-	}
+		RUN_TITV_ALL ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_ALL_QC.log \
+				-j y \
+			-hold_jid J.01-A.01-A.03_SELECT_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/J.01-A.01-A.03-A.01_RUN_TITV_ALL.sh \
+				$SAMTOOLS_0118_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG
+		}
 
-	RUN_TITV_NOVEL ()
-	{
-		echo \
-		qsub \
-		-S /bin/bash \
-		-cwd \
-		-V \
-		-q $QUEUE_LIST \
-		-p $PRIORITY \
-		-N J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-hold_jid J.01-A.01-A.05_SELECT_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_NOVEL_QC.log \
-		$SCRIPT_DIR/J.01-A.01-A.05-A.01_RUN_TITV_NOVEL.sh \
-		$SAMTOOLS_0118_DIR \
-		$CORE_PATH \
-		$PROJECT \
-		$SM_TAG
-	}
+		RUN_TITV_KNOWN ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_KNOWN_QC.log \
+				-j y \
+			-hold_jid J.01-A.01-A.04_SELECT_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/J.01-A.01-A.04-A.01_RUN_TITV_KNOWN.sh \
+				$SAMTOOLS_0118_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG
+		}
+
+		RUN_TITV_NOVEL ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-RUN_TITV_NOVEL_QC.log \
+				-j y \
+			-hold_jid J.01-A.01-A.05_SELECT_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/J.01-A.01-A.05-A.01_RUN_TITV_NOVEL.sh \
+				$SAMTOOLS_0118_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG
+		}
 
 QC_REPORT_PREP ()
 {

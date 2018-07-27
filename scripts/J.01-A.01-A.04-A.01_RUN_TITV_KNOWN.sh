@@ -22,21 +22,23 @@ set
 
 echo
 
-SAMTOOLS_0118_DIR=$1
-CORE_PATH=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
+	SAMTOOLS_0118_DIR=$1
+	CORE_PATH=$2
+
+	PROJECT=$3
+	SM_TAG=$4
 
 # Filter to just on SNVS
 
 START_RUN_TITV_KNOWN=`date '+%s'`
 
-zcat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Known.vcf.gz" \
-| $SAMTOOLS_0118_DIR/bcftools/vcfutils.pl \
-qstats \
-/dev/stdin \
->| $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Known_.titv.txt"
+	zcat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_TiTv_Known.vcf.gz" \
+	| $SAMTOOLS_0118_DIR/bcftools/vcfutils.pl \
+	qstats \
+	/dev/stdin \
+	>| $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Known_.titv.txt"
 
 END_RUN_TITV_KNOWN=`date '+%s'`
 

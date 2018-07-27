@@ -23,23 +23,25 @@ set
 
 echo
 
-CORE_PATH=$1
-VERIFY_DIR=$2
+# INPUT VARIABLES
 
-PROJECT=$3
-SM_TAG=$4
+	CORE_PATH=$1
+	VERIFY_DIR=$2
+
+	PROJECT=$3
+	SM_TAG=$4
 
 ## --Running verifyBamID--
 
 START_VERIFYBAMID=`date '+%s'`
 
-$VERIFY_DIR/verifyBamID \
---bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
---vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
---out $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG \
---precise \
---verbose \
---maxDepth 2500
+	$VERIFY_DIR/verifyBamID \
+	--bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+	--vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
+	--out $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG \
+	--precise \
+	--verbose \
+	--maxDepth 2500
 
 END_VERIFYBAMID=`date '+%s'`
 

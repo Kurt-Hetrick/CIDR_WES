@@ -23,20 +23,22 @@ set
 
 echo
 
-CORE_PATH=$1
+# INPUT VARIABLES
 
-PROJECT=$2
-SM_TAG=$3
+	CORE_PATH=$1
+
+	PROJECT=$2
+	SM_TAG=$3
 
 ## do md5sum on the cram file
 
 START_MD5SUM_CRAM=`date '+%s'`
 
-md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
->| $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
+	md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+	>| $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
 
-md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.crai" \
->> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
+	md5sum $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.crai" \
+	>> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
 
 END_MD5SUM_CRAM=`date '+%s'`
 

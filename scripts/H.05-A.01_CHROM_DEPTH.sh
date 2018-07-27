@@ -23,26 +23,28 @@ set
 
 echo
 
-CORE_PATH=$1
-CYTOBAND_BED=$2
-DATAMASH_DIR=$3
-BEDTOOLS_DIR=$4
+# INPUT VARIABLES
 
-PROJECT=$5
-SM_TAG=$6
+	CORE_PATH=$1
+	CYTOBAND_BED=$2
+	DATAMASH_DIR=$3
+	BEDTOOLS_DIR=$4
+
+	PROJECT=$5
+	SM_TAG=$6
 
 # Format the cytoband file.
-# strip out the "chr" prefix from the chromsome name
-# print the chromsome, start, end, the first character of the cytoband (to get the chromosome arm).
-# the file is already sorted correctly so group by chromosome and chromosome arm and print the first start and last end
-	# for the chromosome/arm combination
+	# strip out the "chr" prefix from the chromsome name
+	# print the chromsome, start, end, the first character of the cytoband (to get the chromosome arm).
+	# the file is already sorted correctly so group by chromosome and chromosome arm and print the first start and last end
+		# for the chromosome/arm combination
 # print CHROMOSOME, START, END, ARM (TAB DELIMITED) TO MAKE A BED FILE.
 
-sed 's/^chr//g' $CYTOBAND_BED \
-| awk 'BEGIN {OFS="\t"} {print $1,$2,$3,substr($4,0,1)}' \
-| $DATAMASH_DIR/datamash -s -g 1,4 first 2 last 3 \
-| awk 'BEGIN {OFS="\t"} {print $1,$3,$4,$2}' \
->| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed"
+	sed 's/^chr//g' $CYTOBAND_BED \
+	| awk 'BEGIN {OFS="\t"} {print $1,$2,$3,substr($4,0,1)}' \
+	| $DATAMASH_DIR/datamash -s -g 1,4 first 2 last 3 \
+	| awk 'BEGIN {OFS="\t"} {print $1,$3,$4,$2}' \
+	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed"
 
 # Annotate the sample_interval_summary file from DEPTH_OF_COVERAGE.csv with what chromosome arm that intervals falls into
 # remove any snps if present (they don't have a (-) in the first field, ignore the header
@@ -75,35 +77,35 @@ sed 's/^chr//g' $CYTOBAND_BED \
 	
 	# Below does calculate for X PAR, but I don't think that it removes PAR from the X calculation...
 
-awk 'BEGIN {FS=","};{OFS="\t"} $1~"-" {split($1,CHROM,":"); split(CHROM[2],POS,"-"); \
-print CHROM[1],POS[1]-1,POS[2],$2}' \
-$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary.csv" \
-| $BEDTOOLS_DIR/bedtools intersect -wo -a - -b $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed" \
-| awk 'BEGIN {OFS="\t"} {if ($1=="X"&&$2<=2699520) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
-else if ($1=="X"&&$2>=154931044) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
-else print "'$SM_TAG'",$1,$8,$4,$9}' \
-| $DATAMASH_DIR/datamash -s -g 1,2,3 sum 4 sum 5 \
-| tee $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
-| $DATAMASH_DIR/datamash -g 1,2 sum 4 sum 5 \
-| awk 'BEGIN {OFS="\t"} {print $1,$2,"whole",$3,$4}' \
-| tee -a $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt"
+		awk 'BEGIN {FS=","};{OFS="\t"} $1~"-" {split($1,CHROM,":"); split(CHROM[2],POS,"-"); \
+		print CHROM[1],POS[1]-1,POS[2],$2}' \
+		$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary.csv" \
+		| $BEDTOOLS_DIR/bedtools intersect -wo -a - -b $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed" \
+		| awk 'BEGIN {OFS="\t"} {if ($1=="X"&&$2<=2699520) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
+		else if ($1=="X"&&$2>=154931044) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
+		else print "'$SM_TAG'",$1,$8,$4,$9}' \
+		| $DATAMASH_DIR/datamash -s -g 1,2,3 sum 4 sum 5 \
+		| tee $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
+		| $DATAMASH_DIR/datamash -g 1,2 sum 4 sum 5 \
+		| awk 'BEGIN {OFS="\t"} {print $1,$2,"whole",$3,$4}' \
+		| tee -a $CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt"
 
 # calculate the mean autosomal (chr 1-22) read depth to normalized all of the depth for each chromosome and chromsome arm
 
-AUTOSOMAL_MEAN_DEPTH=`awk '$3=="whole"&&$2~/[0-9]/ {print $0}' \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
-| $DATAMASH_DIR/datamash -s sum 4 sum 5 \
-| awk '{print $1/$2}'`
+	AUTOSOMAL_MEAN_DEPTH=`awk '$3=="whole"&&$2~/[0-9]/ {print $0}' \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
+	| $DATAMASH_DIR/datamash -s sum 4 sum 5 \
+	| awk '{print $1/$2}'`
 
 # take the total coverages by chrom and chromosome arm, calcuate the mean depth for each sample,chr,arm combination
 # normalize by the AUTOSOMAL MEAN DEPTH
 # remove 21p, X.PARp and X.PARq
 
-awk 'BEGIN {print "SM_TAG","CHROM","ARM","TOTAL_COVERAGE","TOTAL_TARGETS","MEAN_DEPTH","NORM_DEPTH","AUTO_MEAN_DEPTH"} \
-{print $1,$2,$3,$4,$5,$4/$5,$4/$5/"'$AUTOSOMAL_MEAN_DEPTH'","'$AUTOSOMAL_MEAN_DEPTH'"}' \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
-| sed 's/ /\t/g' \
-| awk '$2!="21"||$3!="p" {print $0}' \
-| awk '$2!="X.PAR"||$3!="p" {print $0}' \
-| awk '$2!="X.PAR"||$3!="q" {print $0}' \
->| $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/$SM_TAG".chrom_count_report.txt"
+	awk 'BEGIN {print "SM_TAG","CHROM","ARM","TOTAL_COVERAGE","TOTAL_TARGETS","MEAN_DEPTH","NORM_DEPTH","AUTO_MEAN_DEPTH"} \
+	{print $1,$2,$3,$4,$5,$4/$5,$4/$5/"'$AUTOSOMAL_MEAN_DEPTH'","'$AUTOSOMAL_MEAN_DEPTH'"}' \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG".depth_per_chr_arm.txt" \
+	| sed 's/ /\t/g' \
+	| awk '$2!="21"||$3!="p" {print $0}' \
+	| awk '$2!="X.PAR"||$3!="p" {print $0}' \
+	| awk '$2!="X.PAR"||$3!="q" {print $0}' \
+	>| $CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/$SM_TAG".chrom_count_report.txt"
