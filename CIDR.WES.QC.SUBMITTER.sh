@@ -450,48 +450,72 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BED_FILES.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BED_FILES.log" \
+				-j y \
 			$SCRIPT_DIR/A.00_FIX_BED.sh \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$BAIT_BED \
-			$TARGET_BED \
-			$TITV_BED
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$BAIT_BED \
+				$TARGET_BED \
+				$TITV_BED
+		}
+
+	# sambamba strips out the PM tag in the RG header...so have to fix the header again...
+	# this is a bug in up to v0.6.7, the author has a bug fix for his next release milestone
+	# at which I'll be removing this step
+
+		FIX_BAM_HEADER ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BAM_HEADER.log" \
+				-j y \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/C.01-A.01_FIX_BAM_HEADER.sh \
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG
 		}
 
 		RUN_BQSR ()
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
-			-j y \
-			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
+				-j y \
+			-hold_jid C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
-			$JAVA_1_8 \
-			$GATK_DIR_4011 \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME \
-			$KNOWN_INDEL_1 \
-			$KNOWN_INDEL_2 \
-			$DBSNP \
-			$BAIT_BED
+				$JAVA_1_8 \
+				$GATK_DIR_4011 \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$KNOWN_INDEL_1 \
+				$KNOWN_INDEL_2 \
+				$DBSNP \
+				$BAIT_BED
 		}
 
 	##############################
@@ -504,22 +528,22 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-APPLY_BQSR.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-APPLY_BQSR.log" \
+				-j y \
 			-hold_jid D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/E.01_APPLY_BQSR.sh \
-			$JAVA_1_8 \
-			$GATK_DIR_4011 \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$JAVA_1_8 \
+				$GATK_DIR_4011 \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	#####################################################
@@ -530,21 +554,21 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BAM_TO_CRAM.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-BAM_TO_CRAM.log" \
+				-j y \
 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/F.01_BAM_TO_CRAM.sh \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	##########################################################################################
@@ -555,21 +579,21 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CRAM.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-INDEX_CRAM.log" \
+				-j y \
 			-hold_jid F.01-BAM_TO_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/G.01_INDEX_CRAM.sh \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	#############################################
@@ -582,19 +606,19 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N G.02-MD5SUM_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-MD5SUM_CRAM.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-MD5SUM_CRAM.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/G.02_MD5SUM_CRAM.sh \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG
 		}
 
 	######################################
@@ -605,24 +629,24 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF.log" \
+				-j y \
 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.08_SELECT_VERIFYBAMID_VCF.sh \
-			$JAVA_1_8 \
-			$GATK_DIR \
-			$CORE_PATH \
-			$VERIFY_VCF \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME \
-			$TITV_BED
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$VERIFY_VCF \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$TITV_BED
 		}
 
 	###################
@@ -633,20 +657,20 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID.log" \
+				-j y \
 			-hold_jid H.08-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.08-A.01_VERIFYBAMID.sh \
-			$CORE_PATH \
-			$VERIFY_DIR \
-			$PROJECT \
-			$SM_TAG
+				$CORE_PATH \
+				$VERIFY_DIR \
+				$PROJECT \
+				$SM_TAG
 		}
 
 	###############################################
@@ -657,24 +681,24 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.03-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_CODING.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_CODING.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.03_DOC_CODING.sh \
-			$JAVA_1_8 \
-			$GATK_DIR \
-			$CORE_PATH \
-			$CODING_BED \
-			$GENE_LIST \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$CODING_BED \
+				$GENE_LIST \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	#############################################
@@ -685,24 +709,24 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.04-DOC_BAIT"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_BED_SUPERSET.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_BED_SUPERSET.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.04_DOC_BED_SUPERSET.sh \
-			$JAVA_1_8 \
-			$GATK_DIR \
-			$CORE_PATH \
-			$BAIT_BED \
-			$GENE_LIST \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$BAIT_BED \
+				$GENE_LIST \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	#############################################
@@ -713,24 +737,24 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.05-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_TARGET.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-DOC_TARGET.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.05_DOC_TARGET.sh \
-			$JAVA_1_8 \
-			$GATK_DIR \
-			$CORE_PATH \
-			$TARGET_BED \
-			$GENE_LIST \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$CORE_PATH \
+				$TARGET_BED \
+				$GENE_LIST \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME
 		}
 
 	#########################################################
@@ -741,22 +765,22 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.05-A.01_CHROM_DEPTH"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANEUPLOIDY_CHECK.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-ANEUPLOIDY_CHECK.log" \
+				-j y \
 			-hold_jid H.05-DOC_TARGET"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.05-A.01_CHROM_DEPTH.sh \
-			$CORE_PATH \
-			$CYTOBAND_BED \
-			$DATAMASH_DIR \
-			$BEDTOOLS_DIR \
-			$PROJECT \
-			$SM_TAG
+				$CORE_PATH \
+				$CYTOBAND_BED \
+				$DATAMASH_DIR \
+				$BEDTOOLS_DIR \
+				$PROJECT \
+				$SM_TAG
 		}
 
 	#############################
@@ -767,24 +791,24 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.06-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_MULTIPLE_METRICS.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.06_COLLECT_MULTIPLE_METRICS.sh \
-			$JAVA_1_8 \
-			$PICARD_DIR \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME \
-			$DBSNP
+				$JAVA_1_8 \
+				$PICARD_DIR \
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$DBSNP
 		}
 
 	#######################
@@ -795,25 +819,25 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		{
 			echo \
 			qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
 			-N H.07-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_HS_METRICS.log" \
-			-j y \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-COLLECT_HS_METRICS.log" \
+				-j y \
 			-hold_jid G.01-INDEX_CRAM"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.07_COLLECT_HS_METRICS.sh \
-			$JAVA_1_8 \
-			$PICARD_DIR \
-			$SAMTOOLS_DIR \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$REF_GENOME \
-			$BAIT_BED \
-			$TARGET_BED
+				$JAVA_1_8 \
+				$PICARD_DIR \
+				$SAMTOOLS_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$BAIT_BED \
+				$TARGET_BED
 		}
 
 # taking out the post BQSR and analyze covariates until i update them to gatk 4
@@ -822,6 +846,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 		do
 			CREATE_SAMPLE_ARRAY
+			FIX_BAM_HEADER
+			echo sleep 0.1s
 			RUN_BQSR
 			echo sleep 0.1s
 			APPLY_BQSR
