@@ -144,7 +144,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			$CORE_PATH/$SEQ_PROJECT/SNV/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 			$CORE_PATH/$SEQ_PROJECT/MIXED/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 			$CORE_PATH/$SEQ_PROJECT/MIXED/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
-			$CORE_PATH/$SEQ_PROJECT/VCF/QC/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
+			$CORE_PATH/$SEQ_PROJECT/VCF/QC/{FILTERED_ON_BAIT} \
 			$CORE_PATH/$SEQ_PROJECT/VCF/RELEASE/{FILTERED_ON_BAIT,FILTERED_ON_TARGET} \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/{ALIGNMENT_SUMMARY,ANNOVAR,PICARD_DUPLICATES,VERIFYBAMID,VERIFYBAMID_CHR,QC_REPORT_PREP,QC_REPORTS,LAB_PREP_REPORTS} \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/{TI_TV,TI_TV_MS} \
@@ -158,7 +158,6 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/DEPTH_OF_COVERAGE/{TARGET,UCSC,BED_SUPERSET} \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/INSERT_SIZE/{METRICS,PDF} \
-			$CORE_PATH/$SEQ_PROJECT/REPORTS/LOCAL_REALIGNMENT_INTERVALS \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
 			$CORE_PATH/$SEQ_PROJECT/REPORTS/ANEUPLOIDY_CHECK
 		}
@@ -864,6 +863,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 		do
 			CREATE_SAMPLE_ARRAY
+			FIX_BED_FILES
+			echo sleep 0.1s
 			FIX_BAM_HEADER
 			echo sleep 0.1s
 			RUN_BQSR
@@ -960,6 +961,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 						| sed -r 's/[[:space:]]+/\t/g' \
 						| cut -f 1 \
+						| sed 's/chr//g' \
 						| egrep -v "X|Y|MT" \
 						| sort \
 						| uniq \
@@ -976,58 +978,56 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	####################################
 	# VERIFYBAMID BY CHROMOSOME GATHER #
 	####################################
+	#####################################
+	# i seem to have screwed this up....
+	######################################
 
-#################################################################################
+		# GATHER UP THE PER CHROMOSOME PER SAMPLE VERIFYBAMID OUTPUT FILES
+		# I THINK THAT I SHOULD BE ABLE TO INCORPORATE THIS INTO THE ABOVE LOOP.
 
-#####################################
-# i seem to have screwed this up....
-######################################
+			BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
+			{
+				for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET \
+										| sort \
+										| uniq )
+					do
+						HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
+						for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+												| sed -r 's/[[:space:]]+/\t/g' \
+												| cut -f 1 \
+												| sed 's/chr//g' \
+												| egrep -v "X|Y|MT" \
+												| sort \
+												| uniq \
+												| $DATAMASH_DIR/datamash collapse 1 \
+												| sed 's/,/ /g');
+							do
+								HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+								HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
+							done
+					done
+			}
 
-# GATHER UP THE PER CHROMOSOME PER SAMPLE VERIFYBAMID OUTPUT FILES
-# I THINK THAT I SHOULD BE ABLE TO INCORPORATE THIS INTO THE ABOVE LOOP.
-
-	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
-	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET \
-								| sort \
-								| uniq )
-		do
-			HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
-			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-									| sed -r 's/[[:space:]]+/\t/g' \
-									| cut -f 1 \
-									| egrep -v "X|Y|MT" \
-									| sort \
-									| uniq \
-									| $DATAMASH_DIR/datamash collapse 1 \
-									| sed 's/,/ /g');
-			do
-				HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-				HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
-			done
-	 	done
-	}
-
-	CALL_VERIFYBAMID_CHR_GATHER ()
-	{
-		echo \
-		qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p $PRIORITY \
-		-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \\
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
-			-j y \
-		${HOLD_ID_PATH_CAT_VERIFYBAMID} \
-		$SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
-			$CORE_PATH \
-			$DATAMASH_DIR \
-			$PROJECT \
-			$SM_TAG \
-			$TARGET_BED
-	}
+			CALL_VERIFYBAMID_CHR_GATHER ()
+			{
+				echo \
+				qsub \
+					-S /bin/bash \
+					-cwd \
+					-V \
+					-q $QUEUE_LIST \
+					-p $PRIORITY \
+				-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
+					-j y \
+				${HOLD_ID_PATH_CAT_VERIFYBAMID} \
+				$SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
+					$CORE_PATH \
+					$DATAMASH_DIR \
+					$PROJECT \
+					$SM_TAG \
+					$TARGET_BED
+			}
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 do
@@ -1101,6 +1101,7 @@ do
 CREATE_SAMPLE_ARRAY
 	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
 		| sed -r 's/[[:space:]]+/\t/g' \
+		| sed 's/chr//g' \
 		| cut -f 1 \
 		| sort \
 		| uniq \
@@ -1128,6 +1129,7 @@ CREATE_SAMPLE_ARRAY
 			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
 									| sed -r 's/[[:space:]]+/\t/g' \
 									| cut -f 1 \
+									| sed 's/chr//g' \
 									| sort \
 									| uniq \
 									| $DATAMASH_DIR/datamash collapse 1 \
@@ -1198,6 +1200,7 @@ CREATE_SAMPLE_ARRAY
 				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
 										| sed -r 's/[[:space:]]+/\t/g' \
 										| cut -f 1 \
+										| sed 's/chr//g' \
 										| sort \
 										| uniq \
 										| $DATAMASH_DIR/datamash collapse 1 \
