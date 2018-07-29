@@ -43,7 +43,7 @@ ApplyBQSR \
 --use-original-qualities \
 --emit-original-quals \
 --reference $REF_GENOME \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
 --bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 --static-quantized-quals 10 \
 --static-quantized-quals 20 \
@@ -64,7 +64,7 @@ ApplyBQSR \
 --use-original-qualities \
 --emit-original-quals \
 --reference $REF_GENOME \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
 --bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 --static-quantized-quals 10 \
 --static-quantized-quals 20 \
