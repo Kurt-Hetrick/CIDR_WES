@@ -258,7 +258,9 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAM
 ##### Clean up the Wall Clock minutes tracker. #####
 ####################################################
 
-	awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/ \
+# only output jobs longer than 1 minute
+
+	awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/&&($6-$5)>180 \
 	{print $1,$2,$3,$4,$5,$6,($6-$5)/60,strftime("%F.%H-%M-%S",$5),strftime("%F.%H-%M-%S",$6)}' \
 	$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
 	| awk 'BEGIN {print "SAMPLE_GROUP,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN,TIMESTAMP_START,TIMESTAMP_END"} \
