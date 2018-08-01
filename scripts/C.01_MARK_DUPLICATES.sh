@@ -31,10 +31,12 @@ echo
 
 	PROJECT=$5
 	SM_TAG=$6
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$8
 
-	INPUT_BAM_FILE_STRING=$7
-
-	INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
+	INPUT_BAM_FILE_STRING=$9
+		INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
 
 ## --Mark Duplicates with Picard, write a duplicate report
 ## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.
@@ -57,6 +59,20 @@ START_MARK_DUPLICATES=`date '+%s'`
 		-t 4 \
 		-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 		/dev/stdin
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_MARK_DUPLICATES=`date '+%s'`
 

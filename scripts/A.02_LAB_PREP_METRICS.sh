@@ -31,11 +31,10 @@ echo
 
 	PROJECT=$4
 	SAMPLE_SHEET=$5
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$6
 
 START_LAB_PREP_METRICS=`date '+%s'`
-
-
-SAMPLE_SHEET_NAME=`basename $SAMPLE_SHEET .csv`
 
 # Make a QC report just for a project in the sample sheet.
 
@@ -48,6 +47,20 @@ $JAVA_1_8/java -jar $LAB_QC_DIR/EnhancedSequencingQCReport.jar \
 $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$START_LAB_PREP_METRICS".csv" \
 $CORE_PATH \
 $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_LAB_PREP_METRICS=`date '+s'`
 
@@ -62,16 +75,3 @@ HOSTNAME=`hostname`
 
 echo $PROJECT,X.01,LAB_QC_PREP_METRICS,$HOSTNAME,$START_LAB_PREP_METRICS_METRICS,$END_LAB_PREP_METRICS \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
-
-# echo $JAVA_1_8/java -jar $LAB_QC_DIR/EnhancedSequencingQCReport.jar \
-# -lab_qc_metrics \
-# $SAMPLE_SHEET \
-# $CORE_PATH \
-# $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
-# >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-# echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-# if file is not present exit !=0
-
-# ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz.tbi"

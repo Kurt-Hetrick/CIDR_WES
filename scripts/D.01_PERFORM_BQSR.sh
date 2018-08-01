@@ -36,6 +36,9 @@ echo
 	DBSNP=$9
 	BAIT_BED=${10}
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	SAMPLE_SHEET=${11}
+		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+	SUBMIT_STAMP={$12}
 
 ## --BQSR using data only from the baited intervals
 
@@ -52,6 +55,20 @@ START_PERFORM_BQSR=`date '+%s'`
 	--known-sites $DBSNP \
 	--intervals $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
 	--output $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_PERFORM_BQSR=`date '+%s'`
 

@@ -22,33 +22,51 @@ set
 
 echo
 
-JAVA_1_8=$1
-GATK_DIR_4011=$2
-CORE_PATH=$3
+# INPUT VARIABLES
 
-PROJECT=$4
-SM_TAG=$5
-REF_GENOME=$6
+	JAVA_1_8=$1
+	GATK_DIR_4011=$2
+	CORE_PATH=$3
+
+	PROJECT=$4
+	SM_TAG=$5
+	REF_GENOME=$6
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$8
 
 ## --write out bam file with a 4 bin qscore scheme, remove indel Q scores, emit original Q scores
+# have to change the way to specify this jar file eventually. gatk 4 devs are monsters.
 
 START_FINAL_BAM=`date '+%s'`
 
-# have to change the way to specify this jar file eventually. gatk 4 devs are monsters.
+	$JAVA_1_8/java -jar \
+	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+	ApplyBQSR \
+	--add-output-sam-program-record \
+	--use-original-qualities \
+	--emit-original-quals \
+	--reference $REF_GENOME \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+	--bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
+	--static-quantized-quals 10 \
+	--static-quantized-quals 20 \
+	--static-quantized-quals 30 \
+	--output $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam"
 
-$JAVA_1_8/java -jar \
-$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
-ApplyBQSR \
---add-output-sam-program-record \
---use-original-qualities \
---emit-original-quals \
---reference $REF_GENOME \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
---bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
---static-quantized-quals 10 \
---static-quantized-quals 20 \
---static-quantized-quals 30 \
---output $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam"
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_FINAL_BAM=`date '+%s'`
 

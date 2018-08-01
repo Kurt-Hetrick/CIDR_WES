@@ -49,7 +49,7 @@ START_REHEAD_BAM=`date '+%s'`
 	# grab field number for PLATFORM_UNIT_TAG
 
 			PU_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
-			$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+			$CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 				| grep -m 1 ^@RG \
 				| sed 's/\t/\n/g' \
 				| cat -n \

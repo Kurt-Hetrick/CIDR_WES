@@ -33,6 +33,7 @@ echo
 	PROJECT=$6
 	FLOWCELL=$7
 	LANE=$8
+		PLATFORM_UNIT=$FLOWCELL"_"$LANE"_"$INDEX
 	INDEX=$9
 	PLATFORM=${10}
 	LIBRARY_NAME=${11}
@@ -43,13 +44,14 @@ echo
 	REF_GENOME=${16}
 	PIPELINE_VERSION=${17}
 	BAIT_BED=${18}
-	TARGET_BED=${19}
-	TITV_BED=${20}
-
-		PLATFORM_UNIT=$FLOWCELL"_"$LANE"_"$INDEX
 		BAIT_NAME=$(basename $BAIT_BED .bed)
+	TARGET_BED=${19}
 		TARGET_NAME=$(basename $TARGET_BED .bed)
+	TITV_BED=${20}
 		TITV_NAME=$(basename $TITV_BED .bed)
+	SAMPLE_SHEET=${21}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${22}
 
 # Need to convert data in sample manifest to Iso 8601 date since we are not using bwa mem to populate this.
 # Picard AddOrReplaceReadGroups is much more stringent here.
@@ -105,6 +107,20 @@ START_BWA_MEM=`date '+%s'`
 	RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
 	OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam"
 
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
+
 END_BWA_MEM=`date '+%s'`
 
 HOSTNAME=`hostname`
@@ -142,6 +158,8 @@ OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+
 
 # if file is not present exit !=0
 

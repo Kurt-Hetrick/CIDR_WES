@@ -25,7 +25,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
-	# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
+		# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
 
 		BWA_QUEUE_LIST=`qstat -f -s r \
 			| egrep -v "^[0-9]|^-|^queue" \
@@ -36,7 +36,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
-	# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
+		# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
 
 		QUEUE_LIST_TEMP=`qstat -f -s r \
 			| egrep -v "^[0-9]|^-|^queue" \
@@ -46,7 +46,6 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
 			| datamash collapse 1 \
 			| awk '{print $1}'`
-
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
@@ -61,6 +60,18 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 		# explicitly setting this b/c not everybody has had the $HOME directory transferred and I'm not going to through
 		# and figure out who does and does not have this set correctly
 			umask 0007
+
+	# SUBMIT TIMESTAMP
+
+		SUBMIT_STAMP=`date '+%s'`
+
+	# IN THE FUTURE WILL PUSH OUT TO QSUB;
+
+		# -M email@address
+		# -m {b,e,a} depending on the job.
+		## other possible options
+		### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value
+
 
 #####################
 # PIPELINE PROGRAMS #
@@ -89,13 +100,6 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.2"
 		# Copied from \\isilon-cifs\sequencing\CIDRSeqSuiteSoftware\RELEASES\7.0.0\QC_REPORT\EnhancedSequencingQCReport.jar
 
-	# JAVA_1_6="/isilon/cgc/PROGRAMS/jre1.6.0_25/bin"
-	# VCFTOOLS_DIR="/isilon/cgc/PROGRAMS/vcftools_0.1.12b/bin"
-	# PLINK2_DIR="/isilon/cgc/PROGRAMS/PLINK2"
-	# KING_DIR="/isilon/cgc/PROGRAMS/KING/Linux-king19"
-	# CIDRSEQSUITE_DIR="/isilon/cgc/PROGRAMS/CIDRSeqSuiteSoftware_Version_4_0/"
-	# ANNOVAR_DIR="/isilon/cgc/PROGRAMS/ANNOVAR/2013_09_11"
-
 ##################
 # PIPELINE FILES #
 ##################
@@ -111,14 +115,9 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 ##### MAKE A DIRECTORY TREE #####
 #################################
 
-	# make the project directory tree structure
-	# create an error for all metadata for a sample to pass through various part of the pipeline.
-
 	# make an array for each sample with information needed for pipeline input obtained from the sample sheet
-	# add a end of file is not present
-	# remove carriage returns if not present, remove blank lines if present, remove lines that only have whitespace
-
-	# function to grab all the projects in the sample sheet and create all of the folders in the project if they don't already exist
+		# add a end of file is not present
+		# remove carriage returns if not present, remove blank lines if present, remove lines that only have whitespace
 
 		CREATE_PROJECT_ARRAY ()
 		{
@@ -181,7 +180,8 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			$LAB_QC_DIR \
 			$CORE_PATH \
 			$PROJECT_NAME \
-			$SAMPLE_SHEET
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 		}
 
 	SETUP_PROJECT ()
@@ -190,19 +190,14 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 		MAKE_PROJ_DIR_TREE
 		RUN_LAB_PREP_METRICS
 		echo Project started at `date` >> $CORE_PATH/$SEQ_PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
+		# this is for tracking failed jobs so I can clean up the temp directory if everything ran successfully
+		echo >| $CORE_PATH/$SEQ_PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
 	}
 
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
 	do
 		SETUP_PROJECT
 	done
-
-# IN THE FUTURE WILL PUSH OUT TO QSUB;
-
-	# -M email@address
-	# -m {b,e,a} depending on the job.
-	## other possible options
-	### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value
 
 ########################################################################################
 # create an array at the platform level so that bwa mem can add metadata to the header #
@@ -315,7 +310,9 @@ for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort 
 			$PIPELINE_VERSION \
 			$BAIT_BED \
 			$TARGET_BED \
-			$TITV_BED
+			$TITV_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
@@ -367,6 +364,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				"'$CORE_PATH'",\
 				$1,\
 				$2,\
+				"'$SAMPLE_SHEET'",\
+				"'$SUBMIT_STAMP'",\
 				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
@@ -530,7 +529,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$KNOWN_INDEL_1 \
 				$KNOWN_INDEL_2 \
 				$DBSNP \
-				$BAIT_BED
+				$BAIT_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	##############################
@@ -558,7 +559,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	######################################
