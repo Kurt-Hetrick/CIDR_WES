@@ -36,6 +36,9 @@ echo
 	TARGET_BED=$8
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 	CHROMOSOME=$9
+	SAMPLE_SHEET=${10}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${11}
 
 START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
@@ -49,6 +52,20 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	-XL Y \
 	--interval_set_rule INTERSECTION \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 

@@ -33,6 +33,9 @@ echo
 	REF_GENOME=$6
 	BAIT_BED=$7
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$9
 
 ## -----CONCATENATE SCATTERED g.vcf FILES INTO A SINGLE GRCh37 reference sorted g.vcf file-----
 
@@ -86,16 +89,30 @@ echo
 
 ## Gather the per chromosome gvcf files
 
-	START_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
+START_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
 
-		$JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
-		org.broadinstitute.gatk.tools.CatVariants \
-		-R $REF_GENOME \
-		--assumeSorted \
-		--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list" \
-		--outputFile $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz"
+	$JAVA_1_8/java -cp $GATK_DIR/GenomeAnalysisTK.jar \
+	org.broadinstitute.gatk.tools.CatVariants \
+	-R $REF_GENOME \
+	--assumeSorted \
+	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list" \
+	--outputFile $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz"
 
-	END_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
+
+END_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
 
 	HOSTNAME=`hostname`
 

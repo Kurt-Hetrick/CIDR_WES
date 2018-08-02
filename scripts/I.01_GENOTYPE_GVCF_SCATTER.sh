@@ -34,6 +34,9 @@ echo
 	REF_GENOME=$6
 	DBSNP=$7
 	CHROMOSOME=$8
+	SAMPLE_SHEET=$9
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${10}
 
 START_GENOTYPE_GVCF=`date '+%s'`
 
@@ -47,6 +50,20 @@ START_GENOTYPE_GVCF=`date '+%s'`
 	-L $CHROMOSOME \
 	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_GENOTYPE_GVCF=`date '+%s'`
 

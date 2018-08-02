@@ -31,6 +31,9 @@ echo
 	PROJECT=$3
 	SM_TAG=$4
 	CHROMOSOME=$5
+	SAMPLE_SHEET=$6
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$7
 
 ## --Running verifyBamID--
 
@@ -43,6 +46,20 @@ START_VERIFYBAMID_CHR=`date '+%s'`
 	--precise \
 	--verbose \
 	--maxDepth 2500
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_VERIFYBAMID_CHR=`date '+%s'`
 

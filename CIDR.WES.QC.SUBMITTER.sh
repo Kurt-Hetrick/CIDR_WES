@@ -591,7 +591,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$TARGET_BED
+				$TARGET_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	###################
@@ -615,7 +617,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$CORE_PATH \
 				$VERIFY_DIR \
 				$PROJECT \
-				$SM_TAG
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 
@@ -670,7 +674,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					$SM_TAG \
 					$REF_GENOME \
 					$TARGET_BED \
-					$CHROMOSOME
+					$CHROMOSOME \
+					$SAMPLE_SHEET \
+					$SUBMIT_STAMP
 			}
 
 			CALL_VERIFYBAMID_CHR ()
@@ -691,7 +697,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					$VERIFY_DIR \
 					$PROJECT \
 					$SM_TAG \
-					$CHROMOSOME
+					$CHROMOSOME \
+					$SAMPLE_SHEET \
+					$SUBMIT_STAMP
 			}
 
 		# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
@@ -805,7 +813,9 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$BAIT_BED \
-				$CHROMOSOME
+				$CHROMOSOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 		CALL_GENOTYPE_GVCF ()
@@ -829,7 +839,9 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$DBSNP \
-				$CHROMOSOME
+				$CHROMOSOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
@@ -899,7 +911,9 @@ CREATE_SAMPLE_ARRAY
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED
+			$BAIT_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	CALL_HAPLOTYPE_CALLER_BAM_GATHER ()
@@ -921,7 +935,9 @@ CREATE_SAMPLE_ARRAY
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$BAIT_BED
+			$BAIT_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 ########################

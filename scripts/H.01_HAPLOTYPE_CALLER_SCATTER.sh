@@ -35,6 +35,9 @@ echo
 	BAIT_BED=$7
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 	CHROMOSOME=$8
+	SAMPLE_SHEET=$9
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${10}
 
 ## -----Haplotype Caller-----
 
@@ -77,6 +80,20 @@ FREEMIX=`awk 'NR==2 {print $7}' $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG"
 	-bamout $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC."$CHROMOSOME".bam" \
 	--contamination_fraction_to_filter $FREEMIX \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_HAPLOTYPE_CALLER=`date '+%s'`
 

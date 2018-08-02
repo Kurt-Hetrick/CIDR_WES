@@ -32,6 +32,9 @@ echo
 	SM_TAG=$5
 	BAIT_BED=$6
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$8
 
 ## -----Cat Variants-----
 
@@ -93,6 +96,20 @@ START_HC_BAM_GATHER=`date '+%s'`
 	OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC.bam" \
 	VALIDATION_STRINGENCY=SILENT \
 	CREATE_INDEX=true
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_HC_BAM_GATHER=`date '+%s'`
 
