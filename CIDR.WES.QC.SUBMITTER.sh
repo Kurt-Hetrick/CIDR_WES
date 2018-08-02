@@ -23,7 +23,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
 			| datamash collapse 1 \
-			| awk '{print $1}'`
+			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
 
 		# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
 
@@ -34,7 +34,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
 			| datamash collapse 1 \
-			| awk '{print $1}'`
+			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
 
 		# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
 
@@ -45,7 +45,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
 			| datamash collapse 1 \
-			| awk '{print $1}'`
+			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
