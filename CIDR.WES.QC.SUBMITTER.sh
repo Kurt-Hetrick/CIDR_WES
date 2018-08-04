@@ -23,7 +23,17 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
 			| datamash collapse 1 \
-			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
+			| awk '{print $1}'`
+
+		# just show how to exclude a node
+			# QUEUE_LIST=`qstat -f -s r \
+			# 	| egrep -v "^[0-9]|^-|^queue" \
+			# 	| cut -d @ -f 1 \
+			# 	| sort \
+			# 	| uniq \
+			# 	| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
+			# 	| datamash collapse 1 \
+			# 	| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
 
 		# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
 
@@ -34,7 +44,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
 			| datamash collapse 1 \
-			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
+			| awk '{print $1}'`
 
 		# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
 
@@ -45,7 +55,19 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
 			| datamash collapse 1 \
-			| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
+			| awk '{print $1}'`
+
+
+		# SO IF I WANT TO CREATE A HARDCODED EXCLUSION LIST...I'M GOING TO HAVE TO FIND A WAY TO DO IT WHEN I USE AWK TO PRINT THE qsub command...
+		# Or move away from awk...sigh.
+			# AWK_QUEUE=`qstat -f -s r \
+			# 	| egrep -v "^[0-9]|^-|^queue" \
+			# 	| cut -d @ -f 1 \
+			# 	| sort \
+			# 	| uniq \
+			# 	| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
+			# 	| datamash collapse 1 \
+			# 	| awk '{print $1,"-l","\\x27" "hostname=!DellR730-03" "\\x27"}'`
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
@@ -722,7 +744,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 							CALL_VERIFYBAMID_CHR
 							echo sleep 0.1s
 						done
-					done
+			done
 
 	####################################
 	# VERIFYBAMID BY CHROMOSOME GATHER #
@@ -750,8 +772,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 							do
 								HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
 								HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
-							done
-					done
+						done
+				done
 			}
 
 			CALL_VERIFYBAMID_CHR_GATHER ()
@@ -847,23 +869,23 @@ done
 # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-do
-CREATE_SAMPLE_ARRAY
-	for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
-		| sed -r 's/[[:space:]]+/\t/g' \
-		| sed 's/chr//g' \
-		| cut -f 1 \
-		| sort \
-		| uniq \
-		| $DATAMASH_DIR/datamash collapse 1 \
-		| sed 's/,/ /g');
-		do
-			CALL_HAPLOTYPE_CALLER
-			echo sleep 0.1s
-			CALL_GENOTYPE_GVCF
-			echo sleep 0.1s
+	do
+	CREATE_SAMPLE_ARRAY
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| sed 's/chr//g' \
+			| cut -f 1 \
+			| sort \
+			| uniq \
+			| $DATAMASH_DIR/datamash collapse 1 \
+			| sed 's/,/ /g');
+			do
+				CALL_HAPLOTYPE_CALLER
+				echo sleep 0.1s
+				CALL_GENOTYPE_GVCF
+				echo sleep 0.1s
 		done
-	done
+done
 
 ###########################
 # HAPLOTYPE CALLER GATHER #
@@ -986,7 +1008,9 @@ CREATE_SAMPLE_ARRAY
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED
+			$BAIT_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
@@ -1000,7 +1024,7 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		echo sleep 0.1s
 		CALL_GENOTYPE_GVCF_GATHER
 		echo sleep 0.1s
-	done
+done
 
 	#####################################################
 	# create a lossless cram, although the bam is lossy #
@@ -1024,7 +1048,9 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	##########################################################################################
@@ -1049,7 +1075,9 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	#############################################

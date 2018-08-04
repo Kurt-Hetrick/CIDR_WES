@@ -22,6 +22,10 @@ set
 
 echo
 
+# unloading this module b/c it looks like it got modified which causes this step to crash
+
+module unload R/3.0.1
+
 # INPUT VARIABLES
 
 	JAVA_1_8=$1

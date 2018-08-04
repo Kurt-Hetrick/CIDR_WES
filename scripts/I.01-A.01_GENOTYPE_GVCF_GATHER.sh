@@ -33,6 +33,9 @@ echo
 	REF_GENOME=$6
 	BAIT_BED=$7
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$9
 
 ## -----CONCATENATE SCATTERED RAW VCF FILES INTO A SINGLE GRCh37 reference sorted vcf file-----
 
@@ -92,6 +95,20 @@ START_GENOTYPE_GVCF_GATHER=`date '+%s'`
 	--assumeSorted \
 	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list" \
 	--outputFile $CORE_PATH/$PROJECT/VCF/QC/FILTERED_ON_BAIT/$SM_TAG".QC_RAW_OnBait.vcf.gz"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
 
 END_GENOTYPE_GVCF_GATHER=`date '+%s'`
 
