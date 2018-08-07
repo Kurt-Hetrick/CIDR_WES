@@ -79,12 +79,18 @@ echo
 
 	# bait bed
 
-		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-		| grep "@SQ" ; awk 1 $BAIT_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' | awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
+		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+			| grep "@SQ" \
+			; awk 1 $BAIT_BED \
+				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnBait.picard.bed"
 
 	# target bed
 
-		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-		| grep "@SQ" ; awk 1 $BAIT_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' | awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
+		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
+			| grep "@SQ" \
+			; awk 1 $BAIT_BED \
+				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"

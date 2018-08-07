@@ -492,6 +492,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			-N A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BED_FILES.log" \
 				-j y \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/A.00_FIX_BED.sh \
 				$SAMTOOLS_DIR \
 				$CORE_PATH \
