@@ -38,8 +38,10 @@ echo
 #########################################################
 #########################################################
 ##### THIS IS THE HEADER ################################
-##### "PROJECT","SM_TAG","RG_PU","Library_Name" #########
-#########################################################
+##### "SM_TAG","PROJECT","RG_PU","LIBRARY" ##############################
+##### "LIBRARY_PLATE","LIBRARY_WELL","LIBRARY_ROW","LIBRARY_COLUMN" #####
+##### "HYB_PLATE","HYB_WELL","HYB_ROW","HYB_COLUMN" #####################
+#########################################################################
 
 	# grab field number for SM_TAG
 
@@ -72,6 +74,9 @@ echo
 			| awk '$2~/^LB:/ {print $1}'`)
 
 	# Now grab the header and format
+		# breaking out the library name into its parts is assuming that the format is...
+		# fill in empty fields with NA thing (for loop in awk) is a lifesaver
+		# https://unix.stackexchange.com/questions/53448/replacing-missing-value-blank-space-with-zero
 
 		$SAMTOOLS_DIR/samtools view -H \
 		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
@@ -83,6 +88,7 @@ echo
 				'BEGIN {OFS="\t"} {split($SM_FIELD,SMtag,":"); split($PU_FIELD,PU,":"); split($LB_FIELD,Library,":"); split(Library[2],Library_Unit,"_"); \
 				print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
 				Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
+			| awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "NA" }; 1' \
 			| $DATAMASH_DIR/datamash \
 				-s \
 				-g 1,2 \
