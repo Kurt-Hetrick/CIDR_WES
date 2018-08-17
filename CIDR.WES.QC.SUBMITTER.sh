@@ -1,6 +1,7 @@
 #!/bin/bash
 
 SAMPLE_SHEET=$1
+	SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
 
@@ -500,7 +501,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$SM_TAG \
 				$BAIT_BED \
 				$TARGET_BED \
-				$TITV_BED
+				$TITV_BED \
+				$REF_GENOME
 		}
 
 	# sambamba strips out the PM tag in the RG header...so have to fix the header again...

@@ -43,6 +43,10 @@ echo
 
 		TITV_BED_NAME=(`basename $TITV_BED_NAME .bed`)
 
+	REF_GENOME=$8
+		REF_DIR=$(dirname $REF_GENOME)
+		REF_BASENAME=$(basename $REF_GENOME | sed 's/.fasta//g ; s/.fa//g')
+
 # FIX BED FILES (FOR GRCH37)
 
 	# FIX THE BAIT BED FILE
@@ -79,8 +83,7 @@ echo
 
 	# bait bed
 
-		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
-			| grep "@SQ" \
+		(grep "^@SQ" $REF_DIR/$REF_BASENAME".dict" \
 			; awk 1 $BAIT_BED \
 				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
 				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
@@ -88,9 +91,8 @@ echo
 
 	# target bed
 
-		($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
-			| grep "@SQ" \
-			; awk 1 $BAIT_BED \
+		(grep "^@SQ" $REF_DIR/$REF_BASENAME".dict" \
+			; awk 1 $TARGET_BED \
 				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
 				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"
