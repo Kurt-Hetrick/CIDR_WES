@@ -133,6 +133,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/b37/dbsnp_138.b37.excluding_sites_after_129.vcf"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
+	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -463,6 +464,14 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			# 16  Baits_BED_File=a super bed file incorporating bait, target, padding and overlap with ucsc coding exons.
 			# Used for limited where to run base quality score recalibration on where to create gvcf files.
 			BAIT_BED=${SAMPLE_ARRAY[9]}
+
+				# since the mendel changes capture products need a way to define a 4th bed file which is the union of the different captures used.
+					if [[ $PROJECT = "M_Valle"* ]];
+						then
+							HC_BAIT_BED=${MERGED_MENDEL_BED_FILE}
+					else
+						HC_BAIT_BED=${BAIT_BED}
+					fi
 
 			# 17  Targets_BED_File=bed file acquired from manufacturer of their targets.
 			TARGET_BED=${SAMPLE_ARRAY[10]}
@@ -837,7 +846,7 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$BAIT_BED \
+				$HC_BAIT_BED \
 				$CHROMOSOME \
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
@@ -866,7 +875,8 @@ done
 				$DBSNP \
 				$CHROMOSOME \
 				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
+				$SUBMIT_STAMP \
+				$BAIT_BED
 		}
 
 # Take the samples bait bed file, create a list of unique chromosome to use as a scatter for haplotype_caller_scatter
@@ -874,7 +884,7 @@ done
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 	do
 	CREATE_SAMPLE_ARRAY
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| sed 's/chr//g' \
 			| cut -f 1 \

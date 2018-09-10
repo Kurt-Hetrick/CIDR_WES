@@ -17,11 +17,10 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -32,8 +31,15 @@ echo
 	PROJECT=$4
 	SM_TAG=$5
 	REF_GENOME=$6
-	BAIT_BED=$7
-		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
+	HC_BAIT_BED=$7
+		BAIT_BED_NAME=$(basename $HC_BAIT_BED .bed)
+			if [[ $HC_BAIT_BED="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" ]];
+				then
+			CALL_BED_FILE=${HC_BAIT_BED}
+			else
+				CALL_BED_FILE=$(echo $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed")
+			fi
+
 	CHROMOSOME=$8
 	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
@@ -56,7 +62,7 @@ FREEMIX=`awk 'NR==2 {print $7}' $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG"
 	-T HaplotypeCaller \
 	-R $REF_GENOME \
 	--input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
-	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	-L $CALL_BED_FILE \
 	-L $CHROMOSOME \
 	--interval_set_rule INTERSECTION \
 	--variant_index_type LINEAR \
@@ -106,7 +112,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T HaplotypeCaller \
 -R $REF_GENOME \
 --input_file $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
--L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+-L $CALL_BED_FILE \
 -L $CHROMOSOME \
 --interval_set_rule INTERSECTION \
 --variant_index_type LINEAR \

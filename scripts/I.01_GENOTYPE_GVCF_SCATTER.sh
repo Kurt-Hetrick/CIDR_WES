@@ -37,6 +37,8 @@ echo
 	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${10}
+	BAIT_BED=${11}
+		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 
 START_GENOTYPE_GVCF=`date '+%s'`
 
@@ -48,6 +50,8 @@ START_GENOTYPE_GVCF=`date '+%s'`
 	-G Standard \
 	-G AS_Standard \
 	-L $CHROMOSOME \
+	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+	--interval_set_rule INTERSECTION \
 	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz"
 
@@ -72,7 +76,7 @@ HOSTNAME=`hostname`
 echo $SM_TAG"_"$PROJECT",I.01,GENOTYPE_GVCF_"$CHROMOSOME","$HOSTNAME","$START_GENOTYPE_GVCF","$END_GENOTYPE_GVCF \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -T GenotypeGVCFs \
 -R $REF_GENOME \
 --dbsnp $DBSNP \
@@ -80,6 +84,8 @@ echo JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -G Standard \
 -G AS_Standard \
 -L $CHROMOSOME \
+-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+--interval_set_rule INTERSECTION \
 --variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".g.vcf.gz" \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".QC_RAW_OnBait.vcf.gz" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
