@@ -56,15 +56,28 @@ echo
 # Need to convert data in sample manifest to Iso 8601 date since we are not using bwa mem to populate this.
 # Picard AddOrReplaceReadGroups is much more stringent here.
 
-	ISO_8601=`echo $RUN_DATE \
-	| awk '{split ($0,DATES,"/"); \
-	if (length(DATES[1]) < 2 && length(DATES[2]) < 2) \
-	print DATES[3]"-0"DATES[1]"-0"DATES[2]"T00:00:00-0500"; \
-	else if (length(DATES[1]) < 2 && length(DATES[2]) > 1) \
-	print DATES[3]"-0"DATES[1]"-"DATES[2]"T00:00:00-0500"; \
-	else if(length(DATES[1]) > 1 && length(DATES[2]) < 2) \
-	print DATES[3]"-"DATES[1]"-0"DATES[2]"T00:00:00-0500"; \
-	else print DATES[3]"-"DATES[1]"-"DATES[2]"T00:00:00-0500"}'`
+	if [[ $RUN_DATE = *"-"* ]];
+		then
+
+			# for when the date is this 2018-09-05
+
+				ISO_8601=`echo $RUN_DATE \
+					| awk '{print "'$RUN_DATE'" "T00:00:00-0500"}'`
+
+		else
+
+			# for when the data is like this 4/26/2018
+
+				ISO_8601=`echo $RUN_DATE \
+					| awk '{split ($0,DATES,"/"); \
+					if (length(DATES[1]) < 2 && length(DATES[2]) < 2) \
+					print DATES[3]"-0"DATES[1]"-0"DATES[2]"T00:00:00-0500"; \
+					else if (length(DATES[1]) < 2 && length(DATES[2]) > 1) \
+					print DATES[3]"-0"DATES[1]"-"DATES[2]"T00:00:00-0500"; \
+					else if(length(DATES[1]) > 1 && length(DATES[2]) < 2) \
+					print DATES[3]"-"DATES[1]"-0"DATES[2]"T00:00:00-0500"; \
+					else print DATES[3]"-"DATES[1]"-"DATES[2]"T00:00:00-0500"}'`
+	fi
 
 # -----Alignment and BAM post-processing-----
 
