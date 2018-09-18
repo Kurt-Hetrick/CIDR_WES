@@ -45,6 +45,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 	-T SelectVariants \
 	--reference_sequence $REF_GENOME \
+	--disable_auto_index_creation_and_locking_when_reading_rods \
 	--variant $VERIFY_VCF \
 	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	-L $CHROMOSOME \
