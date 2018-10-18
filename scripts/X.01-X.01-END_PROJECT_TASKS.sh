@@ -146,6 +146,17 @@ cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 "Gref_Q",\
 "DEAMINATION_Q",\
 "OxoG_Q",\
+"PCT_A",\
+"PCT_C",\
+"PCT_G",\
+"PCT_T",\
+"PCT_N",\
+"PCT_A_to_C",\
+"PCT_A_to_G",\
+"PCT_A_to_T",\
+"PCT_C_to_A",\
+"PCT_C_to_G",\
+"PCT_C_to_T",\
 "COUNT_SNV_ON_BAIT",\
 "PERCENT_SNV_ON_BAIT_SNP138",\
 "COUNT_SNV_ON_TARGET",\

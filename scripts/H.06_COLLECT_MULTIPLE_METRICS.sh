@@ -144,3 +144,13 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 	
 	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gc_bias.summary_metrics" \
 	$CORE_PATH/$PROJECT/REPORTS/GC_BIAS/SUMMARY/$SM_TAG".gc_bias.summary_metrics.txt"
+
+# move the quality yield report into the report directory
+
+	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".quality_yield_metrics" \
+	$CORE_PATH/$PROJECT/REPORTS/QUALITY_YIELD/$SM_TAG".quality_yield_metrics.txt"
+
+# move the error summary report into the report directory
+
+	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".error_summary_metrics" \
+	$CORE_PATH/$PROJECT/REPORTS/ERROR_SUMMARY/$SM_TAG".error_summary_metrics.txt"

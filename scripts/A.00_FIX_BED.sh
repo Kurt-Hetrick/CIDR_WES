@@ -17,11 +17,10 @@
 #$ -j y
 
 # export all variables, useful to find out what compute node the program was executed on
-# redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
