@@ -8,3 +8,4 @@ src/
 A.01_BWA-DEV.sh
 CIDR.WES.QC.SUBMITTER_DEV.sh
 DEV/
+*DS_Store*

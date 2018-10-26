@@ -117,9 +117,9 @@ PCT_N,Percent of Undetermined bases,BaseDistributionByCycleMetrics,,https://broa
 PCT_A_to_C,Percent of A to C and T to G substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 PCT_A_to_G,Percent of A to G and T to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 PCT_A_to_T,Percent of A to T and T to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
-PCT_C_to_A,Percent of C to A and G to T substitution reate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
-PCT_C_to_G,Percent of C to G and G to C substitution reate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
-PCT_C_to_T,Percent of C to T and G to A substitution reate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_A,Percent of C to A and G to T substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_G,Percent of C to G and G to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_T,Percent of C to T and G to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 COUNT_SNV_ON_BAIT,Count of PASSING SNVs from the Bait Bed file,,,
 PERCENT_SNV_ON_BAIT_SNP138,Percent of PASSING SNVs from the Bait Bed file that are in dbSNP 138,,,
 COUNT_SNV_ON_TARGET,Count of PASSING SNVs from the Target Bed file,,,
