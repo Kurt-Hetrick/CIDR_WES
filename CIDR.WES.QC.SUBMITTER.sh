@@ -222,7 +222,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
 	do
 		SETUP_PROJECT
-	done
+done
 
 ########################################################################################
 # create an array at the platform level so that bwa mem can add metadata to the header #
@@ -346,7 +346,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		mkdir -p $CORE_PATH/$PROJECT/LOGS/$SM_TAG
 		RUN_BWA
 		echo sleep 0.1s
-	done
+done
 
 ###############################################################################
 # create a hold job id qsub command line based on the number of ###############
@@ -1556,7 +1556,7 @@ done
 		-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
 			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
 			-j y \
-		-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+		-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 		$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
 			$JAVA_1_8 \
 			$CIDRSEQSUITE_7_5_0_DIR \

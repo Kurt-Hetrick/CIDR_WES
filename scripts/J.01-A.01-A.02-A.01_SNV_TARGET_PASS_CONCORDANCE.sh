@@ -31,6 +31,7 @@ echo
 	CORE_PATH=$4
 	PROJECT=$5
 	SM_TAG=$6
+	# i should take this out b/c it isn't used anymore.
 	TARGET_BED=$7
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
