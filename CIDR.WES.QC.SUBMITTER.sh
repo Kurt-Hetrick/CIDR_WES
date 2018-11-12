@@ -768,24 +768,20 @@ done
 
 			BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
 			{
-				for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET \
+				HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
+
+				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+										| sed -r 's/[[:space:]]+/\t/g' \
+										| cut -f 1 \
+										| sed 's/chr//g' \
+										| egrep -v "X|Y|MT" \
 										| sort \
-										| uniq )
+										| uniq \
+										| $DATAMASH_DIR/datamash collapse 1 \
+										| sed 's/,/ /g');
 					do
-						HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
-						for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-												| sed -r 's/[[:space:]]+/\t/g' \
-												| cut -f 1 \
-												| sed 's/chr//g' \
-												| egrep -v "X|Y|MT" \
-												| sort \
-												| uniq \
-												| $DATAMASH_DIR/datamash collapse 1 \
-												| sed 's/,/ /g');
-							do
-								HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-								HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
-						done
+						HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+						HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
 				done
 			}
 
@@ -907,24 +903,22 @@ done
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF #
 ################################################################################
 
-	BUILD_HOLD_ID_PATH()
+	BUILD_HOLD_ID_PATH ()
 	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-		do
 		HOLD_ID_PATH="-hold_jid "
-			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
-									| sed -r 's/[[:space:]]+/\t/g' \
-									| cut -f 1 \
-									| sed 's/chr//g' \
-									| sort \
-									| uniq \
-									| $DATAMASH_DIR/datamash collapse 1 \
-									| sed 's/,/ /g');
+
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+								| sed -r 's/[[:space:]]+/\t/g' \
+								| cut -f 1 \
+								| sed 's/chr//g' \
+								| sort \
+								| uniq \
+								| $DATAMASH_DIR/datamash collapse 1 \
+								| sed 's/,/ /g');
 			do
 				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
 				HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
-			done
-	 done
+		done
 	}
 
 	CALL_HAPLOTYPE_CALLER_GVCF_GATHER ()
@@ -982,24 +976,22 @@ done
 
 # GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
 
-	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER()
+	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER ()
 	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-		do
-			HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
-										| sed -r 's/[[:space:]]+/\t/g' \
-										| cut -f 1 \
-										| sed 's/chr//g' \
-										| sort \
-										| uniq \
-										| $DATAMASH_DIR/datamash collapse 1 \
-										| sed 's/,/ /g');
-				do
-					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
-				done
-	 	done
+		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+								| sed -r 's/[[:space:]]+/\t/g' \
+								| cut -f 1 \
+								| sed 's/chr//g' \
+								| sort \
+								| uniq \
+								| $DATAMASH_DIR/datamash collapse 1 \
+								| sed 's/,/ /g');
+			do
+				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+		done
 	}
 
 	CALL_GENOTYPE_GVCF_GATHER ()
