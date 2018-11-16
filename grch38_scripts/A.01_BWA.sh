@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -93,15 +93,15 @@ echo
 START_BWA_MEM=`date '+%s'`
 
 	$BWA_DIR/bwa mem \
-	-K 100000000 \
-	-Y \
-	-t 4 \
-	$REF_GENOME \
-	$FASTQ_1 \
-	$FASTQ_2 \
+		-K 100000000 \
+		-Y \
+		-t 4 \
+		$REF_GENOME \
+		$FASTQ_1 \
+		$FASTQ_2 \
 	| $SAMBLASTER_DIR/samblaster \
-	--addMateTags \
-	-a \
+		--addMateTags \
+		-a \
 	| $JAVA_1_8/java -jar \
 	$PICARD_DIR/picard.jar \
 	AddOrReplaceReadGroups \
@@ -136,8 +136,6 @@ START_BWA_MEM=`date '+%s'`
 
 END_BWA_MEM=`date '+%s'`
 
-HOSTNAME=`hostname`
-
 echo $SM_TAG"_"$PROJECT",A.01,BWA_MEM,"$HOSTNAME","$START_BWA_MEM","$END_BWA_MEM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
@@ -171,8 +169,6 @@ OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-
 
 # if file is not present exit !=0
 

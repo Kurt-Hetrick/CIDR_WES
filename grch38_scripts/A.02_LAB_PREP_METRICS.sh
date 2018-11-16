@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -63,8 +63,6 @@ $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
 			fi
 
 END_LAB_PREP_METRICS=`date '+s'`
-
-HOSTNAME=`hostname`
 
 (head -n 1 $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
 	| awk '{print $0 ",EPOCH_TIME"}' ; \

@@ -93,6 +93,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/dbsnp_138.hg38.liftover.excluding_sites_after_129.vcf.gz"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
+	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -478,25 +479,25 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 	# this is a bug in up to v0.6.7, the author has a bug fix for his next release milestone
 	# at which I'll be removing this step
 
-		FIX_BAM_HEADER ()
-		{
-			echo \
-			qsub \
-				-S /bin/bash \
-				-cwd \
-				-V \
-				-q $QUEUE_LIST \
-				-p $PRIORITY \
-			-N C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BAM_HEADER.log" \
-				-j y \
-			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/C.01-A.01_FIX_BAM_HEADER.sh \
-				$SAMTOOLS_DIR \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG
-		}
+		# FIX_BAM_HEADER ()
+		# {
+		# 	echo \
+		# 	qsub \
+		# 		-S /bin/bash \
+		# 		-cwd \
+		# 		-V \
+		# 		-q $QUEUE_LIST \
+		# 		-p $PRIORITY \
+		# 	-N C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT \
+		# 		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BAM_HEADER.log" \
+		# 		-j y \
+		# 	-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
+		# 	$SCRIPT_DIR/C.01-A.01_FIX_BAM_HEADER.sh \
+		# 		$SAMTOOLS_DIR \
+		# 		$CORE_PATH \
+		# 		$PROJECT \
+		# 		$SM_TAG
+		# }
 
 	# run bqsr on the using bait bed file
 
@@ -512,7 +513,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
 				-j y \
-			-hold_jid C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 				$JAVA_1_8 \
 				$GATK_DIR_4011 \
@@ -625,8 +626,9 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 			CREATE_SAMPLE_ARRAY
 			FIX_BED_FILES
 			echo sleep 0.1s
-			FIX_BAM_HEADER
-			echo sleep 0.1s
+			# FIX_BAM_HEADER
+			# echo sleep 0.1s
+			# fix bam header shouldn't be needed when running sambamba 0.6.8
 			RUN_BQSR
 			echo sleep 0.1s
 			APPLY_BQSR
@@ -1502,29 +1504,55 @@ done
 			$TARGET_BED
 	}
 
+	# liftover from hg38 to hg19 the vcf file
 
-	TARGET_PASS_SNV_CONCORDANCE ()
-	{
-		echo \
-		qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST_TEMP \
-			-p $PRIORITY \
-		-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
-			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-			-j y \
-		-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-		$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
-			$JAVA_1_8 \
-			$CIDRSEQSUITE_7_5_0_DIR \
-			$VERACODE_CSV \
-			$CORE_PATH \
-			$PROJECT \
-			$SM_TAG \
-			$TARGET_BED
-	}
+		LIFTOVER_TARGET_PASS_SNV ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_SNV_TARGET_LIFTOVER.log \
+				-j y \
+			-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
+			$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
+				$JAVA_1_8 \
+				$PICARD_DIR \
+				$CORE_PATH \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$HG38_TO_HG19_CHAIN
+		}
+
+		# do concordance on the lifted over vcf
+
+			TARGET_PASS_SNV_CONCORDANCE ()
+			{
+				echo \
+				qsub \
+					-S /bin/bash \
+					-cwd \
+					-V \
+					-q $QUEUE_LIST \
+					-p $PRIORITY \
+				-N J.01-A.01-A.02-A.01-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+					-j y \
+				-hold_jid J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/J.01-A.01-A.02-A.01-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
+					$JAVA_1_8 \
+					$CIDRSEQSUITE_7_5_0_DIR \
+					$VERACODE_CSV \
+					$CORE_PATH \
+					$PROJECT \
+					$SM_TAG \
+					$TARGET_BED
+			}
 
 	BAIT_PASS_INDEL ()
 	{
@@ -1766,7 +1794,7 @@ J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.02-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
-J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT,\
+J.01-A.01-A.02-A.01-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 H.03-DOC_CODING"_"$SGE_SM_TAG"_"$PROJECT,\
 H.04-DOC_BAIT"_"$SGE_SM_TAG"_"$PROJECT,\
@@ -1806,6 +1834,8 @@ do
 	BAIT_PASS_SNV
 	echo sleep 0.1s
 	TARGET_PASS_SNV
+	echo sleep 0.1s
+	LIFTOVER_TARGET_PASS_SNV
 	echo sleep 0.1s
 	TARGET_PASS_SNV_CONCORDANCE
 	echo sleep 0.1s

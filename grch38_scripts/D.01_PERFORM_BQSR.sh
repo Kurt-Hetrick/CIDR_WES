@@ -48,7 +48,7 @@ START_PERFORM_BQSR=`date '+%s'`
 	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
 	BaseRecalibrator \
 	--use-original-qualities \
-	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 	--reference $REF_GENOME \
 	--known-sites $KNOWN_INDEL_1 \
 	--known-sites $KNOWN_INDEL_2 \
@@ -72,8 +72,6 @@ START_PERFORM_BQSR=`date '+%s'`
 
 END_PERFORM_BQSR=`date '+%s'`
 
-HOSTNAME=`hostname`
-
 echo $SM_TAG"_"$PROJECT",D.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$END_PERFORM_BQSR \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
@@ -81,7 +79,7 @@ echo $JAVA_1_8/java -jar \
 $GATK_DIR_4011/GenomeAnalysisTK.jar \
 BaseRecalibrator \
 --use-original-qualities \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 --reference $REF_GENOME \
 --known-sites $KNOWN_INDEL_1 \
 --known-sites $KNOWN_INDEL_2 \

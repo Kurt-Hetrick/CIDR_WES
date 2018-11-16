@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -31,18 +31,17 @@ echo
 	CORE_PATH=$4
 	PROJECT=$5
 	SM_TAG=$6
-	# i should take this out b/c it isn't used anymore.
 	TARGET_BED=$7
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
-# mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
+# # mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
 
-	mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
+# 	mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
 
-# decompress the target vcf file into the temporary sub-folder
+# # decompress the target vcf file into the temporary sub-folder
 
-	zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
+# 	zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
+# 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
 
 # look for a final report and store it as a variable. if there are multiple ones, then take the newest one
 
