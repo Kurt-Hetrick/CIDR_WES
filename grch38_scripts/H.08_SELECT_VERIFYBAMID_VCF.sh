@@ -50,8 +50,8 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	--disable_auto_index_creation_and_locking_when_reading_rods \
 	--variant $VERIFY_VCF \
 	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
-	-XL X \
-	-XL Y \
+	-XL chrX \
+	-XL chrY \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
 
 	# check the exit signal at this point.
@@ -80,8 +80,8 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --reference_sequence $REF_GENOME \
 --variant $VERIFY_VCF \
 -L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
--XL X \
--XL Y \
+-XL chrX \
+-XL chrY \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 

@@ -44,11 +44,13 @@ for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/
 	| uniq \
 	| $DATAMASH_DIR/datamash collapse 1 \
 	| sed 's/,/ /g');
-do
-	cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
-		| grep -v ^# \
-		| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
+	do
+		# I'm stripping out the "chr" prefix here b/c I don't want to deal with it...I should specify the column in case SM_TAG contain chr...
+		cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
+			| grep -v ^# \
+			| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
+			| sed 's/chr//g' \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 done
 
 sed -i '/^\s*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"

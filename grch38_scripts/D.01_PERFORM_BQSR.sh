@@ -45,7 +45,7 @@ echo
 START_PERFORM_BQSR=`date '+%s'`
 
 	$JAVA_1_8/java -jar \
-	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+	$GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 	BaseRecalibrator \
 	--use-original-qualities \
 	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
@@ -76,7 +76,7 @@ echo $SM_TAG"_"$PROJECT",D.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$E
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 echo $JAVA_1_8/java -jar \
-$GATK_DIR_4011/GenomeAnalysisTK.jar \
+$GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 BaseRecalibrator \
 --use-original-qualities \
 --input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \

@@ -46,36 +46,38 @@
 		REF_DIR=$(dirname $REF_GENOME)
 		REF_BASENAME=$(basename $REF_GENOME | sed 's/.fasta//g ; s/.fa//g')
 
-# FIX BED FILES (FOR GRCH37)
+	JAVA_1_8=$9
+	PICARD_DIR=${10}
+	HG38_TO_HG19_CHAIN=${11}
+	H19_DICT=${12}
+
+# FIX BED FILES
 
 	# FIX THE BAIT BED FILE
 
 		# make sure that there is EOF
 		# remove CARRIAGE RETURNS
-		# remove CHR PREFIXES (THIS IS FOR GRCH37)
 		# CONVERT VARIABLE LENGTH WHITESPACE FIELD DELIMETERS TO SINGLE TAB.
 					
-			awk 1 $BAIT_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+			awk 1 $BAIT_BED | sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed"
 
 	# FIX THE TARGET BED FILE
 
 		# make sure that there is EOF
 		# remove CARRIAGE RETURNS
-		# remove CHR PREFIXES (THIS IS FOR GRCH37)
 		# CONVERT VARIABLE LENGTH WHITESPACE FIELD DELIMETERS TO SINGLE TAB.
 					
-			awk 1 $TARGET_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+			awk 1 $TARGET_BED | sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed"
 
 	# FIX THE TITV BED FILE
 
 		# make sure that there is EOF
 		# remove CARRIAGE RETURNS
-		# remove CHR PREFIXES (THIS IS FOR GRCH37)
 		# CONVERT VARIABLE LENGTH WHITESPACE FIELD DELIMETERS TO SINGLE TAB.
 					
-			awk 1 $TITV_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+			awk 1 $TITV_BED | sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed"
 
 # MAKE PICARD INTERVAL FILES (1-based start)
@@ -84,7 +86,7 @@
 
 		(grep "^@SQ" $REF_DIR/$REF_BASENAME".dict" \
 			; awk 1 $BAIT_BED \
-				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+				| sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnBait.picard.bed"
 
@@ -92,6 +94,22 @@
 
 		(grep "^@SQ" $REF_DIR/$REF_BASENAME".dict" \
 			; awk 1 $TARGET_BED \
-				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+				| sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 				| awk 'BEGIN {OFS="\t"} {print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}') \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"
+
+		# LIFTOVER PICARD TARGET INTERVAL LIST BACK TO HG19
+
+			$JAVA_1_8/java -jar \
+			$PICARD_DIR/picard.jar \
+			LiftOverIntervalList \
+			INPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed" \
+			OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.hg19.interval_list" \
+			SEQUENCE_DICTIONARY=$H19_DICT \
+			CHAIN=$HG38_TO_HG19_CHAIN
+
+				# CONVERT HG19 CONVERT INTERVAL LIST BACK TO A BED FILE
+				
+					grep -v "^@" $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.hg19.interval_list" \
+					| awk 'BEGIN {OFS="\t"} {print $1,($2-1),$3}' \
+					>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".lift.hg19.bed"

@@ -49,8 +49,8 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	--variant $VERIFY_VCF \
 	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	-L $CHROMOSOME \
-	-XL X \
-	-XL Y \
+	-XL chrX \
+	-XL chrY \
 	--interval_set_rule INTERSECTION \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
 
@@ -81,8 +81,8 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 --variant $VERIFY_VCF \
 -L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 -L $CHROMOSOME \
--XL X \
--XL Y \
+-XL chrX \
+-XL chrY \
 --interval_set_rule INTERSECTION \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"

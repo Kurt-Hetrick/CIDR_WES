@@ -49,9 +49,10 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
+			| sed 's/chr//g' \
 			| awk '$1~/^[0-9]/' \
 			| sort -k1,1n \
-			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".chr"$1".QC_RAW_OnBait.vcf.gz"}' \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 	
 	# Append X if present
@@ -61,7 +62,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="X"' \
+			| awk '$1=="chrX"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 	
@@ -72,7 +73,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="Y"' \
+			| awk '$1=="chrY"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 	
@@ -83,7 +84,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="MT"' \
+			| awk '$1=="chrMT"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 

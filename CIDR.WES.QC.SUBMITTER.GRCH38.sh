@@ -63,11 +63,11 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	JAVA_1_8="/mnt/linuxtools/JAVA/jdk1.8.0_73/bin"
 	PICARD_DIR="/mnt/linuxtools/PICARD/picard-2.17.0"
 	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
-	GATK_DIR="/mnt/linuxtools/LINUX/GATK/GenomeAnalysisTK-3.7"
+	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
 	# This is samtools version 1.5
 	# I have no idea why other users other than me cannot index a cram file with a version of samtools that I built from the source
 	# Apparently the version that I built with Anaconda works for other users, but it performs REF_CACHE first...
-	SAMTOOLS_DIR="/isilon/linuxtools/ANACONDA/Anaconda2-5.0.0.1/bin"
+	SAMTOOLS_DIR="/mnt/linuxtools/ANACONDA/anaconda2-5.0.0.1/bin"
 	BEDTOOLS_DIR="/mnt/linuxtools/BEDTOOLS/bedtools-2.22.0/bin"
 	VERIFY_DIR="/mnt/linuxtools/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
 	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
@@ -92,8 +92,10 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.hg38.liftover.vcf"
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/dbsnp_138.hg38.liftover.excluding_sites_after_129.vcf.gz"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
-	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
+	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1_GRCh38/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
 	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
+	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
+	HG19_DICT="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.dict"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -182,7 +184,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
 	do
 		SETUP_PROJECT
-	done
+done
 
 ########################################################################################
 # create an array at the platform level so that bwa mem can add metadata to the header #
@@ -270,7 +272,7 @@ for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort 
 			-S /bin/bash \
 			-cwd \
 			-V \
-			-q $BWA_QUEUE_LIST \
+			-q $QUEUE_LIST \
 			-p $PRIORITY \
 		-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
 			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
@@ -306,7 +308,7 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 		mkdir -p $CORE_PATH/$PROJECT/LOGS/$SM_TAG
 		RUN_BWA
 		echo sleep 0.1s
-	done
+done
 
 ###############################################################################
 # create a hold job id qsub command line based on the number of ###############
@@ -472,32 +474,12 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 				$BAIT_BED \
 				$TARGET_BED \
 				$TITV_BED \
-				$REF_GENOME
+				$REF_GENOME \
+				$JAVA_1_8 \
+				$PICARD_DIR \
+				$HG38_TO_HG19_CHAIN \
+				$HG19_DICT
 		}
-
-	# sambamba strips out the PM tag in the RG header...so have to fix the header again...
-	# this is a bug in up to v0.6.7, the author has a bug fix for his next release milestone
-	# at which I'll be removing this step
-
-		# FIX_BAM_HEADER ()
-		# {
-		# 	echo \
-		# 	qsub \
-		# 		-S /bin/bash \
-		# 		-cwd \
-		# 		-V \
-		# 		-q $QUEUE_LIST \
-		# 		-p $PRIORITY \
-		# 	-N C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT \
-		# 		-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BAM_HEADER.log" \
-		# 		-j y \
-		# 	-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
-		# 	$SCRIPT_DIR/C.01-A.01_FIX_BAM_HEADER.sh \
-		# 		$SAMTOOLS_DIR \
-		# 		$CORE_PATH \
-		# 		$PROJECT \
-		# 		$SM_TAG
-		# }
 
 	# run bqsr on the using bait bed file
 
@@ -657,8 +639,8 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					-V \
 					-q $QUEUE_LIST \
 					-p $PRIORITY \
-				-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
+				-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_"$CHROMOSOME".log" \
 					-j y \
 				-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 					$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
@@ -684,10 +666,10 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					-V \
 					-q $QUEUE_LIST \
 					-p $PRIORITY \
-				-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
+				-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_"$CHROMOSOME".log" \
 					-j y \
-				-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+				-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
 				$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
 					$CORE_PATH \
 					$VERIFY_DIR \
@@ -706,7 +688,6 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 					for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 						| sed -r 's/[[:space:]]+/\t/g' \
 						| cut -f 1 \
-						| sed 's/chr//g' \
 						| egrep -v "X|Y|MT" \
 						| sort \
 						| uniq \
@@ -729,24 +710,18 @@ for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET 
 
 			BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
 			{
-				for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET \
+				HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
+				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
+										| sed -r 's/[[:space:]]+/\t/g' \
+										| cut -f 1 \
+										| egrep -v "X|Y|MT" \
 										| sort \
-										| uniq )
+										| uniq \
+										| $DATAMASH_DIR/datamash collapse 1 \
+										| sed 's/,/ /g');
 					do
-						HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
-						for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-												| sed -r 's/[[:space:]]+/\t/g' \
-												| cut -f 1 \
-												| sed 's/chr//g' \
-												| egrep -v "X|Y|MT" \
-												| sort \
-												| uniq \
-												| $DATAMASH_DIR/datamash collapse 1 \
-												| sed 's/,/ /g');
-							do
-								HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-								HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
-						done
+						HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_"$CHROMOSOME","
+						HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
 				done
 			}
 
@@ -797,8 +772,8 @@ done
 				-V \
 				-q $QUEUE_LIST \
 				-p $PRIORITY \
-			-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
+			-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_"$CHROMOSOME".log" \
 				-j y \
 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
@@ -823,10 +798,10 @@ done
 				-V \
 				-q $QUEUE_LIST \
 				-p $PRIORITY \
-			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
+			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_"$CHROMOSOME".log" \
 				-j y \
-			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
 			$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
 				$JAVA_1_8 \
 				$GATK_DIR \
@@ -848,7 +823,6 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 	CREATE_SAMPLE_ARRAY
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
-			| sed 's/chr//g' \
 			| cut -f 1 \
 			| sort \
 			| uniq \
@@ -868,24 +842,20 @@ done
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF #
 ################################################################################
 
-	BUILD_HOLD_ID_PATH()
+	BUILD_HOLD_ID_PATH ()
 	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-		do
 		HOLD_ID_PATH="-hold_jid "
-			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
-									| sed -r 's/[[:space:]]+/\t/g' \
-									| cut -f 1 \
-									| sed 's/chr//g' \
-									| sort \
-									| uniq \
-									| $DATAMASH_DIR/datamash collapse 1 \
-									| sed 's/,/ /g');
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+								| sed -r 's/[[:space:]]+/\t/g' \
+								| cut -f 1 \
+								| sort \
+								| uniq \
+								| $DATAMASH_DIR/datamash collapse 1 \
+								| sed 's/,/ /g');
 			do
-				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_"$CHROMOSOME","
 				HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
-			done
-	 done
+		done
 	}
 
 	CALL_HAPLOTYPE_CALLER_GVCF_GATHER ()
@@ -945,22 +915,18 @@ done
 
 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER()
 	{
-		for PROJECT in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq )
-		do
-			HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
-										| sed -r 's/[[:space:]]+/\t/g' \
-										| cut -f 1 \
-										| sed 's/chr//g' \
-										| sort \
-										| uniq \
-										| $DATAMASH_DIR/datamash collapse 1 \
-										| sed 's/,/ /g');
+		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+									| sed -r 's/[[:space:]]+/\t/g' \
+									| cut -f 1 \
+									| sort \
+									| uniq \
+									| $DATAMASH_DIR/datamash collapse 1 \
+									| sed 's/,/ /g');
 				do
-					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_"$CHROMOSOME","
 					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
-				done
-	 	done
+			done
 	}
 
 	CALL_GENOTYPE_GVCF_GATHER ()
@@ -1519,13 +1485,13 @@ done
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_SNV_TARGET_LIFTOVER.log \
 				-j y \
 			-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
+			$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19.sh \
 				$JAVA_1_8 \
 				$PICARD_DIR \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME \
+				$HG19_REF \
 				$HG38_TO_HG19_CHAIN
 		}
 
@@ -1543,7 +1509,7 @@ done
 				-N J.01-A.01-A.02-A.01-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
 					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
 					-j y \
-				-hold_jid J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19"_"$SGE_SM_TAG"_"$PROJECT \
+				-hold_jid J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 				$SCRIPT_DIR/J.01-A.01-A.02-A.01-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
 					$JAVA_1_8 \
 					$CIDRSEQSUITE_7_5_0_DIR \

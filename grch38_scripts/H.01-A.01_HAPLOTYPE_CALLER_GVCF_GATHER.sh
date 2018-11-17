@@ -37,10 +37,10 @@ echo
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$9
 
-## -----CONCATENATE SCATTERED g.vcf FILES INTO A SINGLE GRCh37 reference sorted g.vcf file-----
+## -----CONCATENATE SCATTERED g.vcf FILES INTO A SINGLE GRCh38 reference sorted g.vcf file-----
 
 # Start with creating a *list file, reference sorted, to put into --variant.
-# Assumption is that this is a correctly sorted GRCh37 reference file as the input reference used
+# Assumption is that this is a correctly sorted GRCh38 reference file as the input reference used
 
 	# Put the autosome into a file, sort numerically
 
@@ -49,9 +49,10 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
+			| sed 's/chr//g' \
 			| awk '$1~/^[0-9]/' \
 			| sort -k1,1n \
-			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".g.vcf.gz"}' \
+			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".chr" $1 ".g.vcf.gz"}' \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list"
 
 	# Append X if present
@@ -61,7 +62,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="X"' \
+			| awk '$1=="chrX"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".g.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list"
 
@@ -72,7 +73,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="Y"' \
+			| awk '$1=="chrY"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".g.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list"
 
@@ -83,7 +84,7 @@ echo
 			| cut -f 1 \
 			| sort \
 			| uniq \
-			| awk '$1=="MT"' \
+			| awk '$1=="chrMT"' \
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".g.vcf.gz"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list"
 

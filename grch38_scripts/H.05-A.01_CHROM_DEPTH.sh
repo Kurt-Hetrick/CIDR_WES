@@ -44,6 +44,7 @@ echo
 	| awk 'BEGIN {OFS="\t"} {print $1,$2,$3,substr($4,0,1)}' \
 	| $DATAMASH_DIR/datamash -s -g 1,4 first 2 last 3 \
 	| awk 'BEGIN {OFS="\t"} {print $1,$3,$4,$2}' \
+	| sed 's/chr//g' \
 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed"
 
 # Annotate the sample_interval_summary file from DEPTH_OF_COVERAGE.csv with what chromosome arm that intervals falls into
@@ -80,6 +81,7 @@ echo
 		awk 'BEGIN {FS=","};{OFS="\t"} $1~"-" {split($1,CHROM,":"); split(CHROM[2],POS,"-"); \
 		print CHROM[1],POS[1]-1,POS[2],$2}' \
 		$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/TARGET/$SM_TAG".TARGET_BED.sample_interval_summary.csv" \
+		| sed 's/chr//g' \
 		| $BEDTOOLS_DIR/bedtools intersect -wo -a - -b $CORE_PATH/$PROJECT/TEMP/$SM_TAG".CHROM_ARM.bed" \
 		| awk 'BEGIN {OFS="\t"} {if ($1=="X"&&$2<=2699520) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
 		else if ($1=="X"&&$2>=154931044) print "'$SM_TAG'","X.PAR",$8,$4,$9 ; \
