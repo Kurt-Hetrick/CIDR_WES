@@ -100,26 +100,25 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 # PIPELINE PROGRAMS #
 #####################
 
-	BWA_DIR="/mnt/research/tools/LINUX/BWA/bwa-0.7.15"
-	SAMBLASTER_DIR="/mnt/research/tools/LINUX/SAMBLASTER/samblaster-v.0.1.24"
-	JAVA_1_8="/mnt/research/tools/LINUX/JAVA/jdk1.8.0_73/bin"
-	PICARD_DIR="/mnt/research/tools/LINUX/PICARD/picard-2.17.0"
-	DATAMASH_DIR="/mnt/research/tools/LINUX/DATAMASH/datamash-1.0.6"
-	GATK_DIR="/mnt/research/tools/LINUX/GATK/GenomeAnalysisTK-3.7"
-	# This is samtools version 1.5
+	BWA_DIR="/mnt/linuxtools/BWA/bwa-0.7.15"
+	SAMBLASTER_DIR="/mnt/linuxtools/SAMBLASTER/samblaster-v.0.1.24"
+	JAVA_1_8="/mnt/linuxtools/JAVA/jdk1.8.0_73/bin"
+	PICARD_DIR="/mnt/linuxtools/PICARD/picard-2.17.0"
+	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
+	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
+	# This is samtools version 1.7
 	# I have no idea why other users other than me cannot index a cram file with a version of samtools that I built from the source
 	# Apparently the version that I built with Anaconda works for other users, but it performs REF_CACHE first...
-	SAMTOOLS_DIR="/isilon/sequencing/Kurt/Programs/PYTHON/Anaconda2-5.0.0.1/bin"
-	BEDTOOLS_DIR="/mnt/research/tools/LINUX/BEDTOOLS/bedtools-2.22.0/bin"
-	VERIFY_DIR="/mnt/research/tools/LINUX/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
-	SAMTOOLS_0118_DIR="/mnt/research/tools/LINUX/SAMTOOLS/samtools-0.1.18"
-		# Becasue I didn't want to go through compiling this yet for version 1.6...I'm hoping that Keith will eventually do a full OS install of RHEL7 instead of his
-		# typical stripped down installations so I don't have to install multiple libraries again
-	CIDRSEQSUITE_6_JAVA_DIR="/mnt/research/tools/LINUX/JAVA/jre1.7.0_45/bin"
-	CIDRSEQSUITE_6_1_1_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/6.1.1"
-	SAMBAMBA_DIR="/mnt/research/tools/LINUX/SAMBAMBA/sambamba_v0.6.7"
-	GATK_DIR_4011="/mnt/research/tools/LINUX/GATK/gatk-4.0.1.1"
-	CIDRSEQSUITE_7_5_0_DIR="/mnt/research/tools/LINUX/CIDRSEQSUITE/7.5.0"
+	SAMTOOLS_DIR="/mnt/linuxtools/ANACONDA/anaconda2-5.0.0.1/bin"
+	BEDTOOLS_DIR="/mnt/linuxtools/BEDTOOLS/bedtools-2.22.0/bin"
+	VERIFY_DIR="/mnt/linuxtools/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
+	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
+		# Because I didn't want to go through compiling this yet for version 1.6
+	CIDRSEQSUITE_6_JAVA_DIR="/mnt/linuxtools/JAVA/jre1.7.0_45/bin"
+	CIDRSEQSUITE_6_1_1_DIR="/mnt/linuxtools/CIDRSEQSUITE/6.1.1"
+	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.7"
+	GATK_DIR_4011="/mnt/linuxtools/GATK/gatk-4.0.1.1"
+	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.5"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
 
