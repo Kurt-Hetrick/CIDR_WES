@@ -62,6 +62,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	SAMBLASTER_DIR="/mnt/linuxtools/SAMBLASTER/samblaster-v.0.1.24"
 	JAVA_1_8="/mnt/linuxtools/JAVA/jdk1.8.0_73/bin"
 	PICARD_DIR="/mnt/linuxtools/PICARD/picard-2.17.0"
+	PICARD_DIR_LIFTOVER="/mnt/linuxtools/PICARD/picard-2.18.25"
 	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
 	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
 	# This is samtools version 1.5
@@ -86,13 +87,21 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 ##################
 
 	CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/gencode24_primary_collapsed.bed"
+		# md5 acda5ab9bebcb9520f5ec9670ea09432
 	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/RefSeqAll_hg38.gatk.txt"
+		# md5 45ca8b6e8806fd6233863cbee464a906
+		# need to create a link detailing how this file was created
 	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/GRCh38.Cytobands.bed"
+		# md5 cac717c6bc149001c013a3a6c594908d
 		# note that I should put some code in here to ignore the header, ^#
+		# this is from ucsc
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.hg38.liftover.vcf"
+		# md5 d71b55cde492b722a95021a5fb5a4d83
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/dbsnp_138.hg38.liftover.excluding_sites_after_129.vcf.gz"
+		# md5 85f3e9f0d5f30de2a046594b4ab4de86
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1_GRCh38/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
+		# 4aa700700812d52c19f97c584eaca918
 	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
 	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
 	HG19_DICT="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.dict"
@@ -1237,7 +1246,7 @@ done
 			echo sleep 0.1s
 			COLLECT_HS_METRICS
 			echo sleep 0.1s
-		done
+	done
 
 ###########################################################
 ### HC_BAM TO CRAM; VCF BREAKOUTS, FILTERING, METRICS #####
@@ -1487,7 +1496,7 @@ done
 			-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/J.01-A.01-A.02-A.01_SNV_TARGET_LIFTOVER_HG19.sh \
 				$JAVA_1_8 \
-				$PICARD_DIR \
+				$PICARD_DIR_LIFTOVER \
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
