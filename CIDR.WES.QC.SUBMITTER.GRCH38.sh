@@ -44,7 +44,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 
 		# load gcc 5.1.0 for programs like verifyBamID
 		## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
-			module load gcc/5.1.0
+			module load gcc/7.2.0
 
 		# explicitly setting this b/c not everybody has had the $HOME directory transferred and I'm not going to through
 		# and figure out who does and does not have this set correctly
