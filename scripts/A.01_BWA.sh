@@ -2,7 +2,7 @@
 # --these can be overrode at qsub invocation--
 
 # tell sge to execute in bash
-#$ -S /bin/bash 
+#$ -S /bin/bash
 
 # tell sge that you are in the users current working directory
 #$ -cwd
@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -52,6 +52,7 @@ echo
 	SAMPLE_SHEET=${21}
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${22}
+	NOVASEQ_REPO=${23}
 
 # Need to convert data in sample manifest to Iso 8601 date since we are not using bwa mem to populate this.
 # Picard AddOrReplaceReadGroups is much more stringent here.
@@ -79,16 +80,35 @@ echo
 					else print DATES[3]"-"DATES[1]"-"DATES[2]"T00:00:00-0500"}'`
 	fi
 
+# look for fastq files. allow fastq.gz and fastq extensions.
+# If NovaSeq is contained in the Description field in the sample sheet then assume that ILMN BCL2FASTQ is used.
+# Files are supposed to be in /mnt/instrument_files/novaseq/Run_Folder/FASTQ/Project/
+# FILENAME-> 137233-0238091146_S49_L002_R1_001.fastq.gz	(SMTAG_ASampleIndexOfSomeSort_4DigitLane_Read_literally001.fastq.gz)
+# Otherwise assume that files are demultiplexed with cidrseqsuite and follow previous naming conventions.
+
+	if [[ $SEQUENCER_MODEL == *"NovaSeq"* ]]
+		then
+
+			NOVASEQ_RUN_FOLDER=`ls $NOVASEQ_REPO | grep $FLOWCELL`
+
+			FINDPATH=$NOVASEQ_REPO/$NOVASEQ_RUN_FOLDER/FASTQ/$PROJECT
+
+			#Fancy REGEX for R1 and 2 Since we don't have the sample index value in the sample sheet(probably can be cleaned up)
+			FASTQ1_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R1_001.fastq.gz.*'"
+			FASTQ2_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R2_001.fastq.gz.*'"
+
+			FASTQ_1="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ1_REGEX" | bash)"
+			FASTQ_2="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ2_REGEX" | bash)"
+		else
+			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_1.fastq"*`
+			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_2.fastq"*`
+	fi
+
 # -----Alignment and BAM post-processing-----
 
-# look for fastq files. allow fastq.gz and fastq extensions.
-
-	FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_1.fastq"*`
-	FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_2.fastq"*`
-
-# bwa mem
-# pipe to samblaster to add MC, etc tags
-# pipe to AddOrReplaceReadGroups to populate the header--
+	# bwa mem
+	# pipe to samblaster to add MC, etc tags
+	# pipe to AddOrReplaceReadGroups to populate the header--
 
 START_BWA_MEM=`date '+%s'`
 
@@ -171,8 +191,6 @@ OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-
 
 # if file is not present exit !=0
 

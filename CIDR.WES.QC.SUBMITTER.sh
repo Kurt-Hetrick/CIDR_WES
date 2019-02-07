@@ -15,6 +15,10 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 
 		CORE_PATH="/mnt/research/active"
 
+	# Directory where NovaSeqa runs are located.
+
+		NOVASEQ_REPO="/mnt/instrument_files/novaseq"
+
 	# Generate a list of active queue and remove the ones that I don't want to use
 
 		QUEUE_LIST=`qstat -f -s r \
@@ -336,7 +340,8 @@ done
 			$TARGET_BED \
 			$TITV_BED \
 			$SAMPLE_SHEET \
-			$SUBMIT_STAMP
+			$SUBMIT_STAMP \
+			$NOVASEQ_REPO
 	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
@@ -362,12 +367,12 @@ done
 	# doing this does drastically decrease the load average ( the gc thread specification ) #
 	#########################################################################################
 
-		awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
+		awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8,$10}' \
 		$SAMPLE_SHEET \
-			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
-			| sort -k 1,1 -k 2,2 -k 3,3 \
+			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5,$6}' \
+			| sort -k 1,1 -k 2,2 -k 3,3 -k 6,6 \
 			| uniq \
-			| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
+			| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 unique 6 \
 			| awk 'BEGIN {FS="\t"} \
 				gsub(/,/,",A.01-BWA_"$5"_",$3) \
 				gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
@@ -390,6 +395,7 @@ done
 				$2,\
 				"'$SAMPLE_SHEET'",\
 				"'$SUBMIT_STAMP'",\
+				$6,\
 				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################

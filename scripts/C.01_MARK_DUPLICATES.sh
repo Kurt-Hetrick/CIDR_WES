@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -34,12 +34,23 @@ echo
 	SAMPLE_SHEET=$7
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$8
+	SEQUENCER_MODEL=$9
 
-	INPUT_BAM_FILE_STRING=$9
+	INPUT_BAM_FILE_STRING=${10}
 		INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
 
+## If NovaSeq is contained in the description field of the sample sheet then set the pixel distance appropriately
+## Assumption: all read groups come from some sequencer model. otherwise pixel distance would be set to NovaSeq
+## If mixing NovaSeq and non-NovaSeq then this workflow would need to change.
+
+if [[ $SEQUENCER_MODEL == *"NovaSeq"* ]]
+	then
+		PIXEL_DISTANCE="2500"
+	else
+		PIXEL_DISTANCE="100"
+fi
+
 ## --Mark Duplicates with Picard, write a duplicate report
-## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.
 
 START_MARK_DUPLICATES=`date '+%s'`
 
@@ -54,6 +65,7 @@ START_MARK_DUPLICATES=`date '+%s'`
 		VALIDATION_STRINGENCY=SILENT \
 		METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 		COMPRESSION_LEVEL=0 \
+		OPTICAL_DUPLICATE_PIXEL_DISTANCE=$PIXEL_DISTANCE \
 	| $SAMBAMBA_DIR/sambamba \
 		sort \
 		-t 4 \
@@ -92,6 +104,7 @@ OUTPUT=/dev/stdout \
 VALIDATION_STRINGENCY=SILENT \
 METRICS_FILE=$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 COMPRESSION_LEVEL=0 \
+OPTICAL_DUPLICATE_PIXEL_DISTANCE=$PIXEL_DISTANCE \
 \| $SAMBAMBA_DIR/sambamba \
 sort \
 -t 4 \
