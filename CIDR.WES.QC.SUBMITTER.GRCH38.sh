@@ -38,11 +38,11 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
 
-		PRIORITY="-15"
+		PRIORITY="-750"
 
 		PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
-		# load gcc 5.1.0 for programs like verifyBamID
+		# load gcc for programs like verifyBamID
 		## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
 			module load gcc/7.2.0
 
@@ -810,7 +810,7 @@ done
 			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_"$CHROMOSOME".log" \
 				-j y \
-			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
 				$JAVA_1_8 \
 				$GATK_DIR \
@@ -1868,3 +1868,10 @@ done
 	"-hold_jid","X1_"$2, \
 	"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
 	"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+
+# EMAIL WHEN DONE SUBMITTING
+
+# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\n" \
+# 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
+# 		-r khetric1@jhmi.edu \
+# 		cidr_sequencing_notifications@lists.johnshopkins.edu

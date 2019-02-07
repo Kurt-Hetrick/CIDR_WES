@@ -860,7 +860,7 @@ done
 			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
 				-j y \
-			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
+			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
 				$JAVA_1_8 \
 				$GATK_DIR \
@@ -1895,3 +1895,10 @@ done
 	"-hold_jid","X1_"$2, \
 	"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
 	"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+
+# EMAIL WHEN DONE SUBMITTING
+
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\n" \
+	| mail -s "CIDR.WES.QC.SUBMITTER.sh submitted" \
+		-r khetric1@jhmi.edu \
+		cidr_sequencing_notifications@lists.johnshopkins.edu
