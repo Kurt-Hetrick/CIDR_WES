@@ -367,8 +367,9 @@ done
 	# doing this does drastically decrease the load average ( the gc thread specification ) #
 	#########################################################################################
 
-		awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8,$10}' \
-		$SAMPLE_SHEET \
+		awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8,$10}' \
 			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5,$6}' \
 			| sort -k 1,1 -k 2,2 -k 3,3 -k 6,6 \
 			| uniq \
@@ -1879,28 +1880,29 @@ done
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
 
-	awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
-	$SAMPLE_SHEET \
-	| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
-	| sort -k 1,1 -k 2,2 \
-	| uniq \
-	| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
-	| awk 'BEGIN {FS="\t"} \
-	gsub (/,/,",X1_",$2) \
-	{print "qsub",\
-	"-S /bin/bash",\
-	"-cwd",\
-	"-V",\
-	"-q","'$QUEUE_LIST'",\
-	"-p","'$PRIORITY'",\
-	"-m","e",\
-	"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
-	"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
-	"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
-	"-j y",\
-	"-hold_jid","X1_"$2, \
-	"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-	"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+	awk 1 $SAMPLE_SHEET \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+		| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
+		| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
+		| sort -k 1,1 -k 2,2 \
+		| uniq \
+		| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
+		| awk 'BEGIN {FS="\t"} \
+			gsub (/,/,",X1_",$2) \
+			{print "qsub",\
+			"-S /bin/bash",\
+			"-cwd",\
+			"-V",\
+			"-q","'$QUEUE_LIST'",\
+			"-p","'$PRIORITY'",\
+			"-m","e",\
+			"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
+			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
+			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
+			"-j y",\
+			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
+			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
+			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
 
 # EMAIL WHEN DONE SUBMITTING
 
