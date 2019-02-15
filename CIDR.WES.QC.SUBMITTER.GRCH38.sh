@@ -15,6 +15,10 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 
 		CORE_PATH="/mnt/research/active"
 
+	# Directory where NovaSeqa runs are located.
+
+		NOVASEQ_REPO="/mnt/instrument_files/novaseq"
+
 	# Generate a list of active queue and remove the ones that I don't want to use
 
 		QUEUE_LIST=`qstat -f -s r \
@@ -308,7 +312,8 @@ done
 			$TARGET_BED \
 			$TITV_BED \
 			$SAMPLE_SHEET \
-			$SUBMIT_STAMP
+			$SUBMIT_STAMP \
+			$NOVASEQ_REPO
 	}
 
 for PLATFORM_UNIT in $(awk 'BEGIN {FS=","} NR>1 {print $8$2$3$4}' $SAMPLE_SHEET | sort | uniq );
@@ -325,21 +330,18 @@ done
 # only launch when every lane for a sample is done being processed by bwa mem #
 # I want to clean this up eventually, but not in the mood for it right now. ###
 ###############################################################################
-	###############################################################################
-	# NOTE: I WILL EVENTUALLY PASS THE SEQUENCER MODEL AS A VARIABLE HERE #########
-	# THIS IS SO THAT THE PIXEL DISTANCE CAN BE MODIFIED IN MARK DUPLICATES #######
-	###############################################################################
 	#########################################################################################
 	# I am setting the heap space and garbage collector threads now #########################
 	# doing this does drastically decrease the load average ( the gc thread specification ) #
 	#########################################################################################
 
-		awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8}' \
-		$SAMPLE_SHEET \
-			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5}' \
+		awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8,$10}' \
+			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5,$6}' \
 			| sort -k 1,1 -k 2,2 -k 3,3 \
 			| uniq \
-			| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 \
+			| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 unique 6 \
 			| awk 'BEGIN {FS="\t"} \
 				gsub(/,/,",A.01-BWA_"$5"_",$3) \
 				gsub(/,/,",INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/",$4) \
@@ -362,6 +364,7 @@ done
 				$2,\
 				"'$SAMPLE_SHEET'",\
 				"'$SUBMIT_STAMP'",\
+				$6,\
 				"INPUT=" "'$CORE_PATH'" "/" $1"/TEMP/"$4"\n""sleep 0.1s"}'
 
 ###################################################
@@ -1846,28 +1849,29 @@ done
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
 
-	awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
-	$SAMPLE_SHEET \
-	| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
-	| sort -k 1,1 -k 2,2 \
-	| uniq \
-	| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
-	| awk 'BEGIN {FS="\t"} \
-	gsub (/,/,",X1_",$2) \
-	{print "qsub",\
-	"-S /bin/bash",\
-	"-cwd",\
-	"-V",\
-	"-q","'$QUEUE_LIST'",\
-	"-p","'$PRIORITY'",\
-	"-m","e",\
-	"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
-	"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
-	"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
-	"-j y",\
-	"-hold_jid","X1_"$2, \
-	"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-	"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+	awk 1 $SAMPLE_SHEET \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+		| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
+		| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
+		| sort -k 1,1 -k 2,2 \
+		| uniq \
+		| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
+		| awk 'BEGIN {FS="\t"} \
+			gsub (/,/,",X1_",$2) \
+			{print "qsub",\
+			"-S /bin/bash",\
+			"-cwd",\
+			"-V",\
+			"-q","'$QUEUE_LIST'",\
+			"-p","'$PRIORITY'",\
+			"-m","e",\
+			"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
+			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
+			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
+			"-j y",\
+			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
+			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
+			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
 
 # EMAIL WHEN DONE SUBMITTING
 

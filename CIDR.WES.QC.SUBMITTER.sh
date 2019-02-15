@@ -358,10 +358,6 @@ done
 # only launch when every lane for a sample is done being processed by bwa mem #
 # I want to clean this up eventually, but not in the mood for it right now. ###
 ###############################################################################
-	###############################################################################
-	# NOTE: I WILL EVENTUALLY PASS THE SEQUENCER MODEL AS A VARIABLE HERE #########
-	# THIS IS SO THAT THE PIXEL DISTANCE CAN BE MODIFIED IN MARK DUPLICATES #######
-	###############################################################################
 	#########################################################################################
 	# I am setting the heap space and garbage collector threads now #########################
 	# doing this does drastically decrease the load average ( the gc thread specification ) #
