@@ -87,7 +87,7 @@ fi
 	$JAVA_1_8/java -jar \
 	$CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
 	-single_sample_concordance \
-	$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+	$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.hg19.vcf" \
 	$FINAL_REPORT \
 	$CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".lift.hg19.bed" \
 	$VERACODE_CSV \
@@ -97,7 +97,7 @@ echo \
 $JAVA_1_8/java -jar \
 $CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
 -single_sample_concordance \
-$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.hg19.vcf" \
 $FINAL_REPORT \
 $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".lift.hg19.bed" \
 $VERACODE_CSV \

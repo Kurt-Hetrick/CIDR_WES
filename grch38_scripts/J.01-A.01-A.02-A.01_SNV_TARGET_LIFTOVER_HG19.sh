@@ -45,10 +45,15 @@ START_LIFTOVER_SNV_TARGET_PASS=`date '+%s'`
 	$PICARD_DIR/picard.jar \
 	LiftoverVcf \
 	INPUT=$CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-	OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf" \
+	OUTPUT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.hg19.temp.vcf" \
 	REJECT=$CORE_PATH/$PROJECT/TEMP/$SM_TAG"_QC_OnTarget_SNV.hg19.reject.vcf" \
 	REFERENCE_SEQUENCE=$HG19_REF \
 	CHAIN=$HG38_TO_HG19_CHAIN
+
+	# remove loci that start with chrUn because cidrseqsuite will crash
+
+		zegrep -v "^chrUn" $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.hg19.temp.vcf" \
+		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.hg19.vcf"
 
 END_LIFTOVER_SNV_TARGET_PASS=`date '+%s'`
 
