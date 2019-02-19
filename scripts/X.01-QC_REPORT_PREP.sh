@@ -192,7 +192,8 @@ echo
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R1","PCT_ADAPTER_R1" ################################################
 #######################################################################################################
 
-	awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0","0"; else print $7,$9,$11,$13,$14,$15,$18,$24}' \
+	awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0","0"; \
+		else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
 	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -206,7 +207,8 @@ echo
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R2","PCT_ADAPTER_R2" ################################################
 #######################################################################################################
 
-	awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0","0" ; else print $7,$9,$11,$13,$14,$15,$18,$24}' \
+	awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0","0" ; \
+		else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
 	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -224,7 +226,7 @@ echo
 	awk 'BEGIN {OFS="\t"} \
 	NR==10 \
 	{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
-	else print $2,($2*$16/1000000000),$7,$13,$14,$15,$18,$22,$23,$11,$16,$20}' \
+	else print $2,($2*$16/1000000000),$7*100,$13,$14,$15,$18*100,$22,$23*100,$11,$16,$20*100}' \
 	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -241,7 +243,7 @@ echo
 	awk 'BEGIN {OFS="\t"} \
 	NR==8 \
 	{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
-	else print $5,$8,$9,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
+	else print $5,$8,$9*100,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
 	$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -264,8 +266,8 @@ echo
 		NR==8 \
 		{if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
 		$36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
-		else print $2,$3,$4,$12,($14/1000000000),$19,$21,$22,$23,$24,$25,$29,$31,$32,$33,$34,\
-		$36,$37,$38,$39,$40,$41,$42,$43,$44,$51,$52,$53,$54,$1,$26}' \
+		else print $2,$3,$4,$12*100,($14/1000000000),$19*100,$21,$22,$23,$24,$25,$29*100,$31*100,$32*100,$33*100,$34*100,\
+		$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,$42*100,$43*100,$44,$51,$52,$53,$54,$1,$26*100}' \
 		$CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metrics.txt" \
 		| $DATAMASH_DIR/datamash transpose \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"

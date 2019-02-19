@@ -1902,7 +1902,7 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\n" \
-	| mail -s "CIDR.WES.QC.SUBMITTER.sh submitted" \
-		-r khetric1@jhmi.edu \
-		cidr_sequencing_notifications@lists.johnshopkins.edu
+# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\n" \
+# 	| mail -s "CIDR.WES.QC.SUBMITTER.sh submitted" \
+# 		-r khetric1@jhmi.edu \
+# 		cidr_sequencing_notifications@lists.johnshopkins.edu
