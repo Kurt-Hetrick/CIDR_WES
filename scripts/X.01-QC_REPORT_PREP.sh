@@ -224,9 +224,9 @@ echo
 ################################################################################################
 
 	awk 'BEGIN {OFS="\t"} \
-	NR==10 \
-	{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
-	else print $2,($2*$16/1000000000),$7*100,$13,$14,$15,$18*100,$22,$23*100,$11,$16,$20*100}' \
+		NR==10 \
+		{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
+		else print $2,($2*$16/1000000000),$7*100,$13,$14,$15,$18*100,$22,$23*100,$11,$16,$20*100}' \
 	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
@@ -241,9 +241,9 @@ echo
 #############################################################################################################
 
 	awk 'BEGIN {OFS="\t"} \
-	NR==8 \
-	{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
-	else print $5,$8,$9*100,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
+		NR==8 \
+		{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
+		else print $5,$8,$9*100,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
 	$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
 	| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"

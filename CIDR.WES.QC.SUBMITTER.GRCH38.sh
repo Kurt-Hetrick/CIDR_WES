@@ -26,7 +26,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
+			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|c6420.q" \
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
