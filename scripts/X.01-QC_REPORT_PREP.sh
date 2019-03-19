@@ -43,68 +43,77 @@ echo
 ##### "HYB_PLATE","HYB_WELL","HYB_ROW","HYB_COLUMN" #####################
 #########################################################################
 
-	# grab field number for SM_TAG
+	if [ -f $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" ];
+	then
 
-		SM_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
-		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-			| grep -m 1 ^@RG \
-			| sed 's/\t/\n/g' \
-			| cat -n \
-			| sed 's/^ *//g' \
-			| awk '$2~/^SM:/ {print $1}'`)
+		# grab field number for SM_TAG
 
-	# grab field number for PLATFORM_UNIT_TAG
+			SM_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+			$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+				| grep -m 1 ^@RG \
+				| sed 's/\t/\n/g' \
+				| cat -n \
+				| sed 's/^ *//g' \
+				| awk '$2~/^SM:/ {print $1}'`)
 
-		PU_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
-		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-			| grep -m 1 ^@RG \
-			| sed 's/\t/\n/g' \
-			| cat -n \
-			| sed 's/^ *//g' \
-			| awk '$2~/^PU:/ {print $1}'`)
+		# grab field number for PLATFORM_UNIT_TAG
 
-	# grab field number for LIBRARY_TAG
+			PU_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+			$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+				| grep -m 1 ^@RG \
+				| sed 's/\t/\n/g' \
+				| cat -n \
+				| sed 's/^ *//g' \
+				| awk '$2~/^PU:/ {print $1}'`)
 
-		LB_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
-		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-			| grep -m 1 ^@RG \
-			| sed 's/\t/\n/g' \
-			| cat -n \
-			| sed 's/^ *//g' \
-			| awk '$2~/^LB:/ {print $1}'`)
+		# grab field number for LIBRARY_TAG
 
-	# Now grab the header and format
-		# breaking out the library name into its parts is assuming that the format is...
-		# fill in empty fields with NA thing (for loop in awk) is a lifesaver
-		# https://unix.stackexchange.com/questions/53448/replacing-missing-value-blank-space-with-zero
+			LB_FIELD=(`$SAMTOOLS_DIR/samtools view -H \
+			$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+				| grep -m 1 ^@RG \
+				| sed 's/\t/\n/g' \
+				| cat -n \
+				| sed 's/^ *//g' \
+				| awk '$2~/^LB:/ {print $1}'`)
 
-		$SAMTOOLS_DIR/samtools view -H \
-		$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-			| grep ^@RG \
-			| awk \
-				-v SM_FIELD="$SM_FIELD" \
-				-v PU_FIELD="$PU_FIELD" \
-				-v LB_FIELD="$LB_FIELD" \
-				'BEGIN {OFS="\t"} {split($SM_FIELD,SMtag,":"); split($PU_FIELD,PU,":"); split($LB_FIELD,Library,":"); split(Library[2],Library_Unit,"_"); \
-				print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
-				Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
-			| awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "NA" }; 1' \
-			| $DATAMASH_DIR/datamash \
-				-s \
-				-g 1,2 \
-				collapse 3 \
-				unique 4 \
-				unique 5 \
-				unique 6 \
-				unique 7 \
-				unique 8 \
-				unique 9 \
-				unique 10 \
-				unique 11 \
-				unique 12 \
-			| sed 's/,/;/g' \
-			| $DATAMASH_DIR/datamash transpose \
+		# Now grab the header and format
+			# breaking out the library name into its parts is assuming that the format is...
+			# fill in empty fields with NA thing (for loop in awk) is a lifesaver
+			# https://unix.stackexchange.com/questions/53448/replacing-missing-value-blank-space-with-zero
+
+			$SAMTOOLS_DIR/samtools view -H \
+			$CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
+				| grep ^@RG \
+				| awk \
+					-v SM_FIELD="$SM_FIELD" \
+					-v PU_FIELD="$PU_FIELD" \
+					-v LB_FIELD="$LB_FIELD" \
+					'BEGIN {OFS="\t"} {split($SM_FIELD,SMtag,":"); split($PU_FIELD,PU,":"); split($LB_FIELD,Library,":"); split(Library[2],Library_Unit,"_"); \
+					print "'$PROJECT'",SMtag[2],PU[2],Library[2],Library_Unit[1],Library_Unit[2],substr(Library_Unit[2],1,1),substr(Library_Unit[2],2,2),\
+					Library_Unit[3],Library_Unit[4],substr(Library_Unit[4],1,1),substr(Library_Unit[4],2,2)}' \
+				| awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "NA" }; 1' \
+				| $DATAMASH_DIR/datamash \
+					-s \
+					-g 1,2 \
+					collapse 3 \
+					unique 4 \
+					unique 5 \
+					unique 6 \
+					unique 7 \
+					unique 8 \
+					unique 9 \
+					unique 10 \
+					unique 11 \
+					unique 12 \
+				| sed 's/,/;/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	else
+		echo -e "$PROJECT\t$SM_TAG\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" \
+		| $DATAMASH_DIR/datamash transpose \
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
+
 
 #################################################
 ##### GENDER CHECK FROM ANEUPLOIDY CHECK ########
@@ -192,11 +201,19 @@ echo
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R1","PCT_ADAPTER_R1" ################################################
 #######################################################################################################
 
-	awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0","0"; \
-		else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
-	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
-	| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+			awk 'BEGIN {OFS="\t"} NR==8 {if ($1=="UNPAIRED") print "0","0","0","0","0","0","0","0"; \
+				else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
+			$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 #######################################################################################################
 ##### ALIGNMENT SUMMARY METRICS FOR READ 2 ############################################################
@@ -207,11 +224,20 @@ echo
 ##### "PCT_READS_ALIGNED_IN_PAIRS_R2","PCT_ADAPTER_R2" ################################################
 #######################################################################################################
 
-	awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0","0" ; \
-		else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
-	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
-	| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			awk 'BEGIN {OFS="\t"} NR==9 {if ($1=="") print "0","0","0","0","0","0","0","0" ; \
+				else print $7*100,$9,$11,$13,$14,$15,$18*100,$24*100}' \
+			$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ################################################################################################
 ##### ALIGNMENT SUMMARY METRICS FOR PAIR #######################################################
@@ -223,13 +249,22 @@ echo
 ##### "PF_HQ_ALIGNED_Q20_BASES_PAIR","MEAN_READ_LENGTH","PCT_PF_READS_IMPROPER_PAIRS_PAIR" #####
 ################################################################################################
 
-	awk 'BEGIN {OFS="\t"} \
-		NR==10 \
-		{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
-		else print $2,($2*$16/1000000000),$7*100,$13,$14,$15,$18*100,$22,$23*100,$11,$16,$20*100}' \
-	$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
-	| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			awk 'BEGIN {OFS="\t"} \
+				NR==10 \
+				{if ($1=="") print "0","0","0","0","0","0","0","0","0","0","0","0" ; \
+				else print $2,($2*$16/1000000000),$7*100,$13,$14,$15,$18*100,$22,$23*100,$11,$16,$20*100}' \
+			$CORE_PATH/$PROJECT/REPORTS/ALIGNMENT_SUMMARY/$SM_TAG".alignment_summary_metrics.txt" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 #############################################################################################################
 ##### MARK DUPLICATES REPORT ################################################################################
@@ -240,13 +275,21 @@ echo
 ##### "UNPAIRED_READ_DUPLICATES","UNPAIRED_READS_EXAMINED","UNPAIRED_DUP_RATE" ##############################
 #############################################################################################################
 
-	awk 'BEGIN {OFS="\t"} \
-		NR==8 \
-		{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
-		else print $5,$8,$9*100,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
-	$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
-	| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+			awk 'BEGIN {OFS="\t"} \
+				NR==8 \
+				{if ($9!~/[0-9]/) print $5,$8,"NaN","NaN",$4,$7,$3,"NaN",$6,$2,"NaN" ; \
+				else print $5,$8,$9*100,$10,$4,$7,$3,($7/$3),$6,$2,($6/$2)}' \
+			$CORE_PATH/$PROJECT/REPORTS/PICARD_DUPLICATES/$SM_TAG"_MARK_DUPLICATES.txt" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ##########################################################################################################################################################################
 ##### HYBRIDIZATION SELECTION REPORT #####################################################################################################################################
@@ -262,15 +305,23 @@ echo
 	# this will take when there are no reads in the file...but i don't think that it will handle when there are reads, but none fall on target
 	# the next time i that happens i'll fix this to handle it.
 
-		awk 'BEGIN {FS="\t";OFS="\t"} \
-		NR==8 \
-		{if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
-		$36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
-		else print $2,$3,$4,$12*100,($14/1000000000),$19*100,$21,$22,$23,$24,$25,$29*100,$31*100,$32*100,$33*100,$34*100,\
-		$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,$42*100,$43*100,$44,$51,$52,$53,$54,$1,$26*100}' \
-		$CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metrics.txt" \
-		| $DATAMASH_DIR/datamash transpose \
-		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+		if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+			awk 'BEGIN {FS="\t";OFS="\t"} \
+			NR==8 \
+			{if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
+			$36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
+			else print $2,$3,$4,$12*100,($14/1000000000),$19*100,$21,$22,$23,$24,$25,$29*100,$31*100,$32*100,$33*100,$34*100,\
+			$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,$42*100,$43*100,$44,$51,$52,$53,$54,$1,$26*100}' \
+			$CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/$SM_TAG"_hybridization_selection_metrics.txt" \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+		fi
 
 	# this was supposed to be
 	## if there are no reads, then print x
@@ -297,15 +348,23 @@ echo
 ##### Cref_Q,Gref_Q ##########################
 ##############################################
 
-	grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
-		| sed '/^$/d' \
-		| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
-		| paste - - \
-		| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
-		| sed 's/,/;/g' \
-		| awk 'BEGIN {OFS="\t"} {print $0}' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+			grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
+				| sed '/^$/d' \
+				| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
+				| paste - - \
+				| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
+				| sed 's/,/;/g' \
+				| awk 'BEGIN {OFS="\t"} {print $0}' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ############################################################
 ##### PRE-ADAPTER BIAS REPORT FOR Deamination and OxoG #####
@@ -314,15 +373,24 @@ echo
 ##### Deamination_Q,OxoG_Q #################################
 ############################################################
 
-	grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapter_summary_metrics.txt" \
-		| sed '/^$/d' \
-		| awk 'BEGIN {OFS="\t"} $12=="Deamination"||$12=="OxoG" {print $5}' \
-		| paste - - \
-		| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
-		| sed 's/,/;/g' \
-		| awk 'BEGIN {OFS="\t"} {print $0}' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapter_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			grep -v "^#" $CORE_PATH/$PROJECT/REPORTS/PRE_ADAPTER/SUMMARY/$SM_TAG".pre_adapter_summary_metrics.txt" \
+				| sed '/^$/d' \
+				| awk 'BEGIN {OFS="\t"} $12=="Deamination"||$12=="OxoG" {print $5}' \
+				| paste - - \
+				| $DATAMASH_DIR/datamash collapse 1 collapse 2 \
+				| sed 's/,/;/g' \
+				| awk 'BEGIN {OFS="\t"} {print $0}' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ###########################################################
 ##### BASE DISTRIBUTION REPORT AVERAGE FROM PER CYCLE #####
@@ -331,16 +399,24 @@ echo
 ##### PCT_A,PCT_C,PCT_G,PCT_T,PCT_N #######################
 ###########################################################
 
-	sed '/^$/d' $CORE_PATH/$PROJECT/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/$SM_TAG".base_distribution_by_cycle_metrics.txt" \
-		| awk 'NR>6' \
-		| $DATAMASH_DIR/datamash \
-			mean 3 \
-			mean 4 \
-			mean 5 \
-			mean 6 \
-			mean 7 \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/$SM_TAG".base_distribution_by_cycle_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+			sed '/^$/d' $CORE_PATH/$PROJECT/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/$SM_TAG".base_distribution_by_cycle_metrics.txt" \
+				| awk 'NR>6' \
+				| $DATAMASH_DIR/datamash \
+					mean 3 \
+					mean 4 \
+					mean 5 \
+					mean 6 \
+					mean 7 \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 ############################################
 ##### BASE SUBSTITUTION RATE ###############
@@ -350,9 +426,19 @@ echo
 ##### PCT_C_to_A,PCT_C_to_G,PCT_C_to_T #####
 ############################################
 
-	sed '/^$/d' $CORE_PATH/$PROJECT/REPORTS/ERROR_SUMMARY/$SM_TAG".error_summary_metrics.txt" \
-		| awk 'NR>6 {print $6*100}' \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/REPORTS/ERROR_SUMMARY/$SM_TAG".error_summary_metrics.txt" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			sed '/^$/d' $CORE_PATH/$PROJECT/REPORTS/ERROR_SUMMARY/$SM_TAG".error_summary_metrics.txt" \
+				| awk 'NR>6 {print $6*100}' \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 ###############################################################
 ##### GENERATE COUNT PCT,IN DBSNP FOR ON BAIT SNVS ############
@@ -361,13 +447,23 @@ echo
 ##### "COUNT_SNV_ON_BAIT""\t""PERCENT_SNV_ON_BAIT_SNP138" ##### 
 ###############################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_SNV.vcf.gz" \
-		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-			END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
-			else {print "0","NaN"}}' \
-		| sed 's/ /\t/g' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_SNV.vcf.gz" ]]
+		then
+			echo -e NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_SNV.vcf.gz" \
+				| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
+					END {if (SNV_COUNT!="") {print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100} \
+					else {print "0","NaN"}}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 #######################################################################################
 ##### GENERATE COUNT PCT,IN DBSNP FOR ON TARGET SNVS ##################################
@@ -376,14 +472,24 @@ echo
 ##### "COUNT_SNV_ON_TARGET""\t""PERCENT_SNV_ON_TARGET_SNP138""\t""HET:HOM_TARGET" ##### 
 #######################################################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-		| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} {VAR_HOM+=($10 ~ /^1\/1/)} \
-			END {if (SNV_COUNT!=""&&VAR_HOM!="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(VAR_HOM); \
-			else if (SNV_COUNT!=""&&VAR_HOM=="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,"NaN"; \
-			else print "0","NaN","NaN"}' \
-		| sed 's/ /\t/g' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
+				| awk '{SNV_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} {HET_COUNT+=($10 ~ /^0\/1/)} {VAR_HOM+=($10 ~ /^1\/1/)} \
+					END {if (SNV_COUNT!=""&&VAR_HOM!="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,(HET_COUNT)/(VAR_HOM); \
+					else if (SNV_COUNT!=""&&VAR_HOM=="0") print SNV_COUNT,(DBSNP_COUNT/SNV_COUNT)*100,"NaN"; \
+					else print "0","NaN","NaN"}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 ####################################################
 ##### GRABBING TI/TV ON UCSC CODING EXONS, ALL #####
@@ -431,17 +537,27 @@ echo
 ##### "COUNT_ALL_INDEL_BAIT","ALL_INDEL_BAIT_PCT_SNP138","COUNT_BIALLELIC_INDEL_BAIT","BIALLELIC_INDEL_BAIT_PCT_SNP138" #####
 #############################################################################################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_INDEL.vcf.gz" \
-		| awk '{INDEL_COUNT++NR} \
-		{INDEL_BIALLELIC+=($5!~",")} \
-		{DBSNP_COUNT+=($3~"rs")} \
-		{DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
-		END {if (INDEL_BIALLELIC==""&&INDEL_COUNT=="") print "0","NaN","0","NaN"; \
-		else if (INDEL_BIALLELIC==0&&INDEL_COUNT>=1) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN"; \
-		else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100}' \
-		| sed 's/ /\t/g' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_INDEL.vcf.gz" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_INDEL.vcf.gz" \
+				| awk '{INDEL_COUNT++NR} \
+				{INDEL_BIALLELIC+=($5!~",")} \
+				{DBSNP_COUNT+=($3~"rs")} \
+				{DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
+				END {if (INDEL_BIALLELIC==""&&INDEL_COUNT=="") print "0","NaN","0","NaN"; \
+				else if (INDEL_BIALLELIC==0&&INDEL_COUNT>=1) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN"; \
+				else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 #####################################################################################################################################
 ##### INDEL METRICS ON TARGET #######################################################################################################
@@ -451,20 +567,30 @@ echo
 ##### "BIALLELIC_ID_RATIO" ##########################################################################################################
 #####################################################################################################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" \
-		| awk '{INDEL_COUNT++NR} \
-			{INDEL_BIALLELIC+=($5!~",")} \
-			{DBSNP_COUNT+=($3~"rs")} \
-			{DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
-			{BIALLELIC_INSERTION+=(length($5)-length($4))>0&&$5!~","} \
-			{BIALLELIC_DELETION+=(length($5)-length($4))<0&&$5!~","} \
-			END {if (INDEL_COUNT=="") print "0","NaN","0","NaN","NaN"; \
-			else if (INDEL_COUNT!=""&&INDEL_BIALLELIC==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN","NaN"; \
-			else if (INDEL_COUNT!=""&&INDEL_BIALLELIC>=1&&BIALLELIC_DELETION==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,"NaN"; \
-			else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,(BIALLELIC_INSERTION/BIALLELIC_DELETION)}' \
-		| sed 's/ /\t/g' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" ]]
+		then
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/INDEL/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_INDEL.vcf.gz" \
+				| awk '{INDEL_COUNT++NR} \
+					{INDEL_BIALLELIC+=($5!~",")} \
+					{DBSNP_COUNT+=($3~"rs")} \
+					{DBSNP_COUNT_BIALLELIC+=($3~"rs"&&$5!~",")} \
+					{BIALLELIC_INSERTION+=(length($5)-length($4))>0&&$5!~","} \
+					{BIALLELIC_DELETION+=(length($5)-length($4))<0&&$5!~","} \
+					END {if (INDEL_COUNT=="") print "0","NaN","0","NaN","NaN"; \
+					else if (INDEL_COUNT!=""&&INDEL_BIALLELIC==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,"0","NaN","NaN"; \
+					else if (INDEL_COUNT!=""&&INDEL_BIALLELIC>=1&&BIALLELIC_DELETION==0) print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,"NaN"; \
+					else print INDEL_COUNT,(DBSNP_COUNT/INDEL_COUNT)*100,INDEL_BIALLELIC,(DBSNP_COUNT_BIALLELIC/INDEL_BIALLELIC)*100,(BIALLELIC_INSERTION/BIALLELIC_DELETION)}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 ####################################################################
 ##### BASIC METRICS FOR MIXED VARIANT TYPES ON BAIT ################
@@ -474,13 +600,23 @@ echo
 ##### "COUNT_MIXED_ON_BAIT""\t""PERCENT_MIXED_ON_BAIT_SNP138"} ##### 
 ####################################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
-		| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-			END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
-			else print "0","NaN"}' \
-		| sed 's/ /\t/g' \
-		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	if [[ ! -f $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" ]]
+		then
+			echo -e NaN'\t'NaN \
+			| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_BAIT/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
+				| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
+					END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
+					else print "0","NaN"}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+	fi
 
 #######################################################################
 ##### GENERATE COUNT PCT,IN DBSNP FOR ON TARGET MIXED VARIANT #########
@@ -489,13 +625,22 @@ echo
 ##### "COUNT_MIXED_ON_TARGET""\t""PERCENT_MIXED_ON_TARGET_SNP138" ##### 
 #######################################################################
 
-	zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
-		| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
-			END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
-			else print "0","NaN"}' \
-		| sed 's/ /\t/g' \
+	if [[ ! -f $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" ]]
+	then
+		echo -e NaN'\t'NaN \
 		| $DATAMASH_DIR/datamash transpose \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+
+		else
+
+			zgrep -v "^#" $CORE_PATH/$PROJECT/MIXED/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnBait_MIXED.vcf.gz" \
+				| awk '{MIXED_COUNT++NR} {DBSNP_COUNT+=($3~"rs")} \
+					END {if (MIXED_COUNT!="") print MIXED_COUNT,(DBSNP_COUNT/MIXED_COUNT)*100 ; \
+					else print "0","NaN"}' \
+				| sed 's/ /\t/g' \
+				| $DATAMASH_DIR/datamash transpose \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
+	fi
 
 	# see how many libraries are in the samples...should probably do this from the cram header, but meh, some other time.
 	# this is to be tested against at the end.
