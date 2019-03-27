@@ -58,6 +58,9 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 
 		SUBMIT_STAMP=`date '+%s'`
 
+	# SUBMITTER_ID
+		SUBMITTER_ID=`whoami`
+
 #####################
 # PIPELINE PROGRAMS #
 #####################
@@ -109,6 +112,8 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
 	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
 	HG19_DICT="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.dict"
+			# FOR REANALYSIS OF CUTTING'S PHASE AND PHASE 2 PROJECTS.
+	MERGED_CUTTING_BED_FILE="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files_hg38/H_Cutting_phase_1plus2_super_file.bed.lift.hg38.bed"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -339,7 +344,7 @@ done
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
 			| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8,$2"_"$3"_"$4,$2"_"$3"_"$4".bam",$8,$10}' \
 			| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$5)} {print $1,$2,$3,$4,$5,$6}' \
-			| sort -k 1,1 -k 2,2 -k 3,3 \
+			| sort -k 1,1 -k 2,2 -k 3,3 -k 6,6 \
 			| uniq \
 			| $DATAMASH_DIR/datamash -s -g 1,2 collapse 3 collapse 4 unique 5 unique 6 \
 			| awk 'BEGIN {FS="\t"} \
@@ -444,6 +449,9 @@ done
 					if [[ $PROJECT = "M_Valle"* ]];
 						then
 							HC_BAIT_BED=${MERGED_MENDEL_BED_FILE}
+					elif [[ $PROJECT = "H_Cutting"* ]];
+						then
+							HC_BAIT_BED=${MERGED_CUTTING_BED_FILE}
 					else
 						HC_BAIT_BED=${BAIT_BED}
 					fi
@@ -1875,7 +1883,7 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-# printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\n" \
-# 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
-# 		-r khetric1@jhmi.edu \
-# 		cidr_sequencing_notifications@lists.johnshopkins.edu
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
+	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
+		-r khetric1@jhmi.edu \
+		cidr_sequencing_notifications@lists.johnshopkins.edu
