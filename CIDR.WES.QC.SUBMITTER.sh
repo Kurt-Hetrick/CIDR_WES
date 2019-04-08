@@ -92,6 +92,9 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 
 		SUBMIT_STAMP=`date '+%s'`
 
+	# SUBMITTER_ID
+		# SUBMITTER_ID=`whoami`
+
 	# IN THE FUTURE WILL PUSH OUT TO QSUB;
 
 		# -M email@address
@@ -1907,7 +1910,7 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
-printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $username" \
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.sh submitted" \
 		-r khetric1@jhmi.edu \
 		cidr_sequencing_notifications@lists.johnshopkins.edu

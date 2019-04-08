@@ -108,12 +108,13 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 		# md5 85f3e9f0d5f30de2a046594b4ab4de86
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1_GRCh38/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
-		# 4aa700700812d52c19f97c584eaca918
+		# md5 4aa700700812d52c19f97c584eaca918
 	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
 	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
 	HG19_DICT="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.dict"
-			# FOR REANALYSIS OF CUTTING'S PHASE AND PHASE 2 PROJECTS.
 	MERGED_CUTTING_BED_FILE="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files_hg38/H_Cutting_phase_1plus2_super_file.bed.lift.hg38.bed"
+		# FOR REANALYSIS OF CUTTING'S PHASE AND PHASE 2 PROJECTS.
+		# md5 37eb87348fc917fb5f916db20621155f
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
