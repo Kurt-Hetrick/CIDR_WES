@@ -52,6 +52,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 	-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	-XL X \
 	-XL Y \
+	-XL MT \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
 
 	# check the exit signal at this point.

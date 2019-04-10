@@ -897,6 +897,7 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| sed 's/chr//g' \
+			| grep -v "MT" \
 			| cut -f 1 \
 			| sort \
 			| uniq \
@@ -924,6 +925,7 @@ done
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
 								| sed 's/chr//g' \
+								| grep -v "MT" \
 								| sort \
 								| uniq \
 								| $DATAMASH_DIR/datamash collapse 1 \
@@ -997,6 +999,7 @@ done
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
 								| sed 's/chr//g' \
+								| grep -v "MT" \
 								| sort \
 								| uniq \
 								| $DATAMASH_DIR/datamash collapse 1 \
