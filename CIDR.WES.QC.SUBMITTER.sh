@@ -133,7 +133,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 # PIPELINE FILES #
 ##################
 
-	CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/UCSC_hg19_CodingOnly_083013_MERGED_noContigs_noCHR.bed"
+	CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/UCSC_hg19_CodingOnly_083013_MERGED_noContigs_plus_MT.bed"
 	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/RefSeqGene.GRCh37.Ready.txt"
 	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/GRCh37.Cytobands.bed"
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
