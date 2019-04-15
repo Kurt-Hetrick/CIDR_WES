@@ -40,6 +40,7 @@ echo
 	SAMPLE_SHEET=${10}
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${11}
+	DATAMASH_DIR=${12}
 
 # create loop, for now doing this serially as I don't want to play with bandwith issues by doing it in parallel
 
@@ -58,6 +59,7 @@ SELECT_VERIFYBAMID_VCF_CHR ()
 		-L $CHROMOSOME \
 		-XL chrX \
 		-XL chrY \
+		-XL chrM \
 		--interval_set_rule INTERSECTION \
 		-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
 	}
@@ -76,8 +78,7 @@ CALL_VERIFYBAMID_CHR ()
 for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 	| sed -r 's/[[:space:]]+/\t/g' \
 	| cut -f 1 \
-	| sed 's/chr//g' \
-	| egrep -v "X|Y|MT" \
+	| egrep -v "chrX|chrY|chrM" \
 	| sort \
 	| uniq \
 	| $DATAMASH_DIR/datamash collapse 1 \

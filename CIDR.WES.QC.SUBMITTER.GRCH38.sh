@@ -95,8 +95,8 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 
 	CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/gencode24_primary_collapsed.bed"
 		# md5 acda5ab9bebcb9520f5ec9670ea09432
-	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/RefSeqAll_hg38.gatk.txt"
-		# md5 45ca8b6e8806fd6233863cbee464a906
+	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/RefSeqAll_hg38_rCRS-MT.gatk.txt"
+		# md5 f4f25673a83db2dda32791e6a00d9604
 		# need to create a link detailing how this file was created
 	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/GRCh38.Cytobands.bed"
 		# md5 cac717c6bc149001c013a3a6c594908d
@@ -107,8 +107,8 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/dbsnp_138.hg38.liftover.excluding_sites_after_129.vcf.gz"
 		# md5 85f3e9f0d5f30de2a046594b4ab4de86
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
-	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1_GRCh38/BED_Files/BAITS_Merged_S03723314_S06588914.lift.hg38.bed"
-		# md5 4aa700700812d52c19f97c584eaca918
+	MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1_GRCh38/BED_Files/BAITS_Merged_S03723314_S06588914_TwistCUEXmito.lift.hg38.merge.clean.bed"
+		# md5 7a5a4d410172d7070118f351e8f0b729
 	HG38_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg38ToHg19.over.chain"
 	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
 	HG19_DICT="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.dict"
@@ -848,6 +848,7 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
+			| grep -v "chrM" \
 			| sort \
 			| uniq \
 			| $DATAMASH_DIR/datamash collapse 1 \
@@ -872,6 +873,7 @@ done
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
+								| grep -v "chrM" \
 								| sort \
 								| uniq \
 								| $DATAMASH_DIR/datamash collapse 1 \
@@ -943,6 +945,7 @@ done
 			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
 									| sed -r 's/[[:space:]]+/\t/g' \
 									| cut -f 1 \
+									| grep -v "chrM" \
 									| sort \
 									| uniq \
 									| $DATAMASH_DIR/datamash collapse 1 \
@@ -1266,7 +1269,8 @@ done
 				$REF_GENOME \
 				$TARGET_BED \
 				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
+				$SUBMIT_STAMP \
+				$DATAMASH_DIR
 		}
 
 	######################################
@@ -1946,7 +1950,7 @@ done
 			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
 			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
 
-# EMAIL WHEN DONE SUBMITTING
+EMAIL WHEN DONE SUBMITTING
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
