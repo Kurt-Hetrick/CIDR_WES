@@ -628,9 +628,6 @@ done
 			CREATE_SAMPLE_ARRAY
 			FIX_BED_FILES
 			echo sleep 0.1s
-			# FIX_BAM_HEADER
-			# echo sleep 0.1s
-			# fix bam header shouldn't be needed when running sambamba 0.6.8
 			RUN_BQSR
 			echo sleep 0.1s
 			APPLY_BQSR
@@ -870,7 +867,7 @@ done
 	BUILD_HOLD_ID_PATH ()
 	{
 		HOLD_ID_PATH="-hold_jid "
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
 								| grep -v "chrM" \
@@ -942,7 +939,7 @@ done
 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER()
 	{
 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 									| sed -r 's/[[:space:]]+/\t/g' \
 									| cut -f 1 \
 									| grep -v "chrM" \
@@ -1950,7 +1947,7 @@ done
 			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
 			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
 
-EMAIL WHEN DONE SUBMITTING
+# EMAIL WHEN DONE SUBMITTING
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \

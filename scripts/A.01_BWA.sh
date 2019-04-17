@@ -97,8 +97,8 @@
 			FASTQ1_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R1_001.fastq.gz.*'"
 			FASTQ2_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R2_001.fastq.gz.*'"
 
-			FASTQ_1="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ1_REGEX" | bash)"
-			FASTQ_2="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ2_REGEX" | bash)"
+			FASTQ_1="$(echo find "$FINDPATH" -maxdepth 1 -type f -regextype posix-extended -regex "$FASTQ1_REGEX" | bash)"
+			FASTQ_2="$(echo find "$FINDPATH" -maxdepth 1 -type f -regextype posix-extended -regex "$FASTQ2_REGEX" | bash)"
 		else
 			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_1.fastq"*`
 			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_2.fastq"*`
