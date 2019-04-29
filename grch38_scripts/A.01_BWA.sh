@@ -93,12 +93,10 @@
 
 			FINDPATH=$NOVASEQ_REPO/$NOVASEQ_RUN_FOLDER/FASTQ/$PROJECT
 
-			#Fancy REGEX for R1 and 2 Since we don't have the sample index value in the sample sheet(probably can be cleaned up)
-			FASTQ1_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R1_001.fastq.gz.*'"
-			FASTQ2_REGEX="'.*"$SM_TAG"_[Ss][0-9]+_L00["$LANE"]_R2_001.fastq.gz.*'"
+			# look for illumina file naming convention for novaseq flowcells
+			FASTQ_1=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash`
+			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
 
-			FASTQ_1="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ1_REGEX" | bash)"
-			FASTQ_2="$(echo find "$FINDPATH" -regextype posix-extended -regex "$FASTQ2_REGEX" | bash)"
 		else
 			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_1.fastq"*`
 			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_2.fastq"*`
