@@ -1951,5 +1951,5 @@ done
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
-		-r khetric1@jhmi.edu \
+		-r $SUBMITTER_ID@jhmi.edu \
 		cidr_sequencing_notifications@lists.johnshopkins.edu
