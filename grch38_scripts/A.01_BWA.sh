@@ -35,6 +35,7 @@
 	LANE=$8
 	INDEX=$9
 		PLATFORM_UNIT=$FLOWCELL"_"$LANE"_"$INDEX
+		FIXED_PLATFORM_UNIT=`echo $PLATFORM_UNIT | sed 's/~/*/g'`
 	PLATFORM=${10}
 	LIBRARY_NAME=${11}
 	RUN_DATE=${12}
@@ -98,8 +99,8 @@
 			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
 
 		else
-			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_1.fastq"*`
-			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$PLATFORM_UNIT"_2.fastq"*`
+			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"*`
+			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"*`
 	fi
 
 # -----Alignment and BAM post-processing-----
