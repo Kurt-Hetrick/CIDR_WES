@@ -81,7 +81,6 @@ PCT_PF_UQ_READS_ALIGNED,"The percentage of reads that aligned to the reference g
 PF_UQ_GIGS_ALIGNED,The number of bases in PF_UQ_READS_ALIGNED. Accounts for clipping and gaps.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 PCT_SELECTED_BASES,The percentage of PF_BASES_ALIGNED located on or near a baited region (ON_BAIT_BASES + NEAR_BAIT_BASES)/PF_BASES_ALIGNED.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 ON_BAIT_VS_SELECTED,"The fraction of bases on or near baits that are covered by baits, ON_BAIT_BASES/(ON_BAIT_BASES + NEAR_BAIT_BASES).",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
-MEAN_BAIT_COVERAGE,The mean coverage of all baits in the experiment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 MEAN_TARGET_COVERAGE,The mean coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 MEDIAN_TARGET_COVERAGE,The median coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 MAX_TARGET_COVERAGE,The maximum coverage of reads that mapped to target regions of an experiment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
