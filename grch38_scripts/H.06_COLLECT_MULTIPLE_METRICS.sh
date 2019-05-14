@@ -38,6 +38,8 @@ module unload R/3.0.1
 	REF_GENOME=$7
 	DBSNP=$8
 	# TARGET_BED=$9
+	R_DIRECTORY=$9
+		export PATH=.:$R_DIRECTORY:$PATH
 
 # Create a picard style target bed file. This is used for CollectSequencingArtifactMetrics...it should not be used for anything else...i think
 

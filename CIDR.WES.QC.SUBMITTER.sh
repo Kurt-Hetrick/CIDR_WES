@@ -128,6 +128,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.7"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
+	R_DIRECTORY="/mnt/linuxtools/R/R-3.1.1/bin"
 
 ##################
 # PIPELINE FILES #
@@ -1263,7 +1264,8 @@ done
 				$PROJECT \
 				$SM_TAG \
 				$REF_GENOME \
-				$DBSNP
+				$DBSNP \
+				$R_DIRECTORY
 		}
 
 	#######################
