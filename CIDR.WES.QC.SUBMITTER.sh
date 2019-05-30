@@ -1909,7 +1909,7 @@ done
 			"-q","'$QUEUE_LIST'",\
 			"-p","'$PRIORITY'",\
 			"-m","e",\
-			"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
+			"-M","f6a58366.live.johnshopkins.edu@amer.teams.ms,khetric1@jhmi.edu",\
 			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 			"-j y",\
@@ -1919,7 +1919,8 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
+PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-	| mail -s "CIDR.WES.QC.SUBMITTER.sh submitted" \
-		-r $SUBMITTER_ID@jhmi.edu \
-		cidr_sequencing_notifications@lists.johnshopkins.edu
+	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.sh" \
+		f6a58366.live.johnshopkins.edu@amer.teams.ms,khetric1@jhmi.edu
