@@ -22,7 +22,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 	# Generate a list of active queue and remove the ones that I don't want to use
 
 		QUEUE_LIST=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue" \
+			| egrep -v "^[0-9]|^-|^queue|^ " \
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
@@ -43,7 +43,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 		# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
 
 		BWA_QUEUE_LIST=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue" \
+			| egrep -v "^[0-9]|^-|^queue|^ " \
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
@@ -54,7 +54,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 		# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
 
 		QUEUE_LIST_TEMP=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue" \
+			| egrep -v "^[0-9]|^-|^queue|^ " \
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \

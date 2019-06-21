@@ -22,7 +22,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	# Generate a list of active queue and remove the ones that I don't want to use
 
 		QUEUE_LIST=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue" \
+			| egrep -v "^[0-9]|^-|^queue|^ " \
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
