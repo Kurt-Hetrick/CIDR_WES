@@ -923,7 +923,7 @@ done
 	{
 		HOLD_ID_PATH="-hold_jid "
 
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
 								| sed 's/chr//g' \
@@ -958,7 +958,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -982,7 +982,7 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$BAIT_BED \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -997,7 +997,7 @@ done
 	{
 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
 
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $BAIT_BED \
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
 								| sed 's/chr//g' \
@@ -1032,7 +1032,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
