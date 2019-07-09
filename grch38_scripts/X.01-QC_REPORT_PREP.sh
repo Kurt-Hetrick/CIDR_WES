@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT PARAMETERS
 
@@ -113,10 +113,13 @@ echo
 ##### X_AVG_DP,X_NORM_DP,Y_AVG_DP,Y_NORM_DP #####
 #################################################
 
-	awk 'BEGIN {OFS="\t"} $2=="X"&&$3=="whole" {print $6,$7} $2=="Y"&&$3=="whole" {print $6,$7}' \
+	awk 'BEGIN {OFS="\t"} $2=="X"&&$3=="whole" {print "X",$6,$7} $2=="Y"&&$3=="whole" {print "Y",$6,$7}' \
 	$CORE_PATH/$PROJECT/REPORTS/ANEUPLOIDY_CHECK/$SM_TAG".chrom_count_report.txt" \
 		| paste - - \
-		| awk 'BEGIN {OFS="\t"} END {if ($1!~/[0-9]/) print "NaN","NaN","NaN","NaN"; else print $0}' \
+		| awk 'BEGIN {OFS="\t"} END {if ($1=="X"&&$4=="Y") print $2,$3,$5,$6 ; \
+			else if ($1=="X"&&$4=="") print $2,$3,"NaN","NaN" ; \
+			else if ($1=="Y"&&$4=="") print "NaN","NaN",$5,$6 ; \
+			else print "NaN","NaN","NaN","NaN"}' \
 		| $DATAMASH_DIR/datamash transpose \
 	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 

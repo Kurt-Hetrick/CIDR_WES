@@ -919,6 +919,8 @@ done
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF #
 ################################################################################
 
+# removing MT from here is a little dangerous...should probably remove
+
 	BUILD_HOLD_ID_PATH ()
 	{
 		HOLD_ID_PATH="-hold_jid "
