@@ -1957,5 +1957,4 @@ done
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
-		-r $SUBMITTER_ID@jhmi.edu \
 		$SEND_TO

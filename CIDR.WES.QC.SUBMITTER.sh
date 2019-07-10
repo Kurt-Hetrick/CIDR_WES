@@ -1891,6 +1891,10 @@ done
 ##### END PROJECT TASKS #####
 #############################
 
+# grab email addy
+
+	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
+
 # Maybe I'll make this a function and throw it into a loop, but today is not that day.
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
@@ -1911,7 +1915,7 @@ done
 			"-q","'$QUEUE_LIST'",\
 			"-p","'$PRIORITY'",\
 			"-m","e",\
-			"-M","f6a58366.live.johnshopkins.edu@amer.teams.ms,khetric1@jhmi.edu",\
+			"-M","'$SEND_TO'",\
 			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 			"-j y",\
@@ -1925,4 +1929,4 @@ PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.sh" \
-		f6a58366.live.johnshopkins.edu@amer.teams.ms,khetric1@jhmi.edu
+		$SEND_TO
