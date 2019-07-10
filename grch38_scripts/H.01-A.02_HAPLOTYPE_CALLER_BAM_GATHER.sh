@@ -78,14 +78,21 @@ echo
 	
 	# Append MT if present
 	
-		sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
-			| sed -r 's/[[:space:]]+/\t/g' \
-			| cut -f 1 \
-			| sort \
-			| uniq \
-			| awk '$1=="chrMT"' \
-			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' \
-		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
+	# Append MT if present unless the project name starts with M_Valle
+	
+		if [[ $PROJECT = "M_Valle"* ]];
+		then
+			:
+		else
+			sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"BAIT_BED_NAME".bed" \
+				| sed -r 's/[[:space:]]+/\t/g' \
+				| cut -f 1 \
+				| sort \
+				| uniq \
+				| awk '$1=="chrMT"' \
+				| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
+		fi
 
 ## --Merge and Sort Bam files--
 

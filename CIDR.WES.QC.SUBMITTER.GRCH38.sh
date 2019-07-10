@@ -902,7 +902,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED \
+			$HC_BAIT_BED  \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -926,7 +926,7 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$BAIT_BED \
+			$HC_BAIT_BED  \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -974,7 +974,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$BAIT_BED \
+			$HC_BAIT_BED  \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -1921,6 +1921,10 @@ done
 ##### END PROJECT TASKS #####
 #############################
 
+# grab email addy
+
+	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
+
 # Maybe I'll make this a function and throw it into a loop, but today is not that day.
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
@@ -1941,7 +1945,7 @@ done
 			"-q","'$QUEUE_LIST'",\
 			"-p","'$PRIORITY'",\
 			"-m","e",\
-			"-M","cidr_sequencing_notifications@lists.johnshopkins.edu",\
+			"-M","'$SEND_TO'",\
 			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 			"-j y",\
@@ -1954,4 +1958,4 @@ done
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
 	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
 		-r $SUBMITTER_ID@jhmi.edu \
-		cidr_sequencing_notifications@lists.johnshopkins.edu
+		$SEND_TO
