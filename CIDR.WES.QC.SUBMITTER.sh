@@ -2,6 +2,13 @@
 
 SAMPLE_SHEET=$1
 	SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
+
+	# if there is no 2nd argument present then use the number for priority
+		if [[ ! $PRIORITY ]]
+			then
+			PRIORITY="-15"
+		fi
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
 
@@ -75,8 +82,6 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			# 	| awk '{print $1,"-l","\\x27" "hostname=!DellR730-03" "\\x27"}'`
 
 	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
-
-		PRIORITY="-15"
 
 		PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
