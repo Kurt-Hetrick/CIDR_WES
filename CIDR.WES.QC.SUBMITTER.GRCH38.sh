@@ -1958,6 +1958,8 @@ done
 
 # EMAIL WHEN DONE SUBMITTING
 
+PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
-	| mail -s "CIDR.WES.QC.SUBMITTER.GRCH38.sh submitted" \
+	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.GRCH38.sh" \
 		$SEND_TO
