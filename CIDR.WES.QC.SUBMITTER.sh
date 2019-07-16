@@ -33,7 +33,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q" \
+			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q|uhoh.q" \
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
@@ -54,7 +54,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q" \
+			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q|uhoh.q" \
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
@@ -65,7 +65,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q|bigdata.q" \
+			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q|bigdata.q|uhoh.q" \
 			| datamash collapse 1 \
 			| awk '{print $1}'`
 
