@@ -95,8 +95,8 @@
 			FINDPATH=$NOVASEQ_REPO/$NOVASEQ_RUN_FOLDER/FASTQ/$PROJECT
 
 			# look for illumina file naming convention for novaseq flowcells
-			FASTQ_1=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash`
-			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
+			FASTQ_1=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash`
+			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
 
 		else
 			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"*`
