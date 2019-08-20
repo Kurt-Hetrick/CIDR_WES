@@ -1,188 +1,188 @@
-COLUMN,DESCRIPTION,PROGRAM
-SM_TAG,CIDR internal database ID plus 2D barcode,
-PROJECT,Project Name,
-RG_PU,FLOWCELL_LANE_INDEX,
-LIBRARY,LibraryPlate_WellPosition_HybPlate_WellPosition from cram/bam file,
-LIBRARY_PLATE,Name of plate used in laboratory during library prep from cram/bam file,
-LIBRARY_WELL,Well the sample is located in during library prep from cram/bam file,
-LIBRARY_ROW,Row of the well the sample is located in during library prep from cram/bam file,
-LIBRARY_COLUMN,Column of the well the sample is located in during library prep from cram/bam file,
-HYB_PLATE,Name of plate used in laboratory during capture hybridization from cram/bam file,
-HYB_WELL,Well the sample is located in during capture hybridization from cram/bam file,
-HYB_ROW,Row of the well the sample is located in during capture hybridization from cram/bam file,
-HYB_COLUMN,Column of the well the sample is located in during capture hybridization from cram/bam file,
-X_AVG_DP,Mean depth Of chr X targets,
-X_NORM_DP,Mean depth Of chr X targets divided by mean depth of autosomal targets,
-Y_AVG_DP,Mean depth Of chr Y targets,
-Y_NORM_DP,Mean depth Of chr Y targets divided by mean depth of autosomal targets,
-COUNT_DISC_HOM,Number of genotype array homozygous calls that were called heterozygous non-reference in the sequence data,cidrseqsuite code
-COUNT_CONC_HOM,Number of genotype array homozygous calls that were called homozygous non-reference in the sequence data,cidrseqsuite code
-PERCENT_CONC_HOM,COUNT_CONC_HOM/(COUNT_CONC_HOM + COUNT_DISC_HOM),cidrseqsuite code
-COUNT_DISC_HET,Number genotype array heterozygous calls that were called homozygous non-reference in the sequence data,cidrseqsuite code
-COUNT_CONC_HET,Number genotype array Heterozygous calls that were called heterozygous non-reference in the sequence data,cidrseqsuite code
-PERCENT_CONC_HET,COUNT_DISC_HOM/(COUNT_DISC_HOM + COUNT_DISC_HET),cidrseqsuite code
-PERCENT_TOTAL_CONC,(COUNT_DISC_HOM + COUNT_CONC_HOM)/(COUNT_DISC_HET + COUNT_DISC_HOM + COUNT_DISC_HOM + COUNT_CONC_HOM),cidrseqsuite code
-COUNT_HET_BEADCHIP,Number of genotype array heterozygous calls,cidrseqsuite code
-SENSITIVITY_2_HET,Percent of heterozygous array genotypes that are also called as non-reference bases in the sequencing data,cidrseqsuite code
-SNP_ARRAY,SNP array used to calculate concordance/sensitivity,cidrseqsuite code
-VERIFYBAM_FREEMIX_PCT,Sequence-only estimate of contamination (PERCENTAGE),verifyBamID
-VERIFYBAM_#SNPS,Number of sites used for verifybamID contamination,verifyBamID
-VERIFYBAM_FREELK1, Maximum log-likelihood of the sequence reads given estimated contamination under sequence-only method,verifyBamID
-VERIFYBAM_FREELK0,Log-likelihood of the sequence reads given no contamination under sequence-only method,verifyBamID
-VERIFYBAM_DIFF_LK0_LK1,VERIFYBAM_FREELK0-VERIFYBAM_FREELK1,verifyBamID
-VERIFYBAM_AVG_DP,Average depth at sites used by verifybamID,verifyBamID
-MEDIAN_INSERT_SIZE,The MEDIAN insert size of all paired end reads where both ends mapped to the same chromosome.,CollectInsertSizeMetrics
-MEAN_INSERT_SIZE,"The mean insert size of the ""core"" of the distribution. Artefactual outliers in the distribution often cause calculation of nonsensical mean and stdev values. To avoid this the distribution is first trimmed to a ""core"" distribution of +/- N median absolute deviations around the median insert size. By default N=10, but this is configurable.",CollectInsertSizeMetrics
-STANDARD_DEVIATION_INSERT_SIZE,"Standard deviation of insert sizes over the ""core"" of the distribution.",CollectInsertSizeMetrics
-MAD_INSERT_SIZE,The median absolute deviation of the distribution. If the distribution is essentially normal then the standard deviation can be estimated as ~1.4826 * MAD,CollectInsertSizeMetrics
-PCT_PF_READS_ALIGNED_R1,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Read 1.,CollectAlignmentSummaryMetrics
-PF_HQ_ALIGNED_READS_R1,The number of PF reads that were aligned to the reference sequence with a mapping quality of Q20 or higher signifying that the aligner estimates a 1/100 (or smaller) chance that the alignment is wrong. Read 1.,CollectAlignmentSummaryMetrics
-PF_HQ_ALIGNED_Q20_BASES_R1,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Read 1.,CollectAlignmentSummaryMetrics
-PF_MISMATCH_RATE_R1,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Read 1.,CollectAlignmentSummaryMetrics
-PF_HQ_ERROR_RATE_R1,The percentage of bases that mismatch the reference in PF HQ aligned reads. Read 1.,CollectAlignmentSummaryMetrics
-PF_INDEL_RATE_R1,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Read 1.",CollectAlignmentSummaryMetrics
-PCT_READS_ALIGNED_IN_PAIRS_R1,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Read 1.,CollectAlignmentSummaryMetrics
-PCT_ADAPTER_R1,The percentage of PF reads that are unaligned and match to a known adapter sequence right from the start of the read. Read 1.,CollectAlignmentSummaryMetrics
-PCT_PF_READS_ALIGNED_R2,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Read 2.,CollectAlignmentSummaryMetrics
-PF_HQ_ALIGNED_READS_R2,The number of PF reads that were aligned to the reference sequence with a mapping quality of Q20 or higher signifying that the aligner estimates a 1/100 (or smaller) chance that the alignment is wrong. Read 2.,CollectAlignmentSummaryMetrics
-PF_HQ_ALIGNED_Q20_BASES_R2,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Read 2.,CollectAlignmentSummaryMetrics
-PF_MISMATCH_RATE_R2,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Read 2.,CollectAlignmentSummaryMetrics
-PF_HQ_ERROR_RATE_R2,The percentage of bases that mismatch the reference in PF HQ aligned reads. Read 2.,CollectAlignmentSummaryMetrics
-PF_INDEL_RATE_R2,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Read 2.",CollectAlignmentSummaryMetrics
-PCT_READS_ALIGNED_IN_PAIRS_R2,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Read 2.,CollectAlignmentSummaryMetrics
-PCT_ADAPTER_R2,The percentage of PF reads that are unaligned and match to a known adapter sequence right from the start of the read. Read 2.,CollectAlignmentSummaryMetrics
-TOTAL_READS,The total number of PF reads.,CollectAlignmentSummaryMetrics
-RAW_GIGS,TOTAL_READS*MEAN_READ_LENGTH/1000000000,CollectAlignmentSummaryMetrics
-PCT_PF_READS_ALIGNED_PAIR,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Overall.,CollectAlignmentSummaryMetrics
-PF_MISMATCH_RATE_PAIR,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Overall.,CollectAlignmentSummaryMetrics
-PF_HQ_ERROR_RATE_PAIR,The percentage of bases that mismatch the reference in PF HQ aligned reads. Overall.,CollectAlignmentSummaryMetrics
-PF_INDEL_RATE_PAIR,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Overall.",CollectAlignmentSummaryMetrics
-PCT_READS_ALIGNED_IN_PAIRS_PAIR,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Overall.,CollectAlignmentSummaryMetrics
-STRAND_BALANCE_PAIR,The number of PF reads aligned to the positive strand of the genome divided by the number of PF reads aligned to the genome. Overall.,CollectAlignmentSummaryMetrics
-PCT_CHIMERAS_PAIR,The percentage of reads that map outside of a maximum insert size (usually 100kb) or that have the two ends mapping to different chromosomes.,CollectAlignmentSummaryMetrics
-PF_HQ_ALIGNED_Q20_BASES_PAIR,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Overall.,CollectAlignmentSummaryMetrics
-MEAN_READ_LENGTH,The mean read length of the set of reads examined. When looking at the data for a single lane with equal length reads this number is just the read length. When looking at data for merged lanes with differing read lengths this is the mean read length of all reads.,CollectAlignmentSummaryMetrics
-PCT_PF_READS_IMPROPER_PAIRS_PAIR,"The percentage of (primary) aligned reads that are **not** ""properly"" aligned in pairs (as per SAM flag 0x2).",CollectAlignmentSummaryMetrics
-UNMAPPED_READS,"The total number of unmapped reads examined. (Primary, non-supplemental)",DuplicationMetrics
-READ_PAIR_OPTICAL_DUPLICATES,"The number of read pairs duplicates that were caused by optical duplication. Value is always < READ_PAIR_DUPLICATES, which counts all duplicates regardless of source.",DuplicationMetrics
-PERCENT_DUPLICATION,The percentage of mapped sequence that is marked as duplicates. ((UNPAIRED_READ_DUPLICATES + (READ_PAIR_DUPLICATES*2))/(UNPAIRED_READS_EXAMINED+(READ_PAIRS_EXAMINED*2)))*100,DuplicationMetrics
-ESTIMATED_LIBRARY_SIZE,The estimated number of unique molecules in the library based on PE duplication. When there are multiple libraries. It is the average between the all of the libraries present,DuplicationMetrics
-SECONDARY_OR_SUPPLEMENTARY_READS,The number of reads that were either secondary or supplementary,DuplicationMetrics
-READ_PAIR_DUPLICATES,The number of read pairs that were marked as duplicates.,DuplicationMetrics
-READ_PAIRS_EXAMINED,"The number of mapped read pairs examined. (Primary, non-supplemental)",DuplicationMetrics
-PAIRED_DUP_RATE,READ_PAIR_DUPLICATES/READ_PAIRS_EXAMINED,DuplicationMetrics
-UNPAIRED_READ_DUPLICATES,The number of fragments that were marked as duplicates.,DuplicationMetrics
-UNPAIRED_READS_EXAMINED,"The number of mapped reads examined which did not have a mapped mate pair, either because the read is unpaired, or the read is paired to an unmapped mate.",DuplicationMetrics
-UNPAIRED_DUP_RATE,UNPAIRED_READ_DUPLICATES/UNPAIRED_READS_EXAMINED,DuplicationMetrics
-PERCENT_DUPLICATION_OPTICAL,READ_PAIR_OPTICAL_DUPLICATES/READ_PAIR_DUPLICATES*100,DuplicationMetrics
-GENOME_SIZE,The number of bases in the reference genome used for alignment.,CollectHsMetrics
-BAIT_TERRITORY,The number of bases which are localized to one or more baits.,CollectHsMetrics
-TARGET_TERRITORY,The unique number of target bases in the experiment,CollectHsMetrics
-PCT_PF_UQ_READS_ALIGNED,"The percentage of reads that aligned to the reference genome,  are not marked as duplicates with a mapping score > 0 from the total number of PF reads.",CollectHsMetrics
-PF_UQ_GIGS_ALIGNED,The number of bases in PF_UQ_READS_ALIGNED. Accounts for clipping and gaps.,CollectHsMetrics
-PCT_SELECTED_BASES,The percentage of PF_BASES_ALIGNED located on or near a baited region (ON_BAIT_BASES + NEAR_BAIT_BASES)/PF_BASES_ALIGNED.,CollectHsMetrics
-ON_BAIT_VS_SELECTED,"The fraction of bases on or near baits that are covered by baits, ON_BAIT_BASES/(ON_BAIT_BASES + NEAR_BAIT_BASES).",CollectHsMetrics
-MEAN_TARGET_COVERAGE,The mean coverage of a target region.,CollectHsMetrics
-MEDIAN_TARGET_COVERAGE,The median coverage of a target region.,CollectHsMetrics
-MAX_TARGET_COVERAGE,The maximum coverage of reads that mapped to target regions of an experiment.,CollectHsMetrics
-ZERO_CVG_TARGETS_PCT,The percentage of targets that did not reach coverage=1 over any base.,CollectHsMetrics
-PCT_EXC_MAPQ,The percentage of aligned bases that were filtered out because they were in reads with low mapping quality (<20).,CollectHsMetrics
-PCT_EXC_BASEQ,The percentage of aligned bases that were filtered out because they were of low base quality (<10).,CollectHsMetrics
-PCT_EXC_OVERLAP,The percentage of aligned bases that were filtered out because they were the second observation from an insert with overlapping reads.,CollectHsMetrics
-PCT_EXC_OFF_TARGET,The percentage of aligned bases that were filtered out because they did not align over a target base.,CollectHsMetrics
-PCT_TARGET_BASES_1X,The percentage of all target bases achieving 1X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_2X,The percentage of all target bases achieving 2X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_10X,The percentage of all target bases achieving 10X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_20X,The percentage of all target bases achieving 20X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_30X,The percentage of all target bases achieving 30X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_40X,The percentage of all target bases achieving 40X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_50X,The percentage of all target bases achieving 50X or greater coverage.,CollectHsMetrics
-PCT_TARGET_BASES_100X,The percentage of all target bases achieving 100X or greater coverage.,CollectHsMetrics
-HS_LIBRARY_SIZE,The estimated number of unique molecules in the selected part of the library.,CollectHsMetrics
-AT_DROPOUT,"A measure of how undercovered <= 50% GC regions are relative to the mean. For each GC bin [0..50] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. AT DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC<=50% regions mapped elsewhere.",CollectHsMetrics
-GC_DROPOUT,"A measure of how undercovered >= 50% GC regions are relative to the mean. For each GC bin [50..100] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. GC DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC>=50% regions mapped elsewhere.",CollectHsMetrics
-THEORETICAL_HET_SENSITIVITY,The theoretical HET SNP sensitivity.,CollectHsMetrics
-HET_SNP_Q,The Phred Scaled Q Score of the theoretical HET SNP sensitivity.,CollectHsMetrics
-BAIT_SET,"The union of baits, target and ti/tv bed files used.",CollectHsMetrics
-PCT_USABLE_BASES_ON_BAIT,"The percentage of aligned, de-duped, on-bait bases out of the PF bases available.",CollectHsMetrics
-Cref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics
-Gref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics
-DEAMINATION_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics
-OxoG_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics
-PCT_A,Percent of Adenine bases,BaseDistributionByCycleMetrics
-PCT_C,Percent of Cytosine bases,BaseDistributionByCycleMetrics
-PCT_G,Percent of Guanine bases,BaseDistributionByCycleMetrics
-PCT_T,Percent of Thymine bases,BaseDistributionByCycleMetrics
-PCT_N,Percent of Undetermined bases,BaseDistributionByCycleMetrics
-PCT_A_to_C,Percent of A to C and T to G substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-PCT_A_to_G,Percent of A to G and T to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-PCT_A_to_T,Percent of A to T and T to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-PCT_C_to_A,Percent of C to A and G to T substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-PCT_C_to_G,Percent of C to G and G to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-PCT_C_to_T,Percent of C to T and G to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics
-COUNT_SNV_ON_BAIT,Count of PASSING SNVs from the Bait Bed file,
-PERCENT_SNV_ON_BAIT_SNP138,Percent of PASSING SNVs from the Bait Bed file that are in dbSNP 138,
-COUNT_SNV_ON_TARGET,Count of PASSING SNVs from the Target Bed file,
-PERCENT_SNV_ON_TARGET_SNP138,Percent of PASSING SNVs from the Target Bed file that are in dbSNP 138,
-HET:HOM_TARGET,Number of passing het SNVs on Target/Number of passing non-ref homozygotes on target,
-ALL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file,vcfutils.pl qstats
-ALL_TI_TV_RATIO,Ti/Tv ratio of ALL_TI_TV_COUNT,vcfutils.pl qstats
-KNOWN_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are in dbSNP 129,vcfutils.pl qstats
-KNOWN_TI_TV_RATIO,Ti/Tv ratio of KNOWN_TI_TV_COUNT,vcfutils.pl qstats
-NOVEL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are NOT in dbSNP 129,vcfutils.pl qstats
-NOVEL_TI_TV_RATIO,Ti/Tv ratio of NOVEL_TI_TV_COUNT,vcfutils.pl qstats
-COUNT_ALL_INDEL_BAIT,Count of all PASSING indels on bait,
-ALL_INDEL_BAIT_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on bait,
-COUNT_BIALLELIC_INDEL_BAIT,Count of PASSING biallelic indels on bait,
-BIALLELIC_INDEL_BAIT_PCT_SNP138,Pct of PASSING biallelic indels on bait in dbSNP 138,
-COUNT_ALL_INDEL_TARGET,Count of all PASSING indels on target,
-ALL_INDEL_TARGET_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on target,
-COUNT_BIALLELIC_INDEL_TARGET,Count of PASSING biallelic indels on target,
-BIALLELIC_INDEL_TARGET_PCT_SNP138,Pct of PASSING biallelic indels on target in dbSNP 138,
-BIALLELIC_ID_RATIO,Insertion/Deletion ratio for PASSING biallelic indels on target,
-COUNT_MIXED_ON_BAIT,Count of PASSING mixed variants on bait,
-PERCENT_MIXED_ON_BAIT_SNP138,Pct of PASSING mixed variants on bait in dbSNP 138,
-COUNT_MIXED_ON_TARGET,Count of PASSING mixed variants on target,
-PERCENT_MIXED_ON_TARGET_SNP138,Pct of PASSING mixed variants on target in dbSNP 138,
-Shear DNA Amount,Amount of DNA going into library prep,Sample Physique Report
-QC2 Analysis Region[Range] Size [BP],Size after library prep in BP,Sample Physique Report
-QC2 Analysis Estimated Total DNA,Estimated total DNA after library prep in ng,Sample Physique Report
-QC2 Analysis Adjusted Concentration,Adjusted concentration of DNA after library prep in ng/ul,Sample Physique Report
-QC3 Analysis Region[Range] Size [BP],Size  after capture hybridization in BP,Sample Physique Report
-QC3 Analysis Region[Range] Molarity [nmol/L],Molarity after capture hybridization nmol/L,Sample Physique Report
-Library Experiment Name,LibraryPlate_WellPosition_HybPlate_WellPosition from Sample Physique Report,Sample Physique Report
-Library Experiment Plate Well,Well the sample is located in during library prep from Sample Physique Report,Sample Physique Report
-Hyb Prep Experiment ID,Name of plate used in laboratory during capture hybridization from Sample Physique Report,Sample Physique Report
-Hyb Prep Experiment Plate Well,Well the sample is located in during capture hybridization from Sample Physique Report,Sample Physique Report
-Cluster Pool QC Analysis Smear Molarity,Molarity after samples are pooled in nmol/L,Sample Physique Report
-Clust Norm QC Analysis Estimated Molarity,Molarity after samples are normalized in nmol/L,Sample Physique Report
-Exp_Protocol_Version,Library Prep protocol version,Sample Physique Report
-Bait Product Identifier,ID of bait used during hybridization,Sample Physique Report
-Hyb Bait Lot Number,Lot number of bait used during hybridization,Sample Physique Report
-NSP SAMPLE PREP [LOADING pM],Loading Concentration for the Sequencing Run,Sample Physique Report
-Genotyping Contam_estimate %,VerifyID level of contamination from the pretesting array,GenomeStudio Sample Table
-Genotyping LLK_Diff,VerifyID LLK_Diff from the pretesting array,GenomeStudio Sample Table
-Call Rate,# of called genotypes / total # SNPs released with genotypes for this sample (calls + no calls) on the Pretesting Array,GenomeStudio Sample Table
-LogRDev,Standard Deviation of Log R ratio.  Log R Ratio for a sample is the log (base 2) ratio of the normalized R value for the SNP divided by the expected normalized R value. This value is calculated across all attempted probes and SNPs on the pretesting array,GenomeStudio Sample Table
-Samples Table Info,Status of sample in the exported Sample Table from GenomeStudio,GenomeStudio Sample Table
-Sequencer Model,Serial number of sequencer,Sample Physique Report
-Seq Run Date,Date the sequencer was started,Sample Physique Report
-Seq Chemistry,Kit number of sequencer reagents,Sample Physique Report
-Flowcell Mode,,Run_Parameters.xml
-Workflow Type,,Run_Parameters.xml
-PCV1,Principal Component Eigen vector 1 for PCA,
-PCV2,Principal Component Eigen vector 2 for PCA,
-Sample_Name,LIMS Study Code plus Subject ID used in Sample Information File and ID provided in manifest file from PI plus aliquot iteration plus 2D barcode,Phoenix
-Subject_ID,Subject ID used in Sample Information File and ID provided in manifest file from PI,Phoenix
-Family_ID,Family ID used in Sample Information File from PI,Phoenix
-Individual_ID,Individual ID used in Sample Information File from PI,Phoenix
-Father_ID, ID of mother used in Sample Information File from PI,Phoenix
-Mother_ID, ID of father used in Sample Information File from PI,Phoenix
-Sex,Sex as specified in the Sample Information File from PI,Phoenix
-DNA_Extraction_Method,DNA Extraction Method as specified in the manifest file from PI,Phoenix
-MTA_site,MTA site as specified in the manifest file from PI,Phoenix
-DNA_source,DNA Source as specified in the Sample Information File from PI,Phoenix
-Population,Population as specified in the Sample Information File from PI,Phoenix
-Sample_Problems,Any problems logged for the sample in the QC report,Phoenix
-Subject_Problems,Any problems logged for any sample related to the subject ID of the sample in the QC Report,Phoenix
-EPOCH_TIME,unix time that qc report for sample was generated,
+COLUMN,DESCRIPTION,PROGRAM,COMMENT,SOURCE
+SM_TAG,CIDR internal database ID plus 2D barcode,,Read Group Sample tag,
+PROJECT,Project Name,,,
+RG_PU,FLOWCELL_LANE_INDEX,,,
+LIBRARY,LibraryPlate_WellPosition_HybPlate_WellPosition from cram/bam file,,,
+LIBRARY_PLATE,Name of plate used in laboratory during library prep from cram/bam file,,,
+LIBRARY_WELL,Well the sample is located in during library prep from cram/bam file,,,
+LIBRARY_ROW,Row of the well the sample is located in during library prep from cram/bam file,,,
+LIBRARY_COLUMN,Column of the well the sample is located in during library prep from cram/bam file,,,
+HYB_PLATE,Name of plate used in laboratory during capture hybridization from cram/bam file,,,
+HYB_WELL,Well the sample is located in during capture hybridization from cram/bam file,,,
+HYB_ROW,Row of the well the sample is located in during capture hybridization from cram/bam file,,,
+HYB_COLUMN,Column of the well the sample is located in during capture hybridization from cram/bam file,,,
+X_AVG_DP,Mean depth Of chr X targets,,,
+X_NORM_DP,Mean depth Of chr X targets divided by mean depth of autosomal targets,,,
+Y_AVG_DP,Mean depth Of chr Y targets,,,
+Y_NORM_DP,Mean depth Of chr Y targets divided by mean depth of autosomal targets,,,
+COUNT_DISC_HOM,Number of genotype array homozygous calls that were called heterozygous non-reference in the sequence data,cidrseqsuite code,PASS only,On Target
+COUNT_CONC_HOM,Number of genotype array homozygous calls that were called homozygous non-reference in the sequence data,cidrseqsuite code,PASS only,On Target
+PERCENT_CONC_HOM,COUNT_CONC_HOM/(COUNT_CONC_HOM + COUNT_DISC_HOM),cidrseqsuite code,PASS only,On Target
+COUNT_DISC_HET,Number genotype array heterozygous calls that were called homozygous non-reference in the sequence data,cidrseqsuite code,PASS only,On Target
+COUNT_CONC_HET,Number genotype array Heterozygous calls that were called heterozygous non-reference in the sequence data,cidrseqsuite code,PASS only,On Target
+PERCENT_CONC_HET,COUNT_DISC_HOM/(COUNT_DISC_HOM + COUNT_DISC_HET),cidrseqsuite code,PASS only,On Target
+PERCENT_TOTAL_CONC,(COUNT_DISC_HOM + COUNT_CONC_HOM)/(COUNT_DISC_HET + COUNT_DISC_HOM + COUNT_DISC_HOM + COUNT_CONC_HOM),cidrseqsuite code,PASS only,On Target
+COUNT_HET_BEADCHIP,Number of genotype array heterozygous calls,cidrseqsuite code,,On Target
+SENSITIVITY_2_HET,Percent of heterozygous array genotypes that are also called as non-reference bases in the sequencing data,cidrseqsuite code,PASS only,On Target
+SNP_ARRAY,SNP array used to calculate concordance/sensitivity,cidrseqsuite code,,On Target
+VERIFYBAM_FREEMIX_PCT,Sequence-only estimate of contamination (PERCENTAGE),verifyBamID,,
+VERIFYBAM_#SNPS,Number of sites used for verifybamID contamination,verifyBamID,,
+VERIFYBAM_FREELK1, Maximum log-likelihood of the sequence reads given estimated contamination under sequence-only method,verifyBamID,,
+VERIFYBAM_FREELK0,Log-likelihood of the sequence reads given no contamination under sequence-only method,verifyBamID,,
+VERIFYBAM_DIFF_LK0_LK1,VERIFYBAM_FREELK0-VERIFYBAM_FREELK1,verifyBamID,,
+VERIFYBAM_AVG_DP,Average depth at sites used by verifybamID,verifyBamID,,
+MEDIAN_INSERT_SIZE,The MEDIAN insert size of all paired end reads where both ends mapped to the same chromosome.,CollectInsertSizeMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#InsertSizeMetrics
+MEAN_INSERT_SIZE,"The mean insert size of the ""core"" of the distribution. Artefactual outliers in the distribution often cause calculation of nonsensical mean and stdev values. To avoid this the distribution is first trimmed to a ""core"" distribution of +/- N median absolute deviations around the median insert size. By default N=10, but this is configurable.",CollectInsertSizeMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#InsertSizeMetrics
+STANDARD_DEVIATION_INSERT_SIZE,"Standard deviation of insert sizes over the ""core"" of the distribution.",CollectInsertSizeMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#InsertSizeMetrics
+MAD_INSERT_SIZE,The median absolute deviation of the distribution. If the distribution is essentially normal then the standard deviation can be estimated as ~1.4826 * MAD,CollectInsertSizeMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#InsertSizeMetrics
+PCT_PF_READS_ALIGNED_R1,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ALIGNED_READS_R1,The number of PF reads that were aligned to the reference sequence with a mapping quality of Q20 or higher signifying that the aligner estimates a 1/100 (or smaller) chance that the alignment is wrong. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ALIGNED_Q20_BASES_R1,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_MISMATCH_RATE_R1,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ERROR_RATE_R1,The percentage of bases that mismatch the reference in PF HQ aligned reads. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_INDEL_RATE_R1,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Read 1.",CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_READS_ALIGNED_IN_PAIRS_R1,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_ADAPTER_R1,The percentage of PF reads that are unaligned and match to a known adapter sequence right from the start of the read. Read 1.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_PF_READS_ALIGNED_R2,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ALIGNED_READS_R2,The number of PF reads that were aligned to the reference sequence with a mapping quality of Q20 or higher signifying that the aligner estimates a 1/100 (or smaller) chance that the alignment is wrong. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ALIGNED_Q20_BASES_R2,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_MISMATCH_RATE_R2,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ERROR_RATE_R2,The percentage of bases that mismatch the reference in PF HQ aligned reads. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_INDEL_RATE_R2,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Read 2.",CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_READS_ALIGNED_IN_PAIRS_R2,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_ADAPTER_R2,The percentage of PF reads that are unaligned and match to a known adapter sequence right from the start of the read. Read 2.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+TOTAL_READS,The total number of PF reads.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+RAW_GIGS,TOTAL_READS*MEAN_READ_LENGTH/1000000000,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_PF_READS_ALIGNED_PAIR,The percentage of PF reads that aligned to the reference sequence. PF_READS_ALIGNED / PF_READS. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_MISMATCH_RATE_PAIR,The rate of bases mismatching the reference for all bases aligned to the reference sequence. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ERROR_RATE_PAIR,The percentage of bases that mismatch the reference in PF HQ aligned reads. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_INDEL_RATE_PAIR,"The number of insertion and deletion events per 100 aligned bases. Uses the number of events as the numerator, not the number of inserted or deleted bases. Overall.",CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_READS_ALIGNED_IN_PAIRS_PAIR,The percentage of reads whose mate pair was also aligned to the reference. READS_ALIGNED_IN_PAIRS / PF_READS_ALIGNED. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+STRAND_BALANCE_PAIR,The number of PF reads aligned to the positive strand of the genome divided by the number of PF reads aligned to the genome. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_CHIMERAS_PAIR,The percentage of reads that map outside of a maximum insert size (usually 100kb) or that have the two ends mapping to different chromosomes.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PF_HQ_ALIGNED_Q20_BASES_PAIR,The subset of PF_HQ_ALIGNED_BASES where the base call quality was Q20 or higher. Overall.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+MEAN_READ_LENGTH,The mean read length of the set of reads examined. When looking at the data for a single lane with equal length reads this number is just the read length. When looking at data for merged lanes with differing read lengths this is the mean read length of all reads.,CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+PCT_PF_READS_IMPROPER_PAIRS_PAIR,"The percentage of (primary) aligned reads that are **not** ""properly"" aligned in pairs (as per SAM flag 0x2).",CollectAlignmentSummaryMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#AlignmentSummaryMetrics
+UNMAPPED_READS,"The total number of unmapped reads examined. (Primary, non-supplemental)",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIR_OPTICAL_DUPLICATES,"The number of read pairs duplicates that were caused by optical duplication. Value is always < READ_PAIR_DUPLICATES, which counts all duplicates regardless of source.",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+PERCENT_DUPLICATION,The percentage of mapped sequence that is marked as duplicates. ((UNPAIRED_READ_DUPLICATES + (READ_PAIR_DUPLICATES*2))/(UNPAIRED_READS_EXAMINED+(READ_PAIRS_EXAMINED*2)))*100,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+ESTIMATED_LIBRARY_SIZE,The estimated number of unique molecules in the library based on PE duplication. When there are multiple libraries. It is the average between the all of the libraries present,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+SECONDARY_OR_SUPPLEMENTARY_READS,The number of reads that were either secondary or supplementary,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIR_DUPLICATES,The number of read pairs that were marked as duplicates.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+READ_PAIRS_EXAMINED,"The number of mapped read pairs examined. (Primary, non-supplemental)",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+PAIRED_DUP_RATE,READ_PAIR_DUPLICATES/READ_PAIRS_EXAMINED,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_READ_DUPLICATES,The number of fragments that were marked as duplicates.,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_READS_EXAMINED,"The number of mapped reads examined which did not have a mapped mate pair, either because the read is unpaired, or the read is paired to an unmapped mate.",DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+UNPAIRED_DUP_RATE,UNPAIRED_READ_DUPLICATES/UNPAIRED_READS_EXAMINED,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+PERCENT_DUPLICATION_OPTICAL,READ_PAIR_OPTICAL_DUPLICATES/READ_PAIR_DUPLICATES*100,DuplicationMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#DuplicationMetrics
+GENOME_SIZE,The number of bases in the reference genome used for alignment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+BAIT_TERRITORY,The number of bases which are localized to one or more baits.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+TARGET_TERRITORY,The unique number of target bases in the experiment,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_PF_UQ_READS_ALIGNED,"The percentage of reads that aligned to the reference genome,  are not marked as duplicates with a mapping score > 0 from the total number of PF reads.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PF_UQ_GIGS_ALIGNED,The number of bases in PF_UQ_READS_ALIGNED. Accounts for clipping and gaps.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_SELECTED_BASES,The percentage of PF_BASES_ALIGNED located on or near a baited region (ON_BAIT_BASES + NEAR_BAIT_BASES)/PF_BASES_ALIGNED.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+ON_BAIT_VS_SELECTED,"The fraction of bases on or near baits that are covered by baits, ON_BAIT_BASES/(ON_BAIT_BASES + NEAR_BAIT_BASES).",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MEAN_TARGET_COVERAGE,The mean coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MEDIAN_TARGET_COVERAGE,The median coverage of a target region.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+MAX_TARGET_COVERAGE,The maximum coverage of reads that mapped to target regions of an experiment.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+ZERO_CVG_TARGETS_PCT,The percentage of targets that did not reach coverage=1 over any base.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_MAPQ,The percentage of aligned bases that were filtered out because they were in reads with low mapping quality (<20).,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_BASEQ,The percentage of aligned bases that were filtered out because they were of low base quality (<10).,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_OVERLAP,The percentage of aligned bases that were filtered out because they were the second observation from an insert with overlapping reads.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_OFF_TARGET,The percentage of aligned bases that were filtered out because they did not align over a target base.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_1X,The percentage of all target bases achieving 1X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_2X,The percentage of all target bases achieving 2X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_10X,The percentage of all target bases achieving 10X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_20X,The percentage of all target bases achieving 20X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_30X,The percentage of all target bases achieving 30X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_40X,The percentage of all target bases achieving 40X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_50X,The percentage of all target bases achieving 50X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_TARGET_BASES_100X,The percentage of all target bases achieving 100X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+HS_LIBRARY_SIZE,The estimated number of unique molecules in the selected part of the library.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+AT_DROPOUT,"A measure of how undercovered <= 50% GC regions are relative to the mean. For each GC bin [0..50] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. AT DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC<=50% regions mapped elsewhere.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+GC_DROPOUT,"A measure of how undercovered >= 50% GC regions are relative to the mean. For each GC bin [50..100] we calculate a = % of target territory, and b = % of aligned reads aligned to these targets. GC DROPOUT is then abs(sum(a-b when a-b < 0)). E.g. if the value is 5% this implies that 5% of total reads that should have mapped to GC>=50% regions mapped elsewhere.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+THEORETICAL_HET_SENSITIVITY,The theoretical HET SNP sensitivity.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+HET_SNP_Q,The Phred Scaled Q Score of the theoretical HET SNP sensitivity.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+BAIT_SET,"The union of baits, target and ti/tv bed files used.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_USABLE_BASES_ON_BAIT,"The percentage of aligned, de-duped, on-bait bases out of the PF bases available.",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+Cref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.PreAdapterSummaryMetrics
+Gref_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.PreAdapterSummaryMetrics
+DEAMINATION_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+OxoG_Q,"The total Phred-scaled Q-score for this artifact. A lower Q-score means a higher probability that a REF_BASE:ALT_BASE observation randomly picked from the data will be due to this artifact, rather than a true variant.",CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_A,Percent of Adenine bases,BaseDistributionByCycleMetrics,,https://broadinstitute.github.io/picard/command-line-overview.html#CollectBaseDistributionByCycle
+PCT_C,Percent of Cytosine bases,BaseDistributionByCycleMetrics,,https://broadinstitute.github.io/picard/command-line-overview.html#CollectBaseDistributionByCycle
+PCT_G,Percent of Guanine bases,BaseDistributionByCycleMetrics,,https://broadinstitute.github.io/picard/command-line-overview.html#CollectBaseDistributionByCycle
+PCT_T,Percent of Thymine bases,BaseDistributionByCycleMetrics,,https://broadinstitute.github.io/picard/command-line-overview.html#CollectBaseDistributionByCycle
+PCT_N,Percent of Undetermined bases,BaseDistributionByCycleMetrics,,https://broadinstitute.github.io/picard/command-line-overview.html#CollectBaseDistributionByCycle
+PCT_A_to_C,Percent of A to C and T to G substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_A_to_G,Percent of A to G and T to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_A_to_T,Percent of A to T and T to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_A,Percent of C to A and G to T substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_G,Percent of C to G and G to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+PCT_C_to_T,Percent of C to T and G to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
+COUNT_SNV_ON_BAIT,Count of PASSING SNVs from the Bait Bed file,,,
+PERCENT_SNV_ON_BAIT_SNP138,Percent of PASSING SNVs from the Bait Bed file that are in dbSNP 138,,,
+COUNT_SNV_ON_TARGET,Count of PASSING SNVs from the Target Bed file,,,
+PERCENT_SNV_ON_TARGET_SNP138,Percent of PASSING SNVs from the Target Bed file that are in dbSNP 138,,,
+HET:HOM_TARGET,Number of passing het SNVs on Target/Number of passing non-ref homozygotes on target,,,
+ALL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file,vcfutils.pl qstats,,
+ALL_TI_TV_RATIO,Ti/Tv ratio of ALL_TI_TV_COUNT,vcfutils.pl qstats,,
+KNOWN_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are in dbSNP 129,vcfutils.pl qstats,,
+KNOWN_TI_TV_RATIO,Ti/Tv ratio of KNOWN_TI_TV_COUNT,vcfutils.pl qstats,,
+NOVEL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are NOT in dbSNP 129,vcfutils.pl qstats,,
+NOVEL_TI_TV_RATIO,Ti/Tv ratio of NOVEL_TI_TV_COUNT,vcfutils.pl qstats,,
+COUNT_ALL_INDEL_BAIT,Count of all PASSING indels on bait,,,
+ALL_INDEL_BAIT_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on bait,,,
+COUNT_BIALLELIC_INDEL_BAIT,Count of PASSING biallelic indels on bait,,,
+BIALLELIC_INDEL_BAIT_PCT_SNP138,Pct of PASSING biallelic indels on bait in dbSNP 138,,,
+COUNT_ALL_INDEL_TARGET,Count of all PASSING indels on target,,,
+ALL_INDEL_TARGET_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on target,,,
+COUNT_BIALLELIC_INDEL_TARGET,Count of PASSING biallelic indels on target,,,
+BIALLELIC_INDEL_TARGET_PCT_SNP138,Pct of PASSING biallelic indels on target in dbSNP 138,,,
+BIALLELIC_ID_RATIO,Insertion/Deletion ratio for PASSING biallelic indels on target,,,
+COUNT_MIXED_ON_BAIT,Count of PASSING mixed variants on bait,,,
+PERCENT_MIXED_ON_BAIT_SNP138,Pct of PASSING mixed variants on bait in dbSNP 138,,,
+COUNT_MIXED_ON_TARGET,Count of PASSING mixed variants on target,,,
+PERCENT_MIXED_ON_TARGET_SNP138,Pct of PASSING mixed variants on target in dbSNP 138,,,
+Shear DNA Amount,Amount of DNA going into library prep,EnhancedSequencingQCReport.jar,,Sample Physique Report
+QC2 Analysis Region[Range] Size [BP],Size after library prep in BP,EnhancedSequencingQCReport.jar,,Sample Physique Report
+QC2 Analysis Estimated Total DNA,Estimated total DNA after library prep in ng,EnhancedSequencingQCReport.jar,,Sample Physique Report
+QC2 Analysis Adjusted Concentration,Adjusted concentration of DNA after library prep in ng/ul,EnhancedSequencingQCReport.jar,,Sample Physique Report
+QC3 Analysis Region[Range] Size [BP],Size  after capture hybridization in BP,EnhancedSequencingQCReport.jar,,Sample Physique Report
+QC3 Analysis Region[Range] Molarity [nmol/L],Molarity after capture hybridization nmol/L,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Library Experiment Name,LibraryPlate_WellPosition_HybPlate_WellPosition from Sample Physique Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Library Experiment Plate Well,Well the sample is located in during library prep from Sample Physique Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Hyb Prep Experiment ID,Name of plate used in laboratory during capture hybridization from Sample Physique Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Hyb Prep Experiment Plate Well,Well the sample is located in during capture hybridization from Sample Physique Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Cluster Pool QC Analysis Smear Molarity,Molarity after samples are pooled in nmol/L,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Clust Norm QC Analysis Estimated Molarity,Molarity after samples are normalized in nmol/L,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Exp_Protocol_Version,Library Prep protocol version,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Bait Product Identifier,ID of bait used during hybridization,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Hyb Bait Lot Number,Lot number of bait used during hybridization,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP SAMPLE PREP [LOADING pM],Loading Concentration for the Sequencing Run,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Genotyping Contam_estimate %,VerifyID level of contamination from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
+Genotyping LLK_Diff,VerifyID LLK_Diff from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
+Call Rate,# of called genotypes / total # SNPs released with genotypes for this sample (calls + no calls) on the Pretesting Array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
+LogRDev,Standard Deviation of Log R ratio.  Log R Ratio for a sample is the log (base 2) ratio of the normalized R value for the SNP divided by the expected normalized R value. This value is calculated across all attempted probes and SNPs on the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
+Samples Table Info,Status of sample in the exported Sample Table from GenomeStudio,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
+Sequencer Model,Serial number of sequencer,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Seq Run Date,Date the sequencer was started,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Seq Chemistry,Kit number of sequencer reagents,EnhancedSequencingQCReport.jar,,Sample Physique Report
+Flowcell Mode,,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
+Workflow Type,,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
+PCV1,Principal Component Eigen vector 1 for PCA,EnhancedSequencingQCReport.jar,,
+PCV2,Principal Component Eigen vector 2 for PCA,EnhancedSequencingQCReport.jar,,
+Sample_Name,LIMS Study Code plus Subject ID used in Sample Information File and ID provided in manifest file from PI plus aliquot iteration plus 2D barcode,EnhancedSequencingQCReport.jar,,Phoenix
+Subject_ID,Subject ID used in Sample Information File and ID provided in manifest file from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Family_ID,Family ID used in Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Individual_ID,Individual ID used in Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Father_ID, ID of mother used in Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Mother_ID, ID of father used in Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Sex,Sex as specified in the Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+DNA_Extraction_Method,DNA Extraction Method as specified in the manifest file from PI,EnhancedSequencingQCReport.jar,,Phoenix
+MTA_site,MTA site as specified in the manifest file from PI,EnhancedSequencingQCReport.jar,,Phoenix
+DNA_source,DNA Source as specified in the Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Population,Population as specified in the Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix
+Sample_Problems,Any problems logged for the sample in the QC report,EnhancedSequencingQCReport.jar,,Phoenix
+Subject_Problems,Any problems logged for any sample related to the subject ID of the sample in the QC Report,EnhancedSequencingQCReport.jar,,Phoenix
+EPOCH_TIME,unix time that qc report for sample was generated,,,
