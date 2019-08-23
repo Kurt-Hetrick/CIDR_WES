@@ -696,7 +696,7 @@ done
 			echo sleep 0.1s
 			RUN_VERIFYBAMID
 			echo sleep 0.1s
-		done
+	done
 
 #####################################
 ##### VERIFYBAMID BY CHROMOSOME #####
@@ -1161,7 +1161,9 @@ done
 				$GENE_LIST \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	#############################################
@@ -1189,7 +1191,9 @@ done
 				$GENE_LIST \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	#############################################
@@ -1217,7 +1221,9 @@ done
 				$GENE_LIST \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	#########################################################
@@ -1272,7 +1278,9 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$DBSNP \
-				$R_DIRECTORY
+				$R_DIRECTORY \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	#######################
@@ -1301,7 +1309,9 @@ done
 				$SM_TAG \
 				$REF_GENOME \
 				$BAIT_BED \
-				$TARGET_BED
+				$TARGET_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 # taking out the post BQSR and analyze covariates until i update them to gatk 4
@@ -1356,7 +1366,9 @@ done
 				$CORE_PATH \
 				$PROJECT \
 				$SM_TAG \
-				$REF_GENOME
+				$REF_GENOME \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 ##########################################################################################
@@ -1403,7 +1415,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_INDEL ()
@@ -1425,7 +1439,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_MIXED ()
@@ -1447,7 +1463,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	FILTER_SNV ()
@@ -1469,7 +1487,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	FILTER_INDEL ()
@@ -1491,7 +1511,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	FILTER_MIXED ()
@@ -1513,7 +1535,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	BAIT_PASS_SNV ()
@@ -1535,7 +1559,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	TARGET_PASS_SNV ()
@@ -1558,7 +1584,9 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$TARGET_BED
+			$TARGET_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 
@@ -1582,7 +1610,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$TARGET_BED
+			$TARGET_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	BAIT_PASS_INDEL ()
@@ -1604,7 +1634,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	TARGET_PASS_INDEL ()
@@ -1627,7 +1659,9 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$TARGET_BED
+			$TARGET_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	BAIT_PASS_MIXED ()
@@ -1649,7 +1683,9 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$REF_GENOME
+			$REF_GENOME \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	TARGET_PASS_MIXED ()
@@ -1672,7 +1708,9 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$TARGET_BED
+			$TARGET_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_TITV_ALL ()
@@ -1695,7 +1733,9 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$TITV_BED
+			$TITV_BED \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_TITV_KNOWN ()
@@ -1719,7 +1759,9 @@ done
 			$SM_TAG \
 			$REF_GENOME \
 			$TITV_BED \
-			$DBSNP_129
+			$DBSNP_129 \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_TITV_NOVEL ()
@@ -1743,7 +1785,9 @@ done
 			$SM_TAG \
 			$REF_GENOME \
 			$TITV_BED \
-			$DBSNP_129
+			$DBSNP_129 \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	# run titv
@@ -1765,7 +1809,9 @@ done
 				$SAMTOOLS_0118_DIR \
 				$CORE_PATH \
 				$PROJECT \
-				$SM_TAG
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 		RUN_TITV_KNOWN ()
@@ -1785,7 +1831,9 @@ done
 				$SAMTOOLS_0118_DIR \
 				$CORE_PATH \
 				$PROJECT \
-				$SM_TAG
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 		RUN_TITV_NOVEL ()
@@ -1805,7 +1853,9 @@ done
 				$SAMTOOLS_0118_DIR \
 				$CORE_PATH \
 				$PROJECT \
-				$SM_TAG
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 QC_REPORT_PREP ()

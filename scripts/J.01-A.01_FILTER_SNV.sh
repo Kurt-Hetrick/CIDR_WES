@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -31,6 +31,9 @@ echo
 	PROJECT=$4
 	SM_TAG=$5
 	REF_GENOME=$6
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$7
 
 # Filter to just on SNVS
 
@@ -56,9 +59,21 @@ START_FILTER_SNV=`date '+%s'`
 	--logging_level ERROR \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz"
 
-END_FILTER_SNV=`date '+%s'`
+	# check the exit signal at this point.
 
-HOSTNAME=`hostname`
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+				exit $SCRIPT_STATUS
+			fi
+
+END_FILTER_SNV=`date '+%s'`
 
 echo $SM_TAG"_"$PROJECT",K.01,FILTER_SNV,"$HOSTNAME","$START_FILTER_SNV","$END_FILTER_SNV \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -86,6 +101,6 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_SNV_FLAGGED.vcf.gz.tbi"
+	exit $SCRIPT_STATUS
