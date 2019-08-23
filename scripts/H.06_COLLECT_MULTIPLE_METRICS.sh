@@ -18,13 +18,13 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # unloading this module b/c it looks like it got modified which causes this step to crash
 
-module unload R/3.0.1
+	module unload R/3.0.1
 
 # INPUT VARIABLES
 
@@ -37,17 +37,13 @@ module unload R/3.0.1
 	SM_TAG=$6
 	REF_GENOME=$7
 	DBSNP=$8
-	# TARGET_BED=$9
 	R_DIRECTORY=$9
 		export PATH=.:$R_DIRECTORY:$PATH
+	SAMPLE_SHEET=${10}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${11}
 
-# Create a picard style target bed file. This is used for CollectSequencingArtifactMetrics...it should not be used for anything else...i think
-
-	# NOW DOING THIS AS ITS OWN SEPARATE MODULE
-	
-	# ($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-	# | grep "@SQ" ; sed 's/\r//g' $TARGET_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
-	# >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard_2.bed"
+# Start running Many Picard sequencing metrics for the QC report
 
 START_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 
@@ -62,9 +58,21 @@ START_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 	PROGRAM=CollectSequencingArtifactMetrics \
 	PROGRAM=CollectQualityYieldMetrics
 
-END_COLLECT_MULTIPLE_METRICS=`date '+%s'`
+	# check the exit signal at this point.
 
-HOSTNAME=`hostname`
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+				exit $SCRIPT_STATUS
+			fi
+
+END_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,COLLECT_MULTIPLE_METRICS,"$HOSTNAME","$START_COLLECT_MULTIPLE_METRICS","$END_COLLECT_MULTIPLE_METRICS \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -156,3 +164,7 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG".error_summary_metrics" \
 	$CORE_PATH/$PROJECT/REPORTS/ERROR_SUMMARY/$SM_TAG".error_summary_metrics.txt"
+
+# exit with the signal from the program
+
+	exit $SCRIPT_STATUS

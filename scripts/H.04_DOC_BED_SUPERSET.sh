@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -35,6 +35,9 @@ echo
 	PROJECT=$6
 	SM_TAG=$7
 	REF_GENOME=$8
+	SAMPLE_SHEET=$9
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${10}
 
 ### --Depth of Coverage JOINT CALLING BED FILE--
 
@@ -59,9 +62,21 @@ START_DOC_BAIT=`date '+%s'`
 	-ct 50 \
 	-o $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/BED_SUPERSET/$SM_TAG".BED_SUPERSET"
 
-END_DOC_BAIT=`date '+%s'`
+	# check the exit signal at this point.
 
-HOSTNAME=`hostname`
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+				exit $SCRIPT_STATUS
+			fi
+
+END_DOC_BAIT=`date '+%s'`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,DOC_BAIT,"$HOSTNAME","$START_DOC_BAIT","$END_DOC_BAIT \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -122,3 +137,7 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 	mv -v $CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/BED_SUPERSET/$SM_TAG".BED_SUPERSET.sample_summary" \
 	$CORE_PATH/$PROJECT/REPORTS/DEPTH_OF_COVERAGE/BED_SUPERSET/$SM_TAG".BED_SUPERSET.sample_summary.csv"
+
+# exit with the signal from the program
+
+	exit $SCRIPT_STATUS

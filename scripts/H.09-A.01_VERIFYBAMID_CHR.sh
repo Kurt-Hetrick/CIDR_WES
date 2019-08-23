@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -57,13 +57,11 @@ START_VERIFYBAMID_CHR=`date '+%s'`
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
 				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 				exit $SCRIPT_STATUS
 			fi
 
 END_VERIFYBAMID_CHR=`date '+%s'`
-
-HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.09,VERIFYBAMID_"$CHROMOSOME","$HOSTNAME","$START_VERIFYBAMID_CHR","$END_VERIFYBAMID_CHR \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -79,6 +77,6 @@ echo $VERIFY_DIR/verifyBamID \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM"
+	exit $SCRIPT_STATUS

@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -113,13 +113,11 @@ START_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
 				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 				exit $SCRIPT_STATUS
 			fi
 
 END_HAPLOTYPE_CALLER_GATHER=`date '+%s'`
-
-	HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT",H.01-A.01,HAPLOTYPE_CALLER_GATHER,"$HOSTNAME","$START_HAPLOTYPE_CALLER_GATHER","$END_HAPLOTYPE_CALLER_GATHER \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -139,6 +137,6 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 		md5sum $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz" \
 		>| $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz.md5"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/GVCF/$SM_TAG".g.vcf.gz.tbi"
+	exit $SCRIPT_STATUS

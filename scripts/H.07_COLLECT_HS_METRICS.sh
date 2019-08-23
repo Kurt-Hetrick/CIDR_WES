@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -37,22 +37,14 @@ echo
 	SM_TAG=$6
 	REF_GENOME=$7
 	BAIT_BED=$8
-	TARGET_BED=$9
-
 		BAIT_NAME=`basename $BAIT_BED .bed`
+	TARGET_BED=$9
+	SAMPLE_SHEET=${10}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${11}
 
-# Create Picard style Calculate bed files (1-based start)
-# Now doing this as own module.
-
-	# ($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-	# | grep "@SQ" ; sed 's/\r//g' $BAIT_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
-	# >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnBait.picard.bed"
-	#
-	# ($SAMTOOLS_DIR/samtools view -H $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram" \
-	# | grep "@SQ" ; sed 's/\r//g' $TARGET_BED | awk '{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' | sed 's/ /\t/g') \
-	# >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".OnTarget.picard.bed"
-
-	# NEED TO UPGRADE TO AN EVEN NEWER VERSION OF PICARD TO GET SOME OF THESE PARAMETERS...THAT I WANT
+# Run Collect HS metrics which generates hybridization metrics for the qc report
+## Also generates a per target interval coverage summary
 
 START_COLLECT_HS_METRICS=`date '+%s'`
 
@@ -68,9 +60,21 @@ START_COLLECT_HS_METRICS=`date '+%s'`
 	BAIT_SET_NAME=$BAIT_NAME \
 	VALIDATION_STRINGENCY=SILENT
 
-END_COLLECT_HS_METRICS=`date '+%s'`
+	# check the exit signal at this point.
 
-HOSTNAME=`hostname`
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+				exit $SCRIPT_STATUS
+			fi
+
+END_COLLECT_HS_METRICS=`date '+%s'`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,COLLECT_HS_METRICS,"$HOSTNAME","$START_COLLECT_HS_METRICS","$END_COLLECT_HS_METRICS \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -90,6 +94,6 @@ VALIDATION_STRINGENCY=SILENT \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/REPORTS/HYB_SELECTION/PER_TARGET_COVERAGE/$SM_TAG"_per_target_coverage.txt"
+	exit $SCRIPT_STATUS

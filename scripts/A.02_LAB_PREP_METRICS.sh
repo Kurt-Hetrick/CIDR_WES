@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -58,13 +58,11 @@ $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
 				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 				exit $SCRIPT_STATUS
 			fi
 
 END_LAB_PREP_METRICS=`date '+s'`
-
-HOSTNAME=`hostname`
 
 (head -n 1 $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
 	| awk '{print $0 ",EPOCH_TIME"}' ; \
@@ -76,4 +74,6 @@ HOSTNAME=`hostname`
 echo $PROJECT,X.01,LAB_QC_PREP_METRICS,$HOSTNAME,$START_LAB_PREP_METRICS_METRICS,$END_LAB_PREP_METRICS \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-exit $SCRIPT_STATUS
+# exit with the signal from the program
+
+	exit $SCRIPT_STATUS

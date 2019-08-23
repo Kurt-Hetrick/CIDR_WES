@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -34,6 +34,9 @@ echo
 	INPUT_BAM_FILE_STRING=$6
 
 		INPUT=`echo $INPUT_BAM_FILE_STRING | sed 's/,/ /g'`
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$8
 
 		RIS_ID=${SM_TAG%@*}
 		BARCODE_2D=${SM_TAG#*@}
@@ -50,12 +53,24 @@ START_MERGE_BAM=`date '+%s'`
 	USE_THREADING=true \
 	CREATE_INDEX=true
 
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				exit $SCRIPT_STATUS
+			fi
+
 END_MERGE_BAM=`date '+%s'`
 
-HOSTNAME=`hostname`
-
 echo $SM_TAG"_"$PROJECT",B.01,MERGE_BAM,"$HOSTNAME","$START_MERGE_BAM","$END_MERGE_BAM \
->> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
+>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.txt"
 
 echo $JAVA_1_8/java -jar $PICARD_DIR/MergeSamFiles.jar \
 $INPUT \
@@ -68,6 +83,6 @@ CREATE_INDEX=true \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".original.bai"
+	exit $SCRIPT_STATUS

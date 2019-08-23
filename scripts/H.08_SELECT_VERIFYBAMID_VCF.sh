@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -35,12 +35,13 @@ echo
 	REF_GENOME=$7
 	TARGET_BED=$8
 		TARGET_BED_NAME=(`basename $TARGET_BED_NAME .bed`)
+	# so the above command is a bug...that I don't think I am going to fix ;)
 	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${10}
 
 ## --Creating an on the fly VCF file to be used as the reference for verifyBamID--
-## --remove X and Y data
+## --remove X, Y and MT data
 
 START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
@@ -65,13 +66,11 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
 				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 				exit $SCRIPT_STATUS
 			fi
 
 END_SELECT_VERIFYBAMID_VCF=`date '+%s'`
-
-HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,SELECT_VERIFYBAMID_VCF,"$HOSTNAME","$START_SELECT_VERIFYBAMID_VCF","$END_SELECT_VERIFYBAMID_VCF \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -88,6 +87,6 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf"
+	exit $SCRIPT_STATUS
