@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -31,6 +31,9 @@ echo
 	PROJECT=$4
 	SM_TAG=$5
 	REF_GENOME=$6
+	SAMPLE_SHEET=$7
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$8
 
 # Filter MIXEDS
 
@@ -51,6 +54,20 @@ START_FILTER_MIXED=`date '+%s'`
 	--logging_level ERROR \
 	--variant $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait_MIXED.vcf.gz" \
 	-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_MIXED_FLAGGED.vcf.gz"
+
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+			if [ "$SCRIPT_STATUS" -ne 0 ]
+			 then
+				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+				exit $SCRIPT_STATUS
+			fi
 
 END_FILTER_MIXED=`date '+%s'`
 
@@ -78,6 +95,6 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_OnBait_MIXED_FLAGGED.vcf.gz.tbi"
+	exit $SCRIPT_STATUS
