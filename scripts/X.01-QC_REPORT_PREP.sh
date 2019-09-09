@@ -29,6 +29,9 @@
 	CORE_PATH=$3
 	PROJECT=$4
 	SM_TAG=$5
+	SAMPLE_SHEET=$6
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=$7
 
 # next script will cat everything together and add the header.
 # dirty validations count NF, if not X, then say haha you suck try again and don't write to cat file.
@@ -662,6 +665,19 @@
 			| awk 'BEGIN {OFS="\t"} $12=="Cref"||$12=="Gref" {print $5}' \
 			| paste - - \
 			| awk 'END {print NR}'`
+
+			# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+
+				if [ "$MULTIPLE_LIBRARY" -eq 1 ]
+				 then
+					grep -v ^# $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
+						| sed '/^$/d' \
+						| awk 'NR>1 {print $1 "\t" $2}' \
+						| sort \
+						| uniq \
+						| $DATAMASH_DIR/datamash -g 1 collapse 2 \
+					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
+				fi
 
 	# tranpose from rows to list
 

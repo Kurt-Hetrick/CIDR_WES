@@ -1890,7 +1890,9 @@ $SAMTOOLS_DIR \
 $DATAMASH_DIR \
 $CORE_PATH \
 $PROJECT \
-$SM_TAG
+$SM_TAG \
+$SAMPLE_SHEET \
+$SUBMIT_STAMP
 }
 
 for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
@@ -1950,6 +1952,10 @@ done
 
 	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
 
+# grab submitter's name
+
+	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
 # Maybe I'll make this a function and throw it into a loop, but today is not that day.
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
@@ -1976,11 +1982,9 @@ done
 			"-j y",\
 			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
 			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+			"'$CORE_PATH'" , "'$DATAMASH_DIR'" , $1 , "'$SAMPLE_SHEET'" , "'$SCRIPT_DIR'" , "'$SUBMITTER_ID'" "\n" "sleep 0.1s"}'
 
 # EMAIL WHEN DONE SUBMITTING
-
-PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.sh" \
