@@ -12,7 +12,9 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
 
-SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
+SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
 
 ##################
 # CORE VARIABLES #
@@ -46,29 +48,6 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/scripts"
 			# 	| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q" \
 			# 	| datamash collapse 1 \
 			# 	| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
-
-		# because sometimes lemon.q does not have isilon mounted or some nodes in there do and some don't and the sample sheet sometimes still points to isilon mounts.
-
-		BWA_QUEUE_LIST=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue|^ " \
-			| cut -d @ -f 1 \
-			| sort \
-			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q|uhoh.q" \
-			| datamash collapse 1 \
-			| awk '{print $1}'`
-
-		# Because lemon.q does not have isilon mounted to it and cidrseqsuite will have to have it while my user is /u01/home/
-
-		QUEUE_LIST_TEMP=`qstat -f -s r \
-			| egrep -v "^[0-9]|^-|^queue|^ " \
-			| cut -d @ -f 1 \
-			| sort \
-			| uniq \
-			| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q|bigdata.q|uhoh.q" \
-			| datamash collapse 1 \
-			| awk '{print $1}'`
-
 
 		# SO IF I WANT TO CREATE A HARDCODED EXCLUSION LIST...I'M GOING TO HAVE TO FIND A WAY TO DO IT WHEN I USE AWK TO PRINT THE qsub command...
 		# Or move away from awk...sigh.
@@ -328,7 +307,7 @@ done
 			-S /bin/bash \
 			-cwd \
 			-V \
-			-q $BWA_QUEUE_LIST \
+			-q $QUEUE_LIST \
 			-p $PRIORITY \
 		-N A.01-BWA"_"$SGE_SM_TAG"_"$FCID"_"$LANE"_"$INDEX \
 			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"_"$FCID"_"$LANE"_"$INDEX"-BWA.log" \
@@ -1597,7 +1576,7 @@ done
 			-S /bin/bash \
 			-cwd \
 			-V \
-			-q $QUEUE_LIST_TEMP \
+			-q $QUEUE_LIST \
 			-p $PRIORITY \
 		-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"$PROJECT \
 			-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-TARGET_PASS_SNV_QC_CONCORDANCE.log \
