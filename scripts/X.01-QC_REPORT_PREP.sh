@@ -668,7 +668,7 @@
 
 			# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 
-				if [ "$MULTIPLE_LIBRARY" -eq 1 ]
+				if [ "$MULTIPLE_LIBRARY" -ne 1 ]
 				 then
 					grep -v ^# $CORE_PATH/$PROJECT/REPORTS/BAIT_BIAS/SUMMARY/$SM_TAG".bait_bias_summary_metrics.txt" \
 						| sed '/^$/d' \

@@ -32,6 +32,7 @@ echo
 	SAMPLE_SHEET=$4
 	SCRIPT_DIR=$5
 	SUBMITTER_ID=$6
+	SUBMIT_STAMP=$7
 
 TIMESTAMP=`date '+%F.%H-%M-%S'`
 
@@ -267,24 +268,13 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAM
 	| sed 's/\t/,/g' \
 	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"
 
-##############################################################################################
-##### If samples have multiple libraries or total failures send notification to MS Teams #####
-##############################################################################################
+#####################################################
+##### Send email summary notification when done #####
+#####################################################
 
 # grab email addy
 
 	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
-
-	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
-		then
-			mail -s "BATCH $SAMPLE_SHEET_NAME FOR $PROJECT HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
-			$SEND_TO \
-			< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
-	fi
-
-#####################################################
-##### Send email summary notification when done #####
-#####################################################
 
 # grab submitter's name
 
@@ -292,23 +282,35 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAM
 
 	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
 		then
-			printf "$PERSON_NAME WAS THE SUBMITTER\n \
-				THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
-				BATCH QC REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"\nFULL PROJECT QC REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"\nANEUPLOIDY REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\nBY CHROMOSOME VERIFYBAMID REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"" \
+			printf "$PERSON_NAME Was The Submitter\n \
+			THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
+			Reports are at: $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n \
+			BATCH QC REPORT: $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n \
+			FULL PROJECT QC REPORT: $PROJECT".QC_REPORT."$TIMESTAMP".csv"\n \
+			ANEUPLOIDY REPORT:\n $PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\n \
+			BY CHROMOSOME VERIFYBAMID REPORT: $PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv""\n \
 			| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing CIDR.WES.QC.SUBMITTER.sh" \
 				$SEND_TO
 		else
-			printf "$PERSON_NAME WAS THE SUBMITTER\nBATCH QC REPORT IS AT:\n \
-			$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"\nFULL PROJECT QC REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"\nANEUPLOIDY REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\nBY CHROMOSOME VERIFYBAMID REPORT IS AT:\n \
-				$CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"" \
+			printf "$PERSON_NAME Was The Submitter\n \
+			Reports are at: $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n \
+			BATCH QC REPORT: $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n \
+			FULL PROJECT QC REPORT: $PROJECT".QC_REPORT."$TIMESTAMP".csv"\n \
+			ANEUPLOIDY REPORT:\n $PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\n \
+			BY CHROMOSOME VERIFYBAMID REPORT: $PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv""\n \
 			| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing CIDR.WES.QC.SUBMITTER.sh" \
 				$SEND_TO
+	fi
+
+##############################################################################################
+##### If samples have multiple libraries or total failures send notification to MS Teams #####
+##############################################################################################
+
+	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
+		then
+			mail -s "BATCH $SAMPLE_SHEET_NAME FOR $PROJECT HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
+			$SEND_TO \
+			< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
 	fi
 
 ####################################################
