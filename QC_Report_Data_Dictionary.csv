@@ -160,6 +160,12 @@ Exp_Protocol_Version,Library Prep protocol version,EnhancedSequencingQCReport.ja
 Bait Product Identifier,ID of bait used during hybridization,EnhancedSequencingQCReport.jar,,Sample Physique Report
 Hyb Bait Lot Number,Lot number of bait used during hybridization,EnhancedSequencingQCReport.jar,,Sample Physique Report
 NSP SAMPLE PREP [LOADING pM],Loading Concentration for the Sequencing Run,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % OCCUPIED AVG,Average Percent Occupied on the flowcell calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % OCCUPIED MEDIAN,Median Occupied on the flowcell calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % CLUSTER PF MEDIAN,Average Percent Clusters Passing Filter on the flowcell calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % CLUSTER PF AVG,Average Median Clusters Passing Filter on the flowcell calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % UNDETERMINED,Percent Undetermined from Demultiplexing Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP END RUN QCA % PHIX ALIGNED,Average PhiX Aligned calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
 Genotyping Contam_estimate %,VerifyID level of contamination from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
 Genotyping LLK_Diff,VerifyID LLK_Diff from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
 Call Rate,# of called genotypes / total # SNPs released with genotypes for this sample (calls + no calls) on the Pretesting Array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
@@ -168,8 +174,8 @@ Samples Table Info,Status of sample in the exported Sample Table from GenomeStud
 Sequencer Model,Serial number of sequencer,EnhancedSequencingQCReport.jar,,Sample Physique Report
 Seq Run Date,Date the sequencer was started,EnhancedSequencingQCReport.jar,,Sample Physique Report
 Seq Chemistry,Kit number of sequencer reagents,EnhancedSequencingQCReport.jar,,Sample Physique Report
-Flowcell Mode,,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
-Workflow Type,,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
+Flowcell Mode,Illumina Flowcell Type,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
+Workflow Type,Workflow Mode on the Sequencer,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
 PCV1,Principal Component Eigen vector 1 for PCA,EnhancedSequencingQCReport.jar,,
 PCV2,Principal Component Eigen vector 2 for PCA,EnhancedSequencingQCReport.jar,,
 Sample_Name,LIMS Study Code plus Subject ID used in Sample Information File and ID provided in manifest file from PI plus aliquot iteration plus 2D barcode,EnhancedSequencingQCReport.jar,,Phoenix
