@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -53,16 +53,14 @@ START_VERIFYBAMID=`date '+%s'`
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
 
-			if [ "$SCRIPT_STATUS" -ne 0 ]
-			 then
-				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
-				exit $SCRIPT_STATUS
-			fi
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
 
 END_VERIFYBAMID=`date '+%s'`
-
-HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.01,VERIFYBAMID,"$HOSTNAME","$START_VERIFYBAMID","$END_VERIFYBAMID \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
@@ -78,6 +76,6 @@ echo $VERIFY_DIR/verifyBamID \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG".selfSM"
+	exit $SCRIPT_STATUS

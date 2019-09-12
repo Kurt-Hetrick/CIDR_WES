@@ -1961,7 +1961,7 @@ done
 			"-j y",\
 			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
 			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-			"'$CORE_PATH'" , "'$DATAMASH_DIR'" , $1 , "'$SAMPLE_SHEET'" , "'$SCRIPT_DIR'" , "'$SUBMITTER_ID'" "\n" "sleep 0.1s"}'
+			"'$CORE_PATH'" , "'$DATAMASH_DIR'" , $1 , "'$SAMPLE_SHEET'" , "'$SCRIPT_DIR'" , "'$SUBMITTER_ID'" , "'$SUBMIT_STAMP'" "\n" "sleep 0.1s"}'
 
 # EMAIL WHEN DONE SUBMITTING
 
