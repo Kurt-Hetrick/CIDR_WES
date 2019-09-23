@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -29,6 +29,9 @@ echo
 
 	PROJECT=$3
 	SM_TAG=$4
+	SAMPLE_SHEET=$5
+		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+	SUBMIT_STAMP=$6
 
 # Filter to just on SNVS
 
@@ -40,13 +43,25 @@ START_RUN_TITV_NOVEL=`date '+%s'`
 	/dev/stdin \
 	>| $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Novel_.titv.txt"
 
-END_RUN_TITV_NOVEL=`date '+%s'`
+	# check the exit signal at this point.
 
-HOSTNAME=`hostname`
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
+
+END_RUN_TITV_NOVEL=`date '+%s'`
 
 echo $SM_TAG"_"$PROJECT",M.01,RUN_TITV_NOVEL,"$HOSTNAME","$START_RUN_TITV_NOVEL","$END_RUN_TITV_NOVEL \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/REPORTS/TI_TV/$SM_TAG"_Novel_.titv.txt"
+	exit $SCRIPT_STATUS

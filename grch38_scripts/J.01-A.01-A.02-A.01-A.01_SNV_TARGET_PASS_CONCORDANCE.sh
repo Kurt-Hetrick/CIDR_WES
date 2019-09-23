@@ -33,6 +33,9 @@
 	SM_TAG=$6
 	TARGET_BED=$7
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+	SUBMIT_STAMP=$9
 
 # # mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
 
@@ -93,6 +96,20 @@ fi
 	$VERACODE_CSV \
 	$CORE_PATH/$PROJECT/TEMP/$SM_TAG
 
+	# check the exit signal at this point.
+
+		SCRIPT_STATUS=`echo $?`
+
+	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+	# also write to file that this job failed
+
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
+
 echo \
 $JAVA_1_8/java -jar \
 $CIDRSEQSUITE_7_5_0_DIR/CIDRSeqSuite.jar \
@@ -111,3 +128,7 @@ echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
 	mv -v $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_discordant_calls.txt" \
 	$CORE_PATH/$PROJECT/REPORTS/CONCORDANCE/$SM_TAG"_discordant_calls.txt"
+
+# exit with the signal from the program
+
+	exit $SCRIPT_STATUS

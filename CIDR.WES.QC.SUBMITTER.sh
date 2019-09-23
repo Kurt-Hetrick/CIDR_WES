@@ -213,7 +213,7 @@ SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
 		RUN_LAB_PREP_METRICS
 		echo Project started at `date` >> $CORE_PATH/$SEQ_PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
 		# this is for tracking failed jobs so I can clean up the temp directory if everything ran successfully
-		echo >| $CORE_PATH/$SEQ_PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+		# echo >| $CORE_PATH/$SEQ_PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 	}
 
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
@@ -1955,7 +1955,7 @@ done
 			"-q","'$QUEUE_LIST'",\
 			"-p","'$PRIORITY'",\
 			"-m","e",\
-			"-M","'$SEND_TO'",\
+			"-M","khetric1@jhmi.edu",\
 			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 			"-j y",\

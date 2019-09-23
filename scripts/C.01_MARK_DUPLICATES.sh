@@ -54,6 +54,10 @@ fi
 
 START_MARK_DUPLICATES=`date '+%s'`
 
+	# if any part of pipe fails set exit to non-zero
+
+	set -o pipefail
+
 	$JAVA_1_8/java -jar \
 		-Xmx16g \
 		-XX:ParallelGCThreads=4 \
@@ -79,9 +83,13 @@ START_MARK_DUPLICATES=`date '+%s'`
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
 
+			echo
+			echo $SCRIPT_STATUS
+			echo
+
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then
-				echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+				echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 				exit $SCRIPT_STATUS
 			fi
