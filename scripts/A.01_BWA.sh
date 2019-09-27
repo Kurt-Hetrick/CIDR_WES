@@ -95,8 +95,11 @@
 			FINDPATH=$NOVASEQ_REPO/$NOVASEQ_RUN_FOLDER/FASTQ/$PROJECT
 
 			# look for illumina file naming convention for novaseq flowcells
-			FASTQ_1=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash`
-			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
+			# if it is found in the project/fastq folder under active, then use that one
+			FASTQ_1=`( echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash ; \
+				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"* 2> /dev/null) | tail -n 1`
+			FASTQ_2=`( echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash ; \
+				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null) | tail -n 1`
 
 
 		else
@@ -150,10 +153,9 @@ START_BWA_MEM=`date '+%s'`
 
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
-
-			echo
-			echo $SCRIPT_STATUS
-			echo
+	# so if it crashes, I just straight out exit
+		### ...at first I didn't remember why would I chose that, but I am cool with it
+		### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
 
 			if [ "$SCRIPT_STATUS" -ne 0 ]
 			 then

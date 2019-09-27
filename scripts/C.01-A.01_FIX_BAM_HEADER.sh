@@ -29,6 +29,9 @@
 
 	PROJECT=$3
 	SM_TAG=$4
+	SAMPLE_SHEET=$5
+		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+	SUBMIT_STAMP=$6
 
 ## --Mark Duplicates with Picard, write a duplicate report
 ## todo; have pixel distance be a input parameter with a switch based on the description in the sample sheet.
@@ -78,6 +81,20 @@ START_REHEAD_BAM=`date '+%s'`
 		| egrep "^@PG" \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fix.header.txt"
 
+			# check the exit signal at this point.
+
+				SCRIPT_STATUS=`echo $?`
+
+				# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+				# also write to file that this job failed
+
+					if [ "$SCRIPT_STATUS" -ne 0 ]
+					 then
+						echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+						exit $SCRIPT_STATUS
+					fi
+
 		# NOW FIX THE BAM HEADER
 
 				$SAMTOOLS_DIR/samtools \
@@ -118,6 +135,6 @@ $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
 
 echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-# if file is not present exit !=0
+# exit with the signal from the program
 
-ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam.bai"
+	exit $SCRIPT_STATUS

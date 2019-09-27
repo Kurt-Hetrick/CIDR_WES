@@ -12,9 +12,9 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
 
-SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+	SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
+	SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
 
 ##################
 # CORE VARIABLES #
@@ -85,7 +85,6 @@ SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
 		# -m {b,e,a} depending on the job.
 		## other possible options
 		### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value
-
 
 #####################
 # PIPELINE PROGRAMS #
@@ -535,7 +534,9 @@ done
 				$SAMTOOLS_DIR \
 				$CORE_PATH \
 				$PROJECT \
-				$SM_TAG
+				$SM_TAG \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP
 		}
 
 	# run bqsr on the using bait bed file

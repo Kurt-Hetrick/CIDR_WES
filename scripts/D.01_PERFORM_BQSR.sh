@@ -38,7 +38,7 @@
 		BAIT_BED_NAME=(`basename $BAIT_BED .bed`)
 	SAMPLE_SHEET=${11}
 		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
-	SUBMIT_STAMP={$12}
+	SUBMIT_STAMP=${12}
 
 ## --BQSR using data only from the baited intervals
 
@@ -71,8 +71,6 @@ START_PERFORM_BQSR=`date '+%s'`
 			fi
 
 END_PERFORM_BQSR=`date '+%s'`
-
-HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT",D.01,PERFORM_BQSR,"$HOSTNAME","$START_PERFORM_BQSR","$END_PERFORM_BQSR \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
