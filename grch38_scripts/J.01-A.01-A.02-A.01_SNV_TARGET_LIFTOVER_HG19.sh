@@ -33,7 +33,7 @@
 	HG19_REF=$6
 	HG38_TO_HG19_CHAIN=$7
 	SAMPLE_SHEET=$8
-		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$9
 
 # mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
@@ -62,7 +62,7 @@ START_LIFTOVER_SNV_TARGET_PASS=`date '+%s'`
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi

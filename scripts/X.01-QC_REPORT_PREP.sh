@@ -117,7 +117,6 @@
 		>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_REPORT_TEMP.txt"
 	fi
 
-
 #################################################
 ##### GENDER CHECK FROM ANEUPLOIDY CHECK ########
 #################################################

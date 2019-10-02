@@ -76,8 +76,6 @@
 			| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" ".HC."$1".bam"}' \
 		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".HC_BAM.txt"
 	
-	# Append MT if present
-	
 	# Append MT if present unless the project name starts with M_Valle
 	
 		if [[ $PROJECT = "M_Valle"* ]];
@@ -114,7 +112,7 @@ START_HC_BAM_GATHER=`date '+%s'`
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi

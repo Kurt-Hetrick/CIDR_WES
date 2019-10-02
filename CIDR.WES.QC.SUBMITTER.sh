@@ -60,11 +60,9 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 			# 	| datamash collapse 1 \
 			# 	| awk '{print $1,"-l","\\x27" "hostname=!DellR730-03" "\\x27"}'`
 
-	# EVENTUALLY I WANT THIS SET UP AS AN OPTION WITH A DEFAULT OF X
-
 		PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
-		# load gcc 5.1.0 for programs like verifyBamID
+		# load gcc for programs like verifyBamID
 		## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
 			module load gcc/7.2.0
 
@@ -78,13 +76,6 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 	# SUBMITTER_ID
 		SUBMITTER_ID=`whoami`
-
-	# IN THE FUTURE WILL PUSH OUT TO QSUB;
-
-		# -M email@address
-		# -m {b,e,a} depending on the job.
-		## other possible options
-		### -l h_vmem=size specify the amount of maximum memory required (e.g. 3G or 3500M) (NOTE: This is memory per processor slot. So if you ask for 2 processors total memory will be 2 * hvmem_value
 
 #####################
 # PIPELINE PROGRAMS #
@@ -103,7 +94,6 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 	BEDTOOLS_DIR="/mnt/linuxtools/BEDTOOLS/bedtools-2.22.0/bin"
 	VERIFY_DIR="/mnt/linuxtools/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
 	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
-		# Because I didn't want to go through compiling this yet for version 1.6
 	CIDRSEQSUITE_6_JAVA_DIR="/mnt/linuxtools/JAVA/jre1.7.0_45/bin"
 	CIDRSEQSUITE_6_1_1_DIR="/mnt/linuxtools/CIDRSEQSUITE/6.1.1"
 	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.7"
@@ -983,20 +973,19 @@ done
 	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER ()
 	{
 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
-
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
-								| sed -r 's/[[:space:]]+/\t/g' \
-								| cut -f 1 \
-								| sed 's/chr//g' \
-								| grep -v "MT" \
-								| sort \
-								| uniq \
-								| $DATAMASH_DIR/datamash collapse 1 \
-								| sed 's/,/ /g');
-			do
-				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
-		done
+			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
+									| sed -r 's/[[:space:]]+/\t/g' \
+									| cut -f 1 \
+									| sed 's/chr//g' \
+									| grep -v "MT" \
+									| sort \
+									| uniq \
+									| $DATAMASH_DIR/datamash collapse 1 \
+									| sed 's/,/ /g');
+				do
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
+			done
 	}
 
 	CALL_GENOTYPE_GVCF_GATHER ()
@@ -1293,9 +1282,6 @@ done
 				$SAMPLE_SHEET \
 				$SUBMIT_STAMP
 		}
-
-# taking out the post BQSR and analyze covariates until i update them to gatk 4
-# also need to look into R for analyze covariates
 
 	for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 		do
@@ -1848,7 +1834,8 @@ qsub \
 -q $QUEUE_LIST \
 -p $PRIORITY \
 -N X1"_"$SGE_SM_TAG \
--hold_jid J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+-hold_jid \
+J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\

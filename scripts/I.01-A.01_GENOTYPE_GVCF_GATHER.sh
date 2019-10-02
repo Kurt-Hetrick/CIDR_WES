@@ -88,8 +88,8 @@
 				| sort \
 				| uniq \
 				| awk '$1=="MT"' \
-				| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".g.vcf.gz"}' \
-			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".gvcf.list"
+				| awk '{print "'$CORE_PATH'" "/" "'$PROJECT'" "/TEMP/" "'$SM_TAG'" "."$1".QC_RAW_OnBait.vcf.gz"}' \
+			>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".QC_RAW_OnBait.list"
 		fi
 
 START_GENOTYPE_GVCF_GATHER=`date '+%s'`

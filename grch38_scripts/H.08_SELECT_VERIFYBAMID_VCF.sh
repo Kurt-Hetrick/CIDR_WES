@@ -35,12 +35,13 @@
 	REF_GENOME=$7
 	TARGET_BED=$8
 		TARGET_BED_NAME=(`basename $TARGET_BED_NAME .bed`)
+	# so the above command is a bug...that I don't think I am going to fix ;)
 	SAMPLE_SHEET=$9
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${10}
 
 ## --Creating an on the fly VCF file to be used as the reference for verifyBamID--
-## --remove X and Y data
+## --remove X, Y and MT data
 
 START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
@@ -64,7 +65,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi
@@ -81,6 +82,7 @@ echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
 -L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 -XL chrX \
 -XL chrY \
+-XL chrM \
 -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID.vcf" \
 >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 

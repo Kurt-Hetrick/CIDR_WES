@@ -94,12 +94,12 @@ FREEMIX=`awk 'NR==2 {print $7}' $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID/$SM_TAG"
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
 
-			if [ "$SCRIPT_STATUS" -ne 0 ]
-			 then
-				echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
-				exit $SCRIPT_STATUS
-			fi
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
 
 END_HAPLOTYPE_CALLER=`date '+%s'`
 

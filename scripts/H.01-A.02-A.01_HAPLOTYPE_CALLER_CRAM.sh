@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -52,12 +52,12 @@ START_HC_CRAM=`date '+%s'`
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
 
-			if [ "$SCRIPT_STATUS" -ne 0 ]
-			 then
-				echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
-				exit $SCRIPT_STATUS
-			fi
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
 
 END_HC_CRAM=`date '+%s'`
 

@@ -40,10 +40,11 @@
 		BAIT_NAME=`basename $BAIT_BED .bed`
 	TARGET_BED=$9
 	SAMPLE_SHEET=${10}
-		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
-	SUBMIT_STAMP={$11}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${11}
 
-# run collect hybridization metrics
+# Run Collect HS metrics which generates hybridization metrics for the qc report
+## Also generates a per target interval coverage summary
 
 START_COLLECT_HS_METRICS=`date '+%s'`
 
@@ -68,7 +69,7 @@ START_COLLECT_HS_METRICS=`date '+%s'`
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi

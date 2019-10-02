@@ -30,6 +30,10 @@ echo
 	PROJECT=$3
 
 	SAMPLE_SHEET=$4
+		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+	SCRIPT_DIR=$5
+	SUBMITTER_ID=$6
+	SUBMIT_STAMP=$7
 
 TIMESTAMP=`date '+%F.%H-%M-%S'`
 
@@ -264,6 +268,211 @@ sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT."$TIMESTAM
 	cat $CORE_PATH/$PROJECT/REPORTS/VERIFYBAMID_CHR/*.VERIFYBAMID.PER_CHR.txt | grep -v "^#" ) \
 	| sed 's/\t/,/g' \
 	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"
+
+#######################################################
+#######################################################
+##### SEND EMAIL NOTIFICATION SUMMARIES WHEN DONE #####
+#######################################################
+#######################################################
+
+# grab email addy
+
+	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
+
+# grab submitter's name
+
+	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
+	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
+		then
+			printf "$PERSON_NAME Was The Submitter\n \
+			THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
+			REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
+			FULL PROJECT QC REPORT:\n $PROJECT".QC_REPORT."$TIMESTAMP".csv"\n\n \
+			ANEUPLOIDY REPORT:\n $PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n $PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"" \
+			| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				$SEND_TO
+		else
+			printf "$PERSON_NAME Was The Submitter\n \
+			REPORTS ARE AT:\n $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n $SAMPLE_SHEET_NAME".QC_REPORT.csv"\n\n \
+			FULL PROJECT QC REPORT:\n $PROJECT".QC_REPORT."$TIMESTAMP".csv"\n\n \
+			ANEUPLOIDY REPORT:\n $PROJECT".ANEUPLOIDY_CHECK."$TIMESTAMP".csv"\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n $PROJECT".PER_CHR_VERIFYBAMID."$TIMESTAMP".csv"" \
+			| mail -s "$SAMPLE_SHEET FOR $PROJECT has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				$SEND_TO
+	fi
+
+	sleep 2s
+
+##############################################################################################
+##### If samples have multiple libraries or total failures send notification to MS Teams #####
+##############################################################################################
+
+	if [[ -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt" ]]
+		then
+			mail -s "BATCH $SAMPLE_SHEET_NAME FOR $PROJECT HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
+			$SEND_TO \
+			< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_MULTIPLE_LIBS.txt"
+				sleep 2s
+	fi
+
+##############################################################
+##### CLEAN-UP OR NOT DEPENDING ON IF JOBS FAILED OR NOT #####
+##############################################################
+
+	# CREATE SAMPLE ARRAY, USED DURING PROJECT CLEANUP
+
+		CREATE_SAMPLE_ARRAY_FOR_FILE_CLEANUP ()
+		{
+			SAMPLE_ARRAY=(`awk 1 $SAMPLE_SHEET \
+				| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+				| awk 'BEGIN {FS=",";OFS="\t"} $8=="'$SM_TAG'" {print $1,$8,$2"_"$3"_"$4"*"}' \
+				| sort \
+				| uniq \
+				| $DATAMASH/datamash -g 1,2 collapse 3`)
+
+				#  1  Project=the Seq Proj folder name
+				PROJECT_FILE_CLEANUP=${SAMPLE_ARRAY[0]}
+
+				#  8  SM_Tag=sample ID
+				SM_TAG_FILE_CLEANUP=${SAMPLE_ARRAY[1]}
+
+				# PLATFORM UNIT: COMPRISED OF;
+					#  2  FCID=flowcell that sample read group was performed on
+					#  3  Lane=lane of flowcell that sample read group was performed on]
+					#  4  Index=sample barcode
+				PLATFORM_UNIT=${SAMPLE_ARRAY[2]}
+		}
+
+# IF THERE ARE NO FAILED JOBS THEN DELETE TEMP FILES STARTING WITH SM_TAG OR PLATFORM_UNIT
+# ELSE IF JOBS FAILED, BUT ONLY CONCORDANCE JOBS THEN DELETE AND SUMMARIZE WHAT SAMPLES FAILED CONCORDANCE
+# ELSE; DON'T DELETE ANYTHING BUT SUMMARIZE WHAT FAILED.
+	# IN THE FUTURE; SHOULD BE ABLE TO DELETE TEMP FILES FOR SAMPLES THAT DID NOT FAIL.
+
+if [[ ! -f $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" ]]
+	then
+		for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq)
+			do
+				CREATE_SAMPLE_ARRAY_FOR_FILE_CLEANUP
+				DELETION_PATH=" $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/"
+				rm -rf $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/$SM_TAG_FILE_CLEANUP* | bash
+				echo rm -rf $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/$PLATFORM_UNIT | sed "s|,|$DELETION_PATH|g" | bash
+		done
+
+	elif [[ "`awk 'BEGIN {OFS="\t"} NF==6 {print $0}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | grep -v CONCORDANCE | wc -l`" -eq 0 ]];
+		then
+			for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq)
+				do
+					CREATE_SAMPLE_ARRAY_FOR_FILE_CLEANUP
+					DELETION_PATH=" $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/"
+					rm -rf $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/$SM_TAG_FILE_CLEANUP* | bash
+					echo rm -rf $CORE_PATH/$PROJECT_FILE_CLEANUP/TEMP/$PLATFORM_UNIT | sed "s|,|$DELETION_PATH|g" | bash
+			done
+
+			# CONSTRUCT EMAIL MESSAGE FOR BATCH THAT ONLY HAD CONCORDANCE JOBS FAIL
+
+					printf "SAMPLES FAILED CONCORDANCE, BUT NO OTHER JOBS FAILED FOR:\n" \
+						>| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					printf "$PROJECT:\n" \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					printf "$SAMPLE_SHEET\n" \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					printf "SO THE TEMP FILES HAVE BEEN DELETED\n" \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					printf "###################################################################\n" \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					printf "BELOW ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+					awk 'BEGIN {OFS="\t"} NF==6 {print $0}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | grep CONCORDANCE	| awk '{print $1}' \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			sleep 2s
+
+			mail -s "FAILED CONCORDANCE ONLY: $PROJECT: $SAMPLE_SHEET_NAME" \
+			$SEND_TO \
+			< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+	else
+		# CONSTRUCT MESSAGE TO BE SENT SUMMARIZING THE FAILED JOBS
+			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR:\n" \
+				>| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "$SAMPLE_SHEET\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "FOR PROJECT:\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "$PROJECT\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "###################################################################\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "###################################################################\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			egrep -v CONCORDANCE $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" \
+				| awk 'BEGIN {OFS="\t"} NF==6 {print $1}' \
+				| sort \
+				| datamash -g 1 count 1 \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "###################################################################\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "###################################################################\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" | sed 's/ /\t/g' \
+					>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+		for sample in $(grep -v CONCORDANCE $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | awk 'BEGIN {OFS="\t"} NF==6 {print $1}' | sort | uniq);
+			do
+				awk '$1=="'$sample'" {print $0 "\n" "\n"}' $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" | head -n 1 \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+		done
+
+			printf "###################################################################\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			printf "FOR GIGGLES, HERE ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
+				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+			grep CONCORDANCE $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt" \
+				| awk 'BEGIN {OFS="\t"} NF==6 {print $1}' \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+		sleep 2s
+
+		mail -s "FAILED JOBS: $PROJECT: $SAMPLE_SHEET_NAME" \
+		$SEND_TO \
+		< $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_EMAIL_SUMMARY.txt"
+
+fi
+
+sleep 2s
 
 ####################################################
 ##### Clean up the Wall Clock minutes tracker. #####

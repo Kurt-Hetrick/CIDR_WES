@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -41,8 +41,6 @@ START_MD5SUM_CRAM=`date '+%s'`
 	>> $CORE_PATH/$PROJECT/CRAM/$SM_TAG".cram.md5"
 
 END_MD5SUM_CRAM=`date '+%s'`
-
-HOSTNAME=`hostname`
 
 echo $SM_TAG"_"$PROJECT",G.01,MD5SUM_CRAM,"$HOSTNAME","$START_MD5SUM_CRAM","$END_MD5SUM_CRAM \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"

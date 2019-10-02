@@ -12,7 +12,9 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 # CHANGE SCRIPT DIR TO WHERE YOU HAVE HAVE THE SCRIPTS BEING SUBMITTED
 
-SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
+	SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
+
+	SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/grch38_scripts"
 
 ##################
 # CORE VARIABLES #
@@ -47,6 +49,17 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 			# 	| datamash collapse 1 \
 			# 	| awk '{print $1,"-l \x27hostname=!DellR730-03\x27"}'`
 
+		# SO IF I WANT TO CREATE A HARDCODED EXCLUSION LIST...I'M GOING TO HAVE TO FIND A WAY TO DO IT WHEN I USE AWK TO PRINT THE qsub command...
+		# Or move away from awk...sigh.
+			# AWK_QUEUE=`qstat -f -s r \
+			# 	| egrep -v "^[0-9]|^-|^queue" \
+			# 	| cut -d @ -f 1 \
+			# 	| sort \
+			# 	| uniq \
+			# 	| egrep -v "all.q|cgc.q|programmers.q|uhoh.q|rhel7.q|bigmem.q|lemon.q|qtest.q" \\
+			# 	| datamash collapse 1 \
+			# 	| awk '{print $1,"-l","\\x27" "hostname=!DellR730-03" "\\x27"}'`
+
 		PIPELINE_VERSION=`git --git-dir=$SCRIPT_DIR/../.git --work-tree=$SCRIPT_DIR/.. log --pretty=format:'%h' -n 1`
 
 		# load gcc for programs like verifyBamID
@@ -75,15 +88,13 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 	PICARD_DIR_LIFTOVER="/mnt/linuxtools/PICARD/picard-2.18.25"
 	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
 	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
-	# This is samtools version 1.5
+	# This is samtools version 1.7
 	# I have no idea why other users other than me cannot index a cram file with a version of samtools that I built from the source
 	# Apparently the version that I built with Anaconda works for other users, but it performs REF_CACHE first...
 	SAMTOOLS_DIR="/mnt/linuxtools/ANACONDA/anaconda2-5.0.0.1/bin"
 	BEDTOOLS_DIR="/mnt/linuxtools/BEDTOOLS/bedtools-2.22.0/bin"
 	VERIFY_DIR="/mnt/linuxtools/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
 	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
-		# Becasue I didn't want to go through compiling this yet for version 1.6...I'm hoping that Keith will eventually do a full OS install of RHEL7 instead of his
-		# typical stripped down installations so I don't have to install multiple libraries again
 	CIDRSEQSUITE_6_JAVA_DIR="/mnt/linuxtools/JAVA/jre1.7.0_45/bin"
 	CIDRSEQSUITE_6_1_1_DIR="/mnt/linuxtools/CIDRSEQSUITE/6.1.1"
 	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.8"
@@ -201,7 +212,7 @@ SCRIPT_DIR="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CIDR_WES/grch38_scripts"
 		RUN_LAB_PREP_METRICS
 		echo Project started at `date` >> $CORE_PATH/$SEQ_PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
 		# this is for tracking failed jobs so I can clean up the temp directory if everything ran successfully
-		echo >| $CORE_PATH/$SEQ_PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.csv"
+		# echo >| $CORE_PATH/$SEQ_PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 	}
 
 for PROJECT_NAME in $(awk 'BEGIN {FS=","} NR>1 {print $1}' $SAMPLE_SHEET | sort | uniq );
@@ -868,6 +879,8 @@ done
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF #
 ################################################################################
 
+# removing MT from here is a little dangerous...should probably remove
+
 	BUILD_HOLD_ID_PATH ()
 	{
 		HOLD_ID_PATH="-hold_jid "
@@ -905,7 +918,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$HC_BAIT_BED  \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -929,7 +942,7 @@ done
 			$CORE_PATH \
 			$PROJECT \
 			$SM_TAG \
-			$HC_BAIT_BED  \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -940,7 +953,7 @@ done
 
 # GATHER UP THE PER SAMPLE PER CHROMOSOME VCF FILES INTO A GVCF
 
-	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER()
+	BUILD_HOLD_ID_PATH_GENOTYPE_GVCF_GATHER ()
 	{
 		HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
 			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
@@ -977,7 +990,7 @@ done
 			$PROJECT \
 			$SM_TAG \
 			$REF_GENOME \
-			$HC_BAIT_BED  \
+			$HC_BAIT_BED \
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
@@ -1309,9 +1322,6 @@ done
 					$SM_TAG \
 					$TARGET_BED
 			}
-
-# taking out the post BQSR and analyze covariates until i update them to gatk 4
-# also need to look into R for analyze covariates
 
 	for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 		do
@@ -1787,7 +1797,9 @@ done
 			$SM_TAG \
 			$REF_GENOME \
 			$TITV_BED \
-			$DBSNP_129
+			$DBSNP_129 \
+			$SAMPLE_SHEET \
+			$SUBMIT_STAMP
 	}
 
 	SELECT_TITV_NOVEL ()
@@ -1894,7 +1906,8 @@ qsub \
 -q $QUEUE_LIST \
 -p $PRIORITY \
 -N X1"_"$SGE_SM_TAG \
--hold_jid J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
+-hold_jid \
+J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"$PROJECT,\
 J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"$PROJECT,\
@@ -1980,6 +1993,10 @@ done
 
 	SEND_TO=`cat $SCRIPT_DIR/../email_lists.txt`
 
+# grab submitter's name
+
+	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+
 # Maybe I'll make this a function and throw it into a loop, but today is not that day.
 # I think that i will have to make this a look to handle multiple projects...maybe not
 # but again, today is not that day.
@@ -2000,18 +2017,16 @@ done
 			"-q","'$QUEUE_LIST'",\
 			"-p","'$PRIORITY'",\
 			"-m","e",\
-			"-M","'$SEND_TO'",\
+			"-M","khetric1@jhmi.edu",\
 			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
 			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
 			"-j y",\
 			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
 			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-			"'$CORE_PATH'","'$DATAMASH_DIR'",$1,"'$SAMPLE_SHEET'" "\n" "sleep 0.1s"}'
+			"'$CORE_PATH'" , "'$DATAMASH_DIR'" , $1 , "'$SAMPLE_SHEET'" , "'$SCRIPT_DIR'" , "'$SUBMITTER_ID'" , "'$SUBMIT_STAMP'" "\n" "sleep 0.1s"}'
 
 # EMAIL WHEN DONE SUBMITTING
 
-PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
-
-printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby $SUBMITTER_ID" \
+printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.GRCH38.sh" \
 		$SEND_TO

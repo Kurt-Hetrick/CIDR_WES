@@ -24,7 +24,7 @@
 
 # unloading this module b/c it looks like it got modified which causes this step to crash
 
-module unload R/3.0.1
+	module unload R/3.0.1
 
 # INPUT VARIABLES
 
@@ -40,10 +40,10 @@ module unload R/3.0.1
 	R_DIRECTORY=$9
 		export PATH=.:$R_DIRECTORY:$PATH
 	SAMPLE_SHEET=${10}
-		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
-	SUBMIT_STAMP={$11}
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
+	SUBMIT_STAMP=${11}
 
-# run multiple metrics
+# Start running Many Picard sequencing metrics for the QC report
 
 START_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 
@@ -67,7 +67,7 @@ START_COLLECT_MULTIPLE_METRICS=`date '+%s'`
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi

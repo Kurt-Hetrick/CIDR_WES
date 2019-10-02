@@ -2,7 +2,7 @@
 # --these can be overrode at qsub invocation--
 
 # tell sge to execute in bash
-#$ -S /bin/bash 
+#$ -S /bin/bash
 
 # tell sge that you are in the users current working directory
 #$ -cwd
@@ -95,8 +95,11 @@
 			FINDPATH=$NOVASEQ_REPO/$NOVASEQ_RUN_FOLDER/FASTQ/$PROJECT
 
 			# look for illumina file naming convention for novaseq flowcells
-			FASTQ_1=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash`
-			FASTQ_2=`echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash`
+			# if it is found in the project/fastq folder under active, then use that one
+			FASTQ_1=`( echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R1_001.fastq" \| cut -f 2 | bash ; \
+				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"* 2> /dev/null) | tail -n 1`
+			FASTQ_2=`( echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash ; \
+				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null) | tail -n 1`
 
 		else
 			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"*`
@@ -110,6 +113,10 @@
 	# pipe to AddOrReplaceReadGroups to populate the header--
 
 START_BWA_MEM=`date '+%s'`
+
+	# if any part of pipe fails set exit to non-zero
+
+	set -o pipefail
 
 	$BWA_DIR/bwa mem \
 		-K 100000000 \
@@ -145,10 +152,13 @@ START_BWA_MEM=`date '+%s'`
 
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
+	# so if it crashes, I just straight out exit
+		### ...at first I didn't remember why would I chose that, but I am cool with it
+		### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi

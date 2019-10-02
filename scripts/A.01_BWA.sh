@@ -101,7 +101,6 @@
 			FASTQ_2=`( echo du --max-depth=1 -a $FINDPATH/$SM_TAG"*" -a $FINDPATH/$FIXED_PLATFORM_UNIT"*" 2\> /dev/null \| grep "L00"$LANE"_R2_001.fastq" \| cut -f 2 | bash ; \
 				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null) | tail -n 1`
 
-
 		else
 			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"*`
 			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"*`
@@ -120,15 +119,15 @@ START_BWA_MEM=`date '+%s'`
 	set -o pipefail
 
 	$BWA_DIR/bwa mem \
-	-K 100000000 \
-	-Y \
-	-t 4 \
-	$REF_GENOME \
-	$FASTQ_1 \
-	$FASTQ_2 \
+		-K 100000000 \
+		-Y \
+		-t 4 \
+		$REF_GENOME \
+		$FASTQ_1 \
+		$FASTQ_2 \
 	| $SAMBLASTER_DIR/samblaster \
-	--addMateTags \
-	-a \
+		--addMateTags \
+		-a \
 	| $JAVA_1_8/java -jar \
 	$PICARD_DIR/picard.jar \
 	AddOrReplaceReadGroups \
@@ -157,12 +156,12 @@ START_BWA_MEM=`date '+%s'`
 		### ...at first I didn't remember why would I chose that, but I am cool with it
 		### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
 
-			if [ "$SCRIPT_STATUS" -ne 0 ]
-			 then
-				echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
-				exit $SCRIPT_STATUS
-			fi
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
 
 END_BWA_MEM=`date '+%s'`
 

@@ -31,20 +31,12 @@
 	CORE_PATH=$4
 	PROJECT=$5
 	SM_TAG=$6
+	# i should take this out b/c it isn't used anymore.
 	TARGET_BED=$7
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 	SAMPLE_SHEET=$8
-		SAMPLE_SHEET_NAME=(`basename $SAMPLE_SHEET .csv`)
+		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=$9
-
-# # mkdir a directory in TEMP for the SM tag to decompress the target vcf file into
-
-# 	mkdir -p $CORE_PATH/$PROJECT/TEMP/$SM_TAG
-
-# # decompress the target vcf file into the temporary sub-folder
-
-# 	zcat $CORE_PATH/$PROJECT/SNV/QC/FILTERED_ON_TARGET/$SM_TAG"_QC_OnTarget_SNV.vcf.gz" \
-# 	>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG/$SM_TAG"_QC_OnTarget_SNV.vcf"
 
 # look for a final report and store it as a variable. if there are multiple ones, then take the newest one
 
@@ -105,7 +97,7 @@ fi
 
 		if [ "$SCRIPT_STATUS" -ne 0 ]
 		 then
-			echo $SAMPLE $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
 			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
 			exit $SCRIPT_STATUS
 		fi
