@@ -668,142 +668,6 @@ done
 			echo sleep 0.1s
 	done
 
-#####################################
-##### VERIFYBAMID BY CHROMOSOME #####
-#####################################
-	#####################################
-	# VERIFYBAMID BY CHROMOSOME SCATTER #
-	#####################################
-
-		# make per chromosome/target bed file intersection vcf files for each sample
-
-			CALL_SELECT_VERIFYBAMID_VCF_CHR ()
-			{
-				echo \
-				qsub \
-					-S /bin/bash \
-					-cwd \
-					-V \
-					-q $QUEUE_LIST \
-					-p $PRIORITY \
-				-N H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-SELECT_VERIFYBAMID_VCF_chr"$CHROMOSOME".log" \
-					-j y \
-				-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
-					$SCRIPT_DIR/H.09_SELECT_VERIFYBAMID_VCF_CHR.sh \
-					$JAVA_1_8 \
-					$GATK_DIR \
-					$CORE_PATH \
-					$VERIFY_VCF \
-					$PROJECT \
-					$SM_TAG \
-					$REF_GENOME \
-					$TARGET_BED \
-					$CHROMOSOME \
-					$SAMPLE_SHEET \
-					$SUBMIT_STAMP
-			}
-
-			CALL_VERIFYBAMID_CHR ()
-			{
-				echo \
-				qsub \
-					-S /bin/bash \
-					-cwd \
-					-V \
-					-q $QUEUE_LIST \
-					-p $PRIORITY \
-				-N H.09-A.01-VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_chr"$CHROMOSOME".log" \
-					-j y \
-				-hold_jid H.09-SELECT_VERIFYBAMID_VCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				$SCRIPT_DIR/H.09-A.01_VERIFYBAMID_CHR.sh \
-					$CORE_PATH \
-					$VERIFY_DIR \
-					$PROJECT \
-					$SM_TAG \
-					$CHROMOSOME \
-					$SAMPLE_SHEET \
-					$SUBMIT_STAMP
-			}
-
-		# Take the samples target bed file, create a list of unique chromosome to use as a scatter for verifybamid, exclude chr X,Y,MT
-
-			for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-			do
-				CREATE_SAMPLE_ARRAY
-					for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-						| sed -r 's/[[:space:]]+/\t/g' \
-						| cut -f 1 \
-						| sed 's/chr//g' \
-						| egrep -v "X|Y|MT" \
-						| sort \
-						| uniq \
-						| $DATAMASH_DIR/datamash collapse 1 \
-						| sed 's/,/ /g');
-						do
-							CALL_SELECT_VERIFYBAMID_VCF_CHR
-							echo sleep 0.1s
-							CALL_VERIFYBAMID_CHR
-							echo sleep 0.1s
-						done
-			done
-
-	####################################
-	# VERIFYBAMID BY CHROMOSOME GATHER #
-	####################################
-
-		# GATHER UP THE PER CHROMOSOME PER SAMPLE VERIFYBAMID OUTPUT FILES
-		# I THINK THAT I SHOULD BE ABLE TO INCORPORATE THIS INTO THE ABOVE LOOP.
-
-			BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID ()
-			{
-				HOLD_ID_PATH_CAT_VERIFYBAMID="-hold_jid "
-
-				for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
-										| sed -r 's/[[:space:]]+/\t/g' \
-										| cut -f 1 \
-										| sed 's/chr//g' \
-										| egrep -v "X|Y|MT" \
-										| sort \
-										| uniq \
-										| $DATAMASH_DIR/datamash collapse 1 \
-										| sed 's/,/ /g');
-					do
-						HOLD_ID_PATH_CAT_VERIFYBAMID=$HOLD_ID_PATH_CAT_VERIFYBAMID"H.09-A.01-VERIFYBAMID_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
-						HOLD_ID_PATH_CAT_VERIFYBAMID=`echo $HOLD_ID_PATH_CAT_VERIFYBAMID | sed 's/@/_/g'`
-				done
-			}
-
-			CALL_VERIFYBAMID_CHR_GATHER ()
-			{
-				echo \
-				qsub \
-					-S /bin/bash \
-					-cwd \
-					-V \
-					-q $QUEUE_LIST \
-					-p $PRIORITY \
-				-N H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
-					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
-					-j y \
-				${HOLD_ID_PATH_CAT_VERIFYBAMID} \
-				$SCRIPT_DIR/H.09-A.01-A.01_CAT_VERIFYBAMID_CHR.sh \
-					$CORE_PATH \
-					$DATAMASH_DIR \
-					$PROJECT \
-					$SM_TAG \
-					$TARGET_BED
-			}
-
-for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
-do
-	CREATE_SAMPLE_ARRAY
-	BUILD_HOLD_ID_PATH_CAT_VERIFYBAMID
-	CALL_VERIFYBAMID_CHR_GATHER
-	echo sleep 0.1s
-done
-
 ############################
 # HAPLOTYPE CALLER SCATTER #
 ############################
@@ -1283,6 +1147,65 @@ done
 				$SUBMIT_STAMP
 		}
 
+	#######################################
+	# PERFORM VERIFYBAM ID PER CHROMOSOME ##########################
+	# DOING BOTH THE SELECT VCF AND VERIFYBAMID RUN WITHIN ONE JOB #
+	################################################################
+
+		CALL_VERIFYBAMID_PER_CHR ()
+		{
+			echo \
+			qsub \
+				-S /bin/bash \
+				-cwd \
+				-V \
+				-q $QUEUE_LIST \
+				-p $PRIORITY \
+			-N H.09-VERIFYBAMID_PER_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-VERIFYBAMID_PER_CHR.log" \
+				-j y \
+			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/H.09_VERIFYBAMID_PER_CHR.sh \
+				$JAVA_1_8 \
+				$GATK_DIR \
+				$VERIFY_DIR \
+				$CORE_PATH \
+				$VERIFY_VCF \
+				$PROJECT \
+				$SM_TAG \
+				$REF_GENOME \
+				$TARGET_BED \
+				$SAMPLE_SHEET \
+				$SUBMIT_STAMP \
+				$DATAMASH_DIR
+		}
+
+	######################################
+	# GATHER PER CHR VERIFYBAMID REPORTS #
+	######################################
+
+		CALL_VERIFYBAMID_CHR_GATHER ()
+			{
+				echo \
+				qsub \
+					-S /bin/bash \
+					-cwd \
+					-V \
+					-q $QUEUE_LIST \
+					-p $PRIORITY \
+				-N H.09-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+					-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-CAT_VERIFYBAMID_CHR.log \
+					-j y \
+				-hold_jid H.09-VERIFYBAMID_PER_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+				$SCRIPT_DIR/H.09-A.01_CAT_VERIFYBAMID_CHR.sh \
+					$CORE_PATH \
+					$DATAMASH_DIR \
+					$PROJECT \
+					$SM_TAG \
+					$TARGET_BED
+			}
+
+
 	for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq );
 		do
 			CREATE_SAMPLE_ARRAY
@@ -1304,7 +1227,11 @@ done
 			echo sleep 0.1s
 			COLLECT_HS_METRICS
 			echo sleep 0.1s
-		done
+			CALL_VERIFYBAMID_PER_CHR
+			echo sleep 0.1s
+			CALL_VERIFYBAMID_CHR_GATHER
+			echo sleep 0.1s
+	done
 
 ###########################################################
 ### HC_BAM TO CRAM; VCF BREAKOUTS, FILTERING, METRICS #####
@@ -1554,7 +1481,6 @@ done
 			$SAMPLE_SHEET \
 			$SUBMIT_STAMP
 	}
-
 
 	TARGET_PASS_SNV_CONCORDANCE ()
 	{
@@ -1850,7 +1776,7 @@ H.05-A.01_CHROM_DEPTH"_"$SGE_SM_TAG"_"$PROJECT,\
 H.06-COLLECT_MULTIPLE_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
 H.07-COLLECT_HS_METRICS"_"$SGE_SM_TAG"_"$PROJECT,\
 H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,\
-H.09-A.01-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
+H.09-A.01_CAT_VERIFYBAMID_CHR"_"$SGE_SM_TAG"_"$PROJECT \
 -o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG-QC_REPORT_PREP_QC.log \
 $SCRIPT_DIR/X.01-QC_REPORT_PREP.sh \
 $SAMTOOLS_DIR \

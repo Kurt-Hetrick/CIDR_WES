@@ -19,9 +19,9 @@
 # export all variables, useful to find out what compute node the program was executed on
 # redirecting stderr/stdout to file as a log.
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -36,7 +36,6 @@ echo
 	REF_GENOME=$8
 	TARGET_BED=$9
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
-	# CHROMOSOME=$9
 	SAMPLE_SHEET=${10}
 		SAMPLE_SHEET_NAME=$(basename $SAMPLE_SHEET .csv)
 	SUBMIT_STAMP=${11}
@@ -48,32 +47,32 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
 # function to call 
 
-SELECT_VERIFYBAMID_VCF_CHR ()
-	{
-		$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
-		-T SelectVariants \
-		--reference_sequence $REF_GENOME \
-		--disable_auto_index_creation_and_locking_when_reading_rods \
-		--variant $VERIFY_VCF \
-		-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
-		-L $CHROMOSOME \
-		-XL chrX \
-		-XL chrY \
-		-XL chrM \
-		--interval_set_rule INTERSECTION \
-		-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
-	}
+	SELECT_VERIFYBAMID_VCF_CHR ()
+		{
+			$JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
+			-T SelectVariants \
+			--reference_sequence $REF_GENOME \
+			--disable_auto_index_creation_and_locking_when_reading_rods \
+			--variant $VERIFY_VCF \
+			-L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
+			-L $CHROMOSOME \
+			-XL chrX \
+			-XL chrY \
+			-XL chrM \
+			--interval_set_rule INTERSECTION \
+			-o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
+		}
 
-CALL_VERIFYBAMID_CHR ()
-	{
-		$VERIFY_DIR/verifyBamID \
-		--bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
-		--vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
-		--out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
-		--precise \
-		--verbose \
-		--maxDepth 2500
-	}
+	CALL_VERIFYBAMID_CHR ()
+		{
+			$VERIFY_DIR/verifyBamID \
+			--bam $CORE_PATH/$PROJECT/TEMP/$SM_TAG".bam" \
+			--vcf $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
+			--out $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME \
+			--precise \
+			--verbose \
+			--maxDepth 2500
+		}
 
 for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $TARGET_BED \
 	| sed -r 's/[[:space:]]+/\t/g' \
@@ -104,26 +103,8 @@ done
 
 END_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 
-HOSTNAME=`hostname`
-
 echo $SM_TAG"_"$PROJECT"_BAM_REPORTS,Z.09,SELECT_VERIFYBAMID_"$CHROMOSOME","$HOSTNAME","$START_SELECT_VERIFYBAMID_VCF","$END_SELECT_VERIFYBAMID_VCF \
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
-
-# echo $JAVA_1_8/java -jar $GATK_DIR/GenomeAnalysisTK.jar \
-# -T SelectVariants \
-# --reference_sequence $REF_GENOME \
-# --variant $VERIFY_VCF \
-# -L $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
-# -L $CHROMOSOME \
-# -XL chrX \
-# -XL chrY \
-# --interval_set_rule INTERSECTION \
-# -o $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf" \
-# >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-# echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
-
-# if file is not present exit !=0
 
 ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG".VerifyBamID."$CHROMOSOME".vcf"
 ls $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM"

@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -31,8 +31,6 @@ echo
 	SM_TAG=$4
 	TARGET_BED=$5
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
-
-# REMOVE SEMICOLON BEFORE DO?
 
 echo \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"

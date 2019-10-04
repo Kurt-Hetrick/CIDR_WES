@@ -18,9 +18,9 @@
 
 # export all variables, useful to find out what compute node the program was executed on
 
-set
+	set
 
-echo
+	echo
 
 # INPUT VARIABLES
 
@@ -32,23 +32,24 @@ echo
 	TARGET_BED=$5
 		TARGET_BED_NAME=(`basename $TARGET_BED .bed`)
 
-# REMOVE SEMICOLON BEFORE DO?
-
 echo \
 >| $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 
 for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TARGET_BED_NAME".bed" \
 	| sed -r 's/[[:space:]]+/\t/g' \
 	| cut -f 1 \
+	|  egrep -v "X|Y|MT" \
 	| sort \
 	| uniq \
 	| $DATAMASH_DIR/datamash collapse 1 \
 	| sed 's/,/ /g');
-do
-	cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
-		| grep -v ^# \
-		| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
-	>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
+	do
+		# I'm stripping out the "chr" prefix here b/c I don't want to deal with it...I should specify the column in case SM_TAG contain chr...
+		cat $CORE_PATH/$PROJECT/TEMP/$SM_TAG"."$CHROMOSOME".selfSM" \
+			| grep -v ^# \
+			| awk 'BEGIN {OFS="\t"} {print($1,"'$CHROMOSOME'",$7,$4,$8,$9,$6)}' \
+			| sed 's/chr//g' \
+		>> $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
 done
 
 sed -i '/^\s*$/d' $CORE_PATH/$PROJECT/TEMP/$SM_TAG".verifybamID_unsorted.txt"
