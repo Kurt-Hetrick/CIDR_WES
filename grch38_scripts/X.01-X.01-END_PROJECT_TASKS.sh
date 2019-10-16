@@ -478,34 +478,42 @@ sleep 2s
 ##### Clean up the Wall Clock minutes tracker. #####
 ####################################################
 
-# only output jobs longer than 1 minute
+	# clean up records that are malformed
+	# only keep jobs that ran longer than 3 minutes
 
-	awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/&&($6-$5)>180 \
-	{print $1,$2,$3,$4,$5,$6,($6-$5)/60,strftime("%F",$5),strftime("%F",$6),strftime("%F.%H-%M-%S",$5),strftime("%F.%H-%M-%S",$6)}' \
-	$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
-	| awk 'BEGIN {print "SAMPLE_GROUP,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN,START_DATE,END_DATE,TIMESTAMP_START,TIMESTAMP_END"} \
-	{print $0}' \
-	>|$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
+		awk 'BEGIN {FS=",";OFS=","} $1~/^[A-Z 0-9]/&&$2!=""&&$3!=""&&$4!=""&&$5!=""&&$6!=""&&$7==""&&$5!~/A-Z/&&$6!~/A-Z/&&($6-$5)>180 \
+		{print $1,$2,$3,$4,$5,$6,($6-$5)/60,strftime("%F",$5),strftime("%F",$6),strftime("%F.%H-%M-%S",$5),strftime("%F.%H-%M-%S",$6)}' \
+		$CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
+		| sed 's/_'"$PROJECT"'/,'"$PROJECT"'/g' \
+		| awk 'BEGIN {print "SAMPLE,PROJECT,TASK_GROUP,TASK,HOST,EPOCH_START,EPOCH_END,WC_MIN,START_DATE,END_DATE,TIMESTAMP_START,TIMESTAMP_END"} \
+		{print $0}' \
+		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv"
 
 #############################################################
 ##### Summarize Wall Clock times ############################
 ##### This is probably garbage. I'll look at this later #####
 #############################################################
 
-# sed 's/,/\t/g' $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv" \
-# | sort -k 1,1 -k 2,2 -k 3,3 \
-# | awk 'BEGIN {OFS="\t"} {print $0,($6-$5),($6-$5)/60,($6-$5)/3600}' \
-# | $DATAMASH/datamash -s -g 1,2 max 7 max 8 max 9 | tee $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
-# | $DATAMASH/datamash -g 1 sum 3 sum 4 sum 5 \
-# | awk 'BEGIN {print "SAMPLE_PROJECT","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
-# | sed -r 's/[[:space:]]+/,/g' \
-# >| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE.csv"
+	# summarize by sample by taking the max times per concurrent task group and summing them up
 
-# sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
-# | awk 'BEGIN {print "SAMPLE_PROJECT","TASK_GROUP","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
-# | sed -r 's/[[:space:]]+/,/g' \
-# >| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE_GROUP.csv"
+		sed 's/,/\t/g' $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.FIXED.csv" \
+			| awk 'NR>1' \
+			| sed 's/_BAM_REPORTS//g' \
+			| sort -k 1,1 -k 2,2 -k 3,3 -k 4,4 \
+			| awk 'BEGIN {OFS="\t"} {print $0,($7-$6),($7-$6)/60,($7-$6)/3600}' \
+			| $DATAMASH/datamash -s -g 1,2,3 max 13 max 14 max 15 | tee $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
+			| $DATAMASH/datamash -g 1,2 sum 4 sum 5 sum 6 \
+			| awk 'BEGIN {print "SAMPLE","PROJECT","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
+			| sed -r 's/[[:space:]]+/,/g' \
+		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE.csv"
 
-echo Project finished at `date` >> $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
+	# break down by the longest task within a group per sample
 
-# todo: oxidation report?
+		sed 's/\t/,/g' $CORE_PATH/$PROJECT/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
+			| awk 'BEGIN {print "SAMPLE","PROJECT","TASK_GROUP","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
+			| sed -r 's/[[:space:]]+/,/g' \
+		>| $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.BY_SAMPLE_GROUP.csv"
+
+# put a stamp as to when the run was done
+
+		echo Project finished at `date` >> $CORE_PATH/$PROJECT/REPORTS/PROJECT_START_END_TIMESTAMP.txt
