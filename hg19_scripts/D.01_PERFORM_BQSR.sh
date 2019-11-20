@@ -48,7 +48,7 @@ START_PERFORM_BQSR=`date '+%s'`
 	$GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 	BaseRecalibrator \
 	--use-original-qualities \
-	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 	--reference $REF_GENOME \
 	--known-sites $KNOWN_INDEL_1 \
 	--known-sites $KNOWN_INDEL_2 \
@@ -79,7 +79,7 @@ echo $JAVA_1_8/java -jar \
 $GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 BaseRecalibrator \
 --use-original-qualities \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 --reference $REF_GENOME \
 --known-sites $KNOWN_INDEL_1 \
 --known-sites $KNOWN_INDEL_2 \
