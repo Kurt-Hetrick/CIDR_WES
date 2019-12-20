@@ -75,7 +75,7 @@
 			awk 1 $TITV_BED | sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed"
 					
-			awk 1 $TITV_BED | sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
+			awk 1 $TITV_BED | sed -r 's/\r//g ; s/[[:space:]]+/\t/g' \
 			>| $CORE_PATH/$PROJECT/TEMP/$SM_TAG"-"TITV_BED_NAME".bed"
 
 # MAKE PICARD INTERVAL FILES (1-based start)

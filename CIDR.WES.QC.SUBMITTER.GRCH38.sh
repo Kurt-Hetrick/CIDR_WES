@@ -722,8 +722,8 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 	CREATE_SAMPLE_ARRAY
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
-			| cut -f 1 \
 			| grep -v "chrM" \
+			| cut -f 1 \
 			| sort \
 			| uniq \
 			| $DATAMASH_DIR/datamash collapse 1 \

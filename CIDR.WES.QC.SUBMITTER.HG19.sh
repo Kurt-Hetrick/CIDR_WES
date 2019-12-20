@@ -14,7 +14,7 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 	SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-	SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/scripts"
+	SCRIPT_DIR="$SUBMITTER_SCRIPT_PATH/hg19_scripts"
 
 ##################
 # CORE VARIABLES #
@@ -107,14 +107,14 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 # PIPELINE FILES #
 ##################
 
-	CODING_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/UCSC_hg19_CodingOnly_083013_MERGED_noContigs_plus_rCRS_MT.bed"
-		# MT was added from ucsc table browser for grch38, GENCODE v29
-		# md5 386340ecb59652ad2d182a89dce0c4df
+	CODING_BED="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/UCSC_hg19_CodingOnly_112119_MERGED_noContigs.bed"
+		# downloaded from UCSC table broswer and then merged and only kept the primary assembly
 	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/RefSeqGene.GRCh37.rCRS.MT.bed"
 		# md5 dec069c279625cfb110c2e4c5480e036
 	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/GRCh37.Cytobands.bed"
-	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.vcf"
-	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/b37/dbsnp_138.b37.excluding_sites_after_129.vcf"
+		# this will work for hg19 as well as grch37 (this file has chr prefixes in it and does not contain MT)
+	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.hg19.liftover.vcf"
+	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/h19/dbsnp_138.hg19.excluding_sites_after_129.vcf"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 
 	##### FROM THE LAND OF NOPE. THESE FILES SHOULD NOT HAVE TO BE CONVERTED, BUT I SURE DO LIKE COMMENTING THINGS OUT.
@@ -519,7 +519,7 @@ done
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
 				-j y \
-			-hold_jid  C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 				$JAVA_1_8 \
 				$GATK_DIR_4011 \
@@ -632,8 +632,6 @@ done
 			CREATE_SAMPLE_ARRAY
 			FIX_BED_FILES
 			echo sleep 0.1s
-			FIX_BAM_HEADER
-			echo sleep 0.1s
 			RUN_BQSR
 			echo sleep 0.1s
 			APPLY_BQSR
@@ -662,8 +660,8 @@ done
 				-V \
 				-q $QUEUE_LIST \
 				-p $PRIORITY \
-			-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_chr"$CHROMOSOME".log" \
+			-N H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-HAPLOTYPE_CALLER_"$CHROMOSOME".log" \
 				-j y \
 			-hold_jid E.01-APPLY_BQSR"_"$SGE_SM_TAG"_"$PROJECT,H.08-A.01-RUN_VERIFYBAMID"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/H.01_HAPLOTYPE_CALLER_SCATTER.sh \
@@ -688,10 +686,10 @@ done
 				-V \
 				-q $QUEUE_LIST \
 				-p $PRIORITY \
-			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_chr"$CHROMOSOME".log" \
+			-N I.01-GENOTYPE_GVCF"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME \
+				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-GENOTYPE_GVCF_"$CHROMOSOME".log" \
 				-j y \
-			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_chr"$CHROMOSOME,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid H.01-HAPLOTYPE_CALLER"_"$SGE_SM_TAG"_"$PROJECT"_"$CHROMOSOME,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/I.01_GENOTYPE_GVCF_SCATTER.sh \
 				$JAVA_1_8 \
 				$GATK_DIR \
@@ -713,8 +711,7 @@ for SM_TAG in $(awk 'BEGIN {FS=","} NR>1 {print $8}' $SAMPLE_SHEET | sort | uniq
 	CREATE_SAMPLE_ARRAY
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 			| sed -r 's/[[:space:]]+/\t/g' \
-			| sed 's/chr//g' \
-			| grep -v "MT" \
+			| grep -v "chrM" \
 			| cut -f 1 \
 			| sort \
 			| uniq \
@@ -743,14 +740,13 @@ done
 		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 								| sed -r 's/[[:space:]]+/\t/g' \
 								| cut -f 1 \
-								| sed 's/chr//g' \
-								| grep -v "MT" \
+								| grep -v "chrM" \
 								| sort \
 								| uniq \
 								| $DATAMASH_DIR/datamash collapse 1 \
 								| sed 's/,/ /g');
 			do
-				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+				HOLD_ID_PATH=$HOLD_ID_PATH"H.01-HAPLOTYPE_CALLER_"$SM_TAG"_"$PROJECT"_"$CHROMOSOME","
 				HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
 		done
 	}
@@ -816,14 +812,13 @@ done
 			for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' $HC_BAIT_BED \
 									| sed -r 's/[[:space:]]+/\t/g' \
 									| cut -f 1 \
-									| sed 's/chr//g' \
-									| grep -v "MT" \
+									| grep -v "chrM" \
 									| sort \
 									| uniq \
 									| $DATAMASH_DIR/datamash collapse 1 \
 									| sed 's/,/ /g');
 				do
-					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_chr"$CHROMOSOME","
+					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=$HOLD_ID_PATH_GENOTYPE_GVCF_GATHER"I.01-GENOTYPE_GVCF_"$SM_TAG"_"$PROJECT"_"$CHROMOSOME","
 					HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo $HOLD_ID_PATH_GENOTYPE_GVCF_GATHER | sed 's/@/_/g'`
 			done
 	}
@@ -1857,5 +1852,5 @@ done
 # EMAIL WHEN DONE SUBMITTING
 
 printf "$SAMPLE_SHEET\nhas finished submitting at\n`date`\nby `whoami`" \
-	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.sh" \
+	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.HG19.sh" \
 		$SEND_TO

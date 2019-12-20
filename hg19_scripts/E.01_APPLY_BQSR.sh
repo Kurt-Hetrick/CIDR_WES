@@ -41,13 +41,13 @@
 START_FINAL_BAM=`date '+%s'`
 
 	$JAVA_1_8/java -jar \
-	$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+	$GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 	ApplyBQSR \
 	--add-output-sam-program-record \
 	--use-original-qualities \
 	--emit-original-quals \
 	--reference $REF_GENOME \
-	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+	--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 	--bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 	--static-quantized-quals 10 \
 	--static-quantized-quals 20 \
@@ -74,13 +74,13 @@ echo $SM_TAG"_"$PROJECT",E.01,FINAL_BAM,"$HOSTNAME","$START_FINAL_BAM","$END_FIN
 >> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
 echo $JAVA_1_8/java -jar \
-$GATK_DIR_4011/gatk-package-4.0.1.1-local.jar \
+$GATK_DIR_4011/gatk-package-4.0.11.0-local.jar \
 ApplyBQSR \
 --add-output-sam-program-record \
 --use-original-qualities \
 --emit-original-quals \
 --reference $REF_GENOME \
---input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.fixed.bam" \
+--input $CORE_PATH/$PROJECT/TEMP/$SM_TAG".dup.bam" \
 --bqsr-recal-file $CORE_PATH/$PROJECT/REPORTS/COUNT_COVARIATES/GATK_REPORT/$SM_TAG"_PERFORM_BQSR.bqsr" \
 --static-quantized-quals 10 \
 --static-quantized-quals 20 \
