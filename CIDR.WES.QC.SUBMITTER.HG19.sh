@@ -109,12 +109,12 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 
 	CODING_BED="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/UCSC_hg19_CodingOnly_112119_MERGED_noContigs.bed"
 		# downloaded from UCSC table broswer and then merged and only kept the primary assembly
-	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/RefSeqGene.GRCh37.rCRS.MT.bed"
+	GENE_LIST="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/RefSeqGene.hg19.bed"
 		# md5 dec069c279625cfb110c2e4c5480e036
-	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/GRCh37_aux_files/GRCh37.Cytobands.bed"
+	CYTOBAND_BED="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/hg19.Cytobands.bed"
 		# this will work for hg19 as well as grch37 (this file has chr prefixes in it and does not contain MT)
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.hg19.liftover.vcf"
-	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/h19/dbsnp_138.hg19.excluding_sites_after_129.vcf"
+	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/dbsnp_138.hg19.excluding_sites_after_129.vcf"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
 
 	##### FROM THE LAND OF NOPE. THESE FILES SHOULD NOT HAVE TO BE CONVERTED, BUT I SURE DO LIKE COMMENTING THINGS OUT.
