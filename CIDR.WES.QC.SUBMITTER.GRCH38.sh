@@ -85,7 +85,7 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 	SAMBLASTER_DIR="/mnt/linuxtools/SAMBLASTER/samblaster-v.0.1.24"
 	JAVA_1_8="/mnt/linuxtools/JAVA/jdk1.8.0_73/bin"
 	PICARD_DIR="/mnt/linuxtools/PICARD/picard-2.17.0"
-	PICARD_DIR_LIFTOVER="/mnt/linuxtools/PICARD/picard-2.18.25"
+	PICARD_DIR_LIFTOVER="/mnt/linuxtools/PICARD/picard-2.22.0"
 	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
 	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
 	# This is samtools version 1.7
