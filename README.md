@@ -1,4 +1,9 @@
-DIFFERENCES BETWEEN GRCH37 AND GRCH38 PIPELINE.
+GRCh38 pipeline summary (up to cram files)
+=======
+
+bwa mem version, 0.7.15, was used to align fastq file to the reference genome with the following parameters; -K 100000000 -Y -t 4. Samblaster version, 0.1.24, was used to add mate tags with the following parameters; --addMateTags -a. AddOrReplaceReadGroups in picard version was used to perform queryname sorting and populate the CRAM RG headers with the following fields; ID, LB, PL, PU, PM, SM, CN, DT, PG, DS. MarkDuplicates in picard version, 2.17.0, was to mark duplicates on a queryname sorted bam file. sambamba version, 0.6.8, was used to sort the bam file to reference coordinates. Base quality score recalibration was performed by BaseRecalibrator in GATK version, 4.0.11.0, using; Homo_sapiens_assembly38.dbsnp138.vcf, Homo_sapiens_assembly38.known_indels.vcf.gz and Mills_and_1000G_gold_standard.indels.hg38.vcf.gz as known sites and limited to the sites present in the capture's bait bed file using the original base quality scores present in the bam file. Recalibrated base call quality scores were applied using ApplyBQSR in GATK version, 4.0.11.0, and binned to base call quality scores of 0-6,10,20 and 30. Original base call quality scores were retained in the OQ tag. Bam files were converted to cram files using samtools version 1.9.
+
+DIFFERENCES BETWEEN GRCh37 AND GRCh38 PIPELINE.
 =======
 
 1. A.00_FIX_BED FILES
