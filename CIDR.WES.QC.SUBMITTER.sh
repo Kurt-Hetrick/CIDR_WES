@@ -96,7 +96,7 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
 	CIDRSEQSUITE_6_JAVA_DIR="/mnt/linuxtools/JAVA/jre1.7.0_45/bin"
 	CIDRSEQSUITE_6_1_1_DIR="/mnt/linuxtools/CIDRSEQSUITE/6.1.1"
-	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.7"
+	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.8"
 	GATK_DIR_4011="/mnt/linuxtools/GATK/gatk-4.0.1.1"
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.10"
@@ -504,32 +504,6 @@ done
 				$REF_GENOME
 		}
 
-	# sambamba strips out the PM tag in the RG header...so have to fix the header again...
-	# this is a bug in up to v0.6.7, the author has a bug fix for his next release milestone
-	# at which I'll be removing this step
-
-		FIX_BAM_HEADER ()
-		{
-			echo \
-			qsub \
-				-S /bin/bash \
-				-cwd \
-				-V \
-				-q $QUEUE_LIST \
-				-p $PRIORITY \
-			-N C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT \
-				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-FIX_BAM_HEADER.log" \
-				-j y \
-			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT \
-			$SCRIPT_DIR/C.01-A.01_FIX_BAM_HEADER.sh \
-				$SAMTOOLS_DIR \
-				$CORE_PATH \
-				$PROJECT \
-				$SM_TAG \
-				$SAMPLE_SHEET \
-				$SUBMIT_STAMP
-		}
-
 	# run bqsr on the using bait bed file
 
 		RUN_BQSR ()
@@ -544,7 +518,7 @@ done
 			-N D.01-PERFORM_BQSR"_"$SGE_SM_TAG"_"$PROJECT \
 				-o $CORE_PATH/$PROJECT/LOGS/$SM_TAG/$SM_TAG"-PERFORM_BQSR.log" \
 				-j y \
-			-hold_jid C.01-A.01-FIX_BAM_HEADER"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
+			-hold_jid C.01-MARK_DUPLICATES"_"$SGE_SM_TAG"_"$PROJECT,A.00-FIX_BED_FILES"_"$SGE_SM_TAG"_"$PROJECT \
 			$SCRIPT_DIR/D.01_PERFORM_BQSR.sh \
 				$JAVA_1_8 \
 				$GATK_DIR_4011 \
@@ -656,8 +630,6 @@ done
 		do
 			CREATE_SAMPLE_ARRAY
 			FIX_BED_FILES
-			echo sleep 0.1s
-			FIX_BAM_HEADER
 			echo sleep 0.1s
 			RUN_BQSR
 			echo sleep 0.1s

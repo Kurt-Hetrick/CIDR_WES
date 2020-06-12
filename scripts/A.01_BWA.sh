@@ -86,6 +86,8 @@
 # Files are supposed to be in /mnt/instrument_files/novaseq/Run_Folder/FASTQ/Project/
 # FILENAME-> 137233-0238091146_S49_L002_R1_001.fastq.gz	(SMTAG_ASampleIndexOfSomeSort_4DigitLane_Read_literally001.fastq.gz)
 # Otherwise assume that files are demultiplexed with cidrseqsuite and follow previous naming conventions.
+# I got files from yale, that used the illumina naming conventions and actually went a step farther and broke files by tile (i think).
+	## I concatenated them and then added 000 for the tile so added that to the end of the non novaseq fastq file look up
 
 	if [[ $SEQUENCER_MODEL == *"NovaSeq"* ]]
 		then
@@ -102,8 +104,8 @@
 				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null) | tail -n 1`
 
 		else
-			FASTQ_1=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"*`
-			FASTQ_2=`ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"*`
+			FASTQ_1=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R1_000.fastq"* 2> /dev/null)`
+			FASTQ_2=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R2_000.fastq"* 2> /dev/null)`
 	fi
 
 # -----Alignment and BAM post-processing-----
@@ -112,92 +114,197 @@
 	# pipe to samblaster to add MC, etc tags
 	# pipe to AddOrReplaceReadGroups to populate the header--
 
-START_BWA_MEM=`date '+%s'`
+# bwa mem for paired end reads
 
-	# if any part of pipe fails set exit to non-zero
+	BWA_PE ()
+		{
+			START_BWA_MEM=`date '+%s'`
+				# if any part of pipe fails set exit to non-zero
 
-	set -o pipefail
+				set -o pipefail
 
-	$BWA_DIR/bwa mem \
-		-K 100000000 \
-		-Y \
-		-t 4 \
-		$REF_GENOME \
-		$FASTQ_1 \
-		$FASTQ_2 \
-	| $SAMBLASTER_DIR/samblaster \
-		--addMateTags \
-		-a \
-	| $JAVA_1_8/java -jar \
-	$PICARD_DIR/picard.jar \
-	AddOrReplaceReadGroups \
-	INPUT=/dev/stdin \
-	CREATE_INDEX=true \
-	SORT_ORDER=queryname \
-	RGID=$FLOWCELL"_"$LANE \
-	RGLB=$LIBRARY_NAME \
-	RGPL=$PLATFORM \
-	RGPU=$PLATFORM_UNIT \
-	RGPM=$SEQUENCER_MODEL \
-	RGSM=$SM_TAG \
-	RGCN=$CENTER \
-	RGDT=$ISO_8601 \
-	RGPG="CIDR_WES-"$PIPELINE_VERSION \
-	RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
-	OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam"
+				$BWA_DIR/bwa mem \
+					-K 100000000 \
+					-Y \
+					-t 4 \
+					$REF_GENOME \
+					$FASTQ_1 \
+					$FASTQ_2 \
+				| $SAMBLASTER_DIR/samblaster \
+					--addMateTags \
+					-a \
+				| $JAVA_1_8/java -jar \
+				$PICARD_DIR/picard.jar \
+				AddOrReplaceReadGroups \
+				INPUT=/dev/stdin \
+				CREATE_INDEX=true \
+				SORT_ORDER=queryname \
+				RGID=$FLOWCELL"_"$LANE \
+				RGLB=$LIBRARY_NAME \
+				RGPL=$PLATFORM \
+				RGPU=$PLATFORM_UNIT \
+				RGPM=$SEQUENCER_MODEL \
+				RGSM=$SM_TAG \
+				RGCN=$CENTER \
+				RGDT=$ISO_8601 \
+				RGPG="CIDR_WES-"$PIPELINE_VERSION \
+				RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
+				OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam"
 
-	# check the exit signal at this point.
+				# check the exit signal at this point.
 
-		SCRIPT_STATUS=`echo $?`
+					SCRIPT_STATUS=`echo $?`
 
-	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
-	# also write to file that this job failed
-	# so if it crashes, I just straight out exit
-		### ...at first I didn't remember why would I chose that, but I am cool with it
-		### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
+				# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+				# also write to file that this job failed
+				# so if it crashes, I just straight out exit
+					### ...at first I didn't remember why would I chose that, but I am cool with it
+					### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
 
-		if [ "$SCRIPT_STATUS" -ne 0 ]
-		 then
-			echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
-			exit $SCRIPT_STATUS
-		fi
+					if [ "$SCRIPT_STATUS" -ne 0 ]
+					 then
+						echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+						exit $SCRIPT_STATUS
+					fi
 
-END_BWA_MEM=`date '+%s'`
+			END_BWA_MEM=`date '+%s'`
 
-echo $SM_TAG"_"$PROJECT",A.01,BWA_MEM,"$HOSTNAME","$START_BWA_MEM","$END_BWA_MEM \
->> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
+			echo $SM_TAG"_"$PROJECT",A.01,BWA_MEM,"$HOSTNAME","$START_BWA_MEM","$END_BWA_MEM \
+			>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
 
-echo $BWA_DIR/bwa mem \
--K 100000000 \
--Y \
--t 4 \
-$REF_GENOME \
-$FASTQ_1 \
-$FASTQ_2 \
-\| $SAMBLASTER_DIR/samblaster \
---addMateTags \
--a \
-\| $JAVA_1_8/java -jar \
-$PICARD_DIR/picard.jar \
-AddOrReplaceReadGroups \
-INPUT=/dev/stdin \
-CREATE_INDEX=true \
-SORT_ORDER=queryname \
-RGID=$FLOWCELL"_"$LANE \
-RGLB=$LIBRARY_NAME \
-RGPL=$PLATFORM \
-RGPU=$PLATFORM_UNIT \
-RGPM=$SEQUENCER_MODEL \
-RGSM=$SM_TAG \
-RGCN=$CENTER \
-RGDT=$ISO_8601 \
-RGPG="CIDR_WES-"$PIPELINE_VERSION \
-RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
-OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
->> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+			echo $BWA_DIR/bwa mem \
+			-K 100000000 \
+			-Y \
+			-t 4 \
+			$REF_GENOME \
+			$FASTQ_1 \
+			$FASTQ_2 \
+			\| $SAMBLASTER_DIR/samblaster \
+			--addMateTags \
+			-a \
+			\| $JAVA_1_8/java -jar \
+			$PICARD_DIR/picard.jar \
+			AddOrReplaceReadGroups \
+			INPUT=/dev/stdin \
+			CREATE_INDEX=true \
+			SORT_ORDER=queryname \
+			RGID=$FLOWCELL"_"$LANE \
+			RGLB=$LIBRARY_NAME \
+			RGPL=$PLATFORM \
+			RGPU=$PLATFORM_UNIT \
+			RGPM=$SEQUENCER_MODEL \
+			RGSM=$SM_TAG \
+			RGCN=$CENTER \
+			RGDT=$ISO_8601 \
+			RGPG="CIDR_WES-"$PIPELINE_VERSION \
+			RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
+			OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
+			>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
 
-echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+			echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+		}
+
+# bwa mem for single end reads
+
+	BWA_SE ()
+		{
+			START_BWA_MEM=`date '+%s'`
+				# if any part of pipe fails set exit to non-zero
+
+				set -o pipefail
+
+				$BWA_DIR/bwa mem \
+					-K 100000000 \
+					-Y \
+					-t 4 \
+					$REF_GENOME \
+					$FASTQ_1 \
+				| $SAMBLASTER_DIR/samblaster \
+					--addMateTags \
+					-a \
+				| $JAVA_1_8/java -jar \
+				$PICARD_DIR/picard.jar \
+				AddOrReplaceReadGroups \
+				INPUT=/dev/stdin \
+				CREATE_INDEX=true \
+				SORT_ORDER=queryname \
+				RGID=$FLOWCELL"_"$LANE \
+				RGLB=$LIBRARY_NAME \
+				RGPL=$PLATFORM \
+				RGPU=$PLATFORM_UNIT \
+				RGPM=$SEQUENCER_MODEL \
+				RGSM=$SM_TAG \
+				RGCN=$CENTER \
+				RGDT=$ISO_8601 \
+				RGPG="CIDR_WES-"$PIPELINE_VERSION \
+				RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
+				OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam"
+
+				# check the exit signal at this point.
+
+					SCRIPT_STATUS=`echo $?`
+
+				# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+				# also write to file that this job failed
+				# so if it crashes, I just straight out exit
+					### ...at first I didn't remember why would I chose that, but I am cool with it
+					### ...not good for debugging, but I don't want cmd lines and times when jobs crash tbh if the plan is to possibly distribute them
+
+					if [ "$SCRIPT_STATUS" -ne 0 ]
+					 then
+						echo $SM_TAG $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+						>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+						exit $SCRIPT_STATUS
+					fi
+
+			END_BWA_MEM=`date '+%s'`
+
+			echo $SM_TAG"_"$PROJECT",A.01,BWA_MEM,"$HOSTNAME","$START_BWA_MEM","$END_BWA_MEM \
+			>> $CORE_PATH/$PROJECT/REPORTS/$PROJECT".WALL.CLOCK.TIMES.csv"
+
+			echo $BWA_DIR/bwa mem \
+			-K 100000000 \
+			-Y \
+			-t 4 \
+			$REF_GENOME \
+			$FASTQ_1 \
+			\| $SAMBLASTER_DIR/samblaster \
+			--addMateTags \
+			-a \
+			\| $JAVA_1_8/java -jar \
+			$PICARD_DIR/picard.jar \
+			AddOrReplaceReadGroups \
+			INPUT=/dev/stdin \
+			CREATE_INDEX=true \
+			SORT_ORDER=queryname \
+			RGID=$FLOWCELL"_"$LANE \
+			RGLB=$LIBRARY_NAME \
+			RGPL=$PLATFORM \
+			RGPU=$PLATFORM_UNIT \
+			RGPM=$SEQUENCER_MODEL \
+			RGSM=$SM_TAG \
+			RGCN=$CENTER \
+			RGDT=$ISO_8601 \
+			RGPG="CIDR_WES-"$PIPELINE_VERSION \
+			RGDS=$BAIT_NAME","$TARGET_NAME","$TITV_NAME \
+			OUTPUT=$CORE_PATH/$PROJECT/TEMP/$PLATFORM_UNIT".bam" \
+			>> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+			echo >> $CORE_PATH/$PROJECT/COMMAND_LINES/$SM_TAG".COMMAND.LINES.txt"
+
+		}
+
+# If there is no read 2 the run bwa mem for single end reads, else do paired end.
+
+	if [ -z "$FASTQ_2" ]
+		then
+		      BWA_SE
+		else
+		      BWA_PE
+	fi
+
 
 # exit with the signal from the program
 
