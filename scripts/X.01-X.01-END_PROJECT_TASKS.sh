@@ -40,6 +40,7 @@
 # combining all the individual qc reports for the project and adding the header.
 
 	cat $CORE_PATH/$PROJECT/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
+	| sort -k 2,2 \
 	| awk 'BEGIN {print "PROJECT",\
 		"SM_TAG",\
 		"RG_PU",\
@@ -205,8 +206,8 @@
 			| sort -t',' -k 1,1 -k 40,40nr) \
 		| awk 'BEGIN {FS=",";OFS=","} !x[$1]++ {print $0}' \
 		| join -t , -1 2 -2 1 \
-		$CORE_PATH/$PROJECT/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
-		/dev/stdin \
+			$CORE_PATH/$PROJECT/TEMP/$PROJECT".QC_REPORT."$TIMESTAMP".TEMP.csv" \
+			/dev/stdin \
 		>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$PROJECT".QC_REPORT."$TIMESTAMP".csv"
 
 ###########################################################################
@@ -246,9 +247,12 @@
 ##### Join with LAB QC PREP METRICS AND METADATA at the batch level #####
 #########################################################################
 
-	join -t , -1 2 -2 1 \
-	$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv" \
-	$CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
+	(head -n 1 $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" ; \
+		awk 'NR>1' $CORE_PATH/$PROJECT/REPORTS/LAB_PREP_REPORTS/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv" \
+	| sort -t',' -k 1,1 ) \
+	| join -t , -1 2 -2 1 \
+		$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".QC_REPORT.csv" \
+		/dev/stdin \
 	>| $CORE_PATH/$PROJECT/REPORTS/QC_REPORTS/$SAMPLE_SHEET_NAME".QC_REPORT.csv"
 
 #######################################################

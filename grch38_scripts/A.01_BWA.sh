@@ -104,8 +104,8 @@
 				ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null) | tail -n 1`
 
 		else
-			FASTQ_1=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R1_000.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_R1_001.fastq"* 2> /dev/null)`
-			FASTQ_2=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R2_000.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_R2_001.fastq"* 2> /dev/null)`
+			FASTQ_1=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_1.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R1_000.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_R1_001.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_1.fastq"* 2> /dev/null)`
+			FASTQ_2=`(ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_2.fastq"* 2> /dev/null ; ls $CORE_PATH/$PROJECT/FASTQ/$FIXED_PLATFORM_UNIT"_R2_000.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_R2_001.fastq"* 2> /dev/null; ls $CORE_PATH/$PROJECT/FASTQ/$SM_TAG"_2.fastq"* 2> /dev/null)`
 	fi
 
 # -----Alignment and BAM post-processing-----
