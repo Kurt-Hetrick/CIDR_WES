@@ -38,15 +38,20 @@ START_LAB_PREP_METRICS=`date '+%s'`
 
 # Make a QC report just for a project in the sample sheet.
 
-(head -n 1 $SAMPLE_SHEET ; \
-	awk 'BEGIN {FS=",";OFS=","} $1=="'$PROJECT'" {print $0}' $SAMPLE_SHEET ) \
-	>| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$START_LAB_PREP_METRICS".csv"
+	(head -n 1 $SAMPLE_SHEET ; \
+		awk 'BEGIN {FS=",";OFS=","} $1=="'$PROJECT'" {print $0}' $SAMPLE_SHEET ) \
+		>| $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$START_LAB_PREP_METRICS".csv"
 
-$JAVA_1_8/java -jar $LAB_QC_DIR/EnhancedSequencingQCReport.jar \
--lab_qc_metrics \
-$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$START_LAB_PREP_METRICS".csv" \
-$CORE_PATH \
-$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
+# Generates a QC report for lab specific metrics including Physique Report, Samples Table, Sequencer XML data, Pca and Phoenix. Does not check if samples are dropped.
+	# [1] path_to_sample_sheet
+	# [2] path_to_seq_proj ($CORE_PATH)
+	# [3] path_to_output_file
+
+		$JAVA_1_8/java -jar $LAB_QC_DIR/EnhancedSequencingQCReport.jar \
+		-lab_qc_metrics \
+		$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$START_LAB_PREP_METRICS".csv" \
+		$CORE_PATH \
+		$CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
 
 	# check the exit signal at this point.
 
@@ -55,12 +60,12 @@ $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME".LAB_PREP_METRICS.csv"
 	# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 	# also write to file that this job failed
 
-			if [ "$SCRIPT_STATUS" -ne 0 ]
-			 then
-				echo $PROJECT $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
-				>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
-				exit $SCRIPT_STATUS
-			fi
+		if [ "$SCRIPT_STATUS" -ne 0 ]
+		 then
+			echo $PROJECT $HOSTNAME $JOB_NAME $USER $SCRIPT_STATUS $SGE_STDERR_PATH \
+			>> $CORE_PATH/$PROJECT/TEMP/$SAMPLE_SHEET_NAME"_"$SUBMIT_STAMP"_ERRORS.txt"
+			exit $SCRIPT_STATUS
+		fi
 
 END_LAB_PREP_METRICS=`date '+s'`
 

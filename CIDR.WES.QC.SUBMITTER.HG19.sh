@@ -99,7 +99,7 @@ PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
 	SAMBAMBA_DIR="/mnt/linuxtools/SAMBAMBA/sambamba_v0.6.8"
 	GATK_DIR_4011="/mnt/linuxtools/GATK/gatk-4.0.11.0"
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
-	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.0.10"
+	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.1.0"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
 		# md5 f979bb4dc8d97113735ef17acd3a766e  EnhancedSequencingQCReport.jar
 	R_DIRECTORY="/mnt/linuxtools/R/R-3.1.1/bin"
