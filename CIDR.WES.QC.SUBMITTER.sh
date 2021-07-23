@@ -1823,33 +1823,62 @@ done
 
 	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
 
-# Maybe I'll make this a function and throw it into a loop, but today is not that day.
-# I think that i will have to make this a look to handle multiple projects...maybe not
-# but again, today is not that day.
+# build hold id for qc report prep per sample, per project
 
-	awk 1 $SAMPLE_SHEET \
-		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-		| awk 'BEGIN {FS=","; OFS="\t"} NR>1 {print $1,$8}' \
-		| awk 'BEGIN {OFS="\t"} {sub(/@/,"_",$2)} {print $1,$2}' \
-		| sort -k 1,1 -k 2,2 \
-		| uniq \
-		| $DATAMASH_DIR/datamash -s -g 1 collapse 2 \
-		| awk 'BEGIN {FS="\t"} \
-			gsub (/,/,",X1_",$2) \
-			{print "qsub",\
-			"-S /bin/bash",\
-			"-cwd",\
-			"-V",\
-			"-q","'$QUEUE_LIST'",\
-			"-p","'$PRIORITY'",\
-			"-m","e",\
-			"-M","khetric1@jhmi.edu",\
-			"-N","X.01-X.01-END_PROJECT_TASKS_"$1,\
-			"-o","'$CORE_PATH'/"$1"/LOGS/"$1".END_PROJECT_TASKS.log",\
-			"-j y",\
-			"-hold_jid","X1_"$2",A.02-LAB_PREP_METRICS_"$1, \
-			"'$SCRIPT_DIR'""/X.01-X.01-END_PROJECT_TASKS.sh",\
-			"'$CORE_PATH'" , "'$DATAMASH_DIR'" , $1 , "'$SAMPLE_SHEET'" , "'$SCRIPT_DIR'" , "'$SUBMITTER_ID'" , "'$SUBMIT_STAMP'" "\n" "sleep 0.1s"}'
+	BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP ()
+	{
+		HOLD_ID_PATH="-hold_jid "
+
+		for SM_TAG in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} $1=="'$PROJECT'" {print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			HOLD_ID_PATH=$HOLD_ID_PATH"X1_"$SGE_SM_TAG","
+			HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
+		done
+	}
+
+# run end project functions (qc report, file clean-up) for each project
+
+	PROJECT_WRAP_UP ()
+	{
+		echo \
+		qsub \
+			-S /bin/bash \
+			-cwd \
+			-V \
+			-q $QUEUE_LIST \
+			-p $PRIORITY \
+			-m e \
+			-M khetric1@jhmi.edu \
+			-j y \
+		-N X.01-X.01_END_PROJECT_TASKS"_"$PROJECT \
+			-o $CORE_PATH/$PROJECT/LOGS/$PROJECT"-END_PROJECT_TASKS.log" \
+		${HOLD_ID_PATH}"A.02-LAB_PREP_METRICS_"${PROJECT} \
+		$SCRIPT_DIR/X.01-X.01-END_PROJECT_TASKS.sh \
+			$CORE_PATH \
+			$DATAMASH_DIR \
+			$PROJECT \
+			$SAMPLE_SHEET \
+			$SCRIPT_DIR \
+			$SUBMITTER_ID \
+			$SUBMIT_STAMP
+	}
+
+# final loop
+
+for PROJECT in $(awk 1 $SAMPLE_SHEET \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
+			| awk 'BEGIN {FS=","} NR>1 {print $1}' \
+			| sort \
+			| uniq);
+do
+	BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP
+	PROJECT_WRAP_UP
+done
 
 # EMAIL WHEN DONE SUBMITTING
 
