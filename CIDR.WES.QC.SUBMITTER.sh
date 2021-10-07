@@ -797,11 +797,20 @@
 		echo sleep 0.1s
 	done
 
-########################################################################################################
-##### HAPLOTYPE CALLER AND GENOTYPE GVCF SCATTER #######################################################
-# INPUT IS THE BAM FILE ################################################################################
-# the freemix value from verifybamID output is pulled as a variable to the haplotype caller script #####
-########################################################################################################
+################################################################################################
+##### HAPLOTYPE CALLER AND GENOTYPE GVCF SCATTER/GATHER SECTION ################################
+# RUN HAPLOTYPE CALLER AND THEN GENOTYPE GVCFS PER CHROMOSOME FOUND IN SAMPLE HC BAIT BED FILE #
+# NOTE: HC BAIT BED FILE IS THE BAIT BED FILE IN SAMPLE SHEET UNLESS IT IS A SPECIAL PROJECT ###
+# NOTE CONT'D: LIKE MENDEL OR GARRY CUTTTING ###################################################
+# GATHER GVCFS, BAM (FROM HAPLOTYPE CALLER), AND VCF FILES INTO ONE FILE PER SAMPLE ############
+# CONVERT HAPLOTYPE CALLER BAM FILE INTO CRAM ##################################################
+################################################################################################
+
+#######################################################################################################
+### HAPLOTYPE CALLER AND GENOTYPE GVCF SCATTER FUNCTIONS ##############################################
+# INPUT IS THE BAM FILE ###############################################################################
+# the freemix value from verifybamID output is pulled as a variable to the haplotype caller script ####
+#######################################################################################################
 
 	###############################################################################################
 	# run haplotype caller to create a gvcf for all intervals per chromosome in the bait bed file #
@@ -853,44 +862,10 @@
 				${SUBMIT_STAMP}
 		}
 
-#################################################################################################
-# RUN STEPS FOR HAPLOTYPE CALLER AND GENOTYPE GVCF SCATTER ######################################
-# Take the samples bait bed file and ############################################################
-# create a list of unique chromosome to use as a scatter for haplotype caller and genotype gvcf #
-#################################################################################################
-
-	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
-		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
-		| awk 'BEGIN {FS=","} \
-			NR>1 \
-			{print $8}' \
-		| sort \
-		| uniq);
-	do
-		CREATE_SAMPLE_ARRAY
-
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' ${HC_BAIT_BED} \
-			| sed -r 's/[[:space:]]+/\t/g' \
-			| sed 's/chr//g' \
-			| egrep "^[0-9]|^X|^Y" \
-			| cut -f 1 \
-			| sort -V \
-			| uniq \
-			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
-				collapse 1 \
-			| sed 's/,/ /g');
-		do
-			CALL_HAPLOTYPE_CALLER
-			echo sleep 0.1s
-			CALL_GENOTYPE_GVCF
-			echo sleep 0.1s
-		done
-	done
-
 ################################################################################
-##### HAPLOTYPE CALLER GATHER ##################################################
-################################################################################
+### HAPLOTYPE CALLER AND GENTOYPE GVCFS GATHER FUNCTIONS #######################
 # GATHER UP THE PER SAMPLE PER CHROMOSOME GVCF FILES INTO A SINGLE SAMPLE GVCF #
+# SAME FOR HC BAM AND INITIAL RAW VCF OUTPUTS ##################################
 ################################################################################
 
 	#############################################################################################
@@ -994,9 +969,12 @@
 				${SUBMIT_STAMP}
 		}
 
-###############################################
-# RUN STEPS TO DO GVCF, HC BAM AND VCF GATHER #
-###############################################
+#################################################################################################
+# RUN STEPS FOR HAPLOTYPE CALLER GVCF/BAM AND GENOTYPE GVCF SCATTER/GATHER ######################
+# Take the samples bait bed file and ############################################################
+# create a list of unique chromosome to use as a scatter for haplotype caller and genotype gvcf #
+# convert haplotype caller bamout to cram after gathering #######################################
+#################################################################################################
 
 	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
@@ -1007,13 +985,47 @@
 		| uniq);
 	do
 		CREATE_SAMPLE_ARRAY
-		BUILD_HOLD_ID_PATH_GVCF_AND_HC_BAM_AND_VCF_GATHER
-		CALL_HAPLOTYPE_CALLER_GVCF_GATHER
-		echo sleep 0.1s
-		CALL_HAPLOTYPE_CALLER_BAM_GATHER
-		echo sleep 0.1s
-		CALL_GENOTYPE_GVCF_GATHER
-		echo sleep 0.1s
+		# create variables for gathers starting with sge -hold_jid argument
+
+			HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER="-hold_jid "
+			HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="-hold_jid "
+
+		# run haplotype caller and genotype scatter in below for loop
+		# populate with job names per sample in below for loop
+
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' ${HC_BAIT_BED} \
+			| sed -r 's/[[:space:]]+/\t/g' \
+			| sed 's/chr//g' \
+			| egrep "^[0-9]|^X|^Y" \
+			| cut -f 1 \
+			| sort -V \
+			| uniq \
+			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+				collapse 1 \
+			| sed 's/,/ /g');
+		do
+			# do haplotype caller and genotype gvcf scatter
+				CALL_HAPLOTYPE_CALLER
+				echo sleep 0.1s
+				CALL_GENOTYPE_GVCF
+				echo sleep 0.1s
+			# populate -hold_jid argument with all haplotype caller scatter jobs to gather gvcf and bam per sample. 
+				HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER="${HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER}F01-HAPLOTYPE_CALLER_${SM_TAG}_${PROJECT}_chr${CHROMOSOME},"
+			# replace @ with _ in job names
+				HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER=`echo ${HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER} | sed 's/@/_/g'`
+			# populate -hold_jid argument with all genotype gvcf scatter jobs to gather vcf per sample.
+				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER="${HOLD_ID_PATH_GENOTYPE_GVCF_GATHER}G01-GENOTYPE_GVCF_${SM_TAG}_${PROJECT}_chr${CHROMOSOME},"
+			# replace @ with _ in job names
+				HOLD_ID_PATH_GENOTYPE_GVCF_GATHER=`echo ${HOLD_ID_PATH_GENOTYPE_GVCF_GATHER} | sed 's/@/_/g'`
+		done
+
+		# do gvcf/hc bam/and vcf gathers. convert hc bam to cram
+			CALL_HAPLOTYPE_CALLER_GVCF_GATHER
+			echo sleep 0.1s
+			CALL_HAPLOTYPE_CALLER_BAM_GATHER
+			echo sleep 0.1s
+			CALL_GENOTYPE_GVCF_GATHER
+			echo sleep 0.1s
 	done
 
 ###########################################
