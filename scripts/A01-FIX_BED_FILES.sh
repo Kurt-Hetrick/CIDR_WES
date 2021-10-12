@@ -94,3 +94,11 @@
 				{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
 			${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed) \
 		>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-picard.bed
+
+	# target bed
+
+		(grep "^@SQ" ${REF_DICT} \
+			; awk 'BEGIN {OFS="\t"} \
+				{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
+			${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}.bed) \
+		>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}-picard.bed
