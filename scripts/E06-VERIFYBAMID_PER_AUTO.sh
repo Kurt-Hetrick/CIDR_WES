@@ -57,11 +57,11 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 				CMD=${CMD}" /usr/GenomeAnalysisTK.jar"
 			CMD=${CMD}" --analysis_type SelectVariants"
 				CMD=${CMD}" --reference_sequence ${REF_GENOME}"
-				CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
+				CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
 				CMD=${CMD}" --intervals ${AUTOSOME}"
 				CMD=${CMD}" --variant ${VERIFY_VCF}"
 				CMD=${CMD}" --interval_set_rule INTERSECTION"
-			CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.VerifyBamID.${AUTOSOME}.vcf"
+			CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.VerifyBamID.${AUTOSOME}.vcf"
 
 		# write command line to file and execute the command line
 
@@ -75,12 +75,12 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 		# construct command line
 
 			CMD="singularity exec ${ALIGNMENT_CONTAINER} verifyBamID"
-				CMD=${CMD}" --bam ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.bam"
-				CMD=${CMD}" --vcf ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.VerifyBamID.${AUTOSOME}.vcf"
+				CMD=${CMD}" --bam ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.bam"
+				CMD=${CMD}" --vcf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.VerifyBamID.${AUTOSOME}.vcf"
 				CMD=${CMD}" --precise"
 				CMD=${CMD}" --verbose"
 				CMD=${CMD}" --maxDepth 2500"
-			CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${AUTOSOME}"
+			CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${AUTOSOME}"
 
 		# write command line to file and execute the command line
 
@@ -94,7 +94,7 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'`
 # run select verifybamid vcf and verifybamid for each chromosome separately
 
 	for AUTOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
-		${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
+		${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| egrep "^[0-9]" \

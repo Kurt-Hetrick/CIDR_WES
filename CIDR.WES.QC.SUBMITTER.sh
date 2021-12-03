@@ -222,7 +222,7 @@
 	MAKE_PROJ_DIR_TREE ()
 	{
 		mkdir -p \
-		${CORE_PATH}/${SEQ_PROJECT}/{TEMP,FASTQ,LOGS,CRAM,GVCF,COMMAND_LINES,HC_CRAM} \
+		${CORE_PATH}/${SEQ_PROJECT}/{COMMAND_LINES,CRAM,FASTQ,GVCF,HC_CRAM,LOGS} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/{ALIGNMENT_SUMMARY,ANEUPLOIDY_CHECK,ANNOVAR,COUNT_COVARIATES,ERROR_SUMMARY,LAB_PREP_REPORTS,PICARD_DUPLICATES,QC_REPORTS,QC_REPORT_PREP,QUALITY_YIELD,RG_HEADER,TI_TV,TI_TV_MS,VERIFYBAMID,VERIFYBAMID_CHR} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
@@ -235,8 +235,9 @@
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/INSERT_SIZE/{METRICS,PDF} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/MEAN_QUALITY_BY_CYCLE/{METRICS,PDF} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/PRE_ADAPTER/{METRICS,SUMMARY} \
-		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/VCF_METRICS/{BAIT,TARGET,TITV} \
-		${CORE_PATH}/${SEQ_PROJECT}/VCF/QC
+		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/VCF_METRICS/SINGLE_SAMPLE/{BAIT,TARGET,TITV} \
+		${CORE_PATH}/${SEQ_PROJECT}/TEMP/${SAMPLE_SHEET_NAME} \
+		${CORE_PATH}/${SEQ_PROJECT}/VCF/SINGLE_SAMPLE
 	}
 
 ############################################################################################################
@@ -388,7 +389,7 @@
 	MAKE_SAMPLE_DIRECTORIES ()
 	{
 		mkdir -p \
-		${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG} \
+		${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG} \
 		${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}
 	}
 
@@ -412,7 +413,8 @@
 			${BAIT_BED} \
 			${TARGET_BED} \
 			${TITV_BED} \
-			${REF_DICT}
+			${REF_DICT} \
+			${SAMPLE_SHEET}
 	}
 
 	######################################
@@ -678,29 +680,31 @@
 				collapse 4 \
 				unique 5 \
 				unique 6 \
-			| awk 'BEGIN {FS="\t"} \
-				gsub(/,/,",A02-BWA_"$5"_",$3) \
-				gsub(/,/,",INPUT=" "'${CORE_PATH}'" "/" $1"/TEMP/"$2"/",$4) \
-				{print "qsub",\
-				"-S /bin/bash",\
-				"-cwd",\
-				"-V",\
-				"-v SINGULARITY_BINDPATH=/mnt:/mnt",\
-				"-q","'$QUEUE_LIST'",\
-				"-p","'${PRIORITY}'",\
-				"-N","B01-MARK_DUPLICATES_"$5"_"$1,\
-				"-o","'${CORE_PATH}'/"$1"/LOGS/"$2"/"$2"-MARK_DUPLICATES.log",\
-				"-j y",\
-				"-hold_jid","A02-BWA_"$5"_"$3, \
-				"'${SCRIPT_DIR}'""/B01-MARK_DUPLICATES.sh",\
-				"'${ALIGNMENT_CONTAINER}'",\
-				"'${CORE_PATH}'",\
-				$1,\
-				$2,\
-				$6,\
-				"'${SAMPLE_SHEET}'",\
-				"'${SUBMIT_STAMP}'",\
-				"INPUT=" "'${CORE_PATH}'" "/" $1"/TEMP/"$2"/"$4"\n""sleep 0.1s"}'
+		| awk 'BEGIN {FS="\t"} \
+			gsub(/,/,",A02-BWA_"$5"_",$3) \
+			gsub(/,/,",INPUT=" "'${CORE_PATH}'" "/" $1 "/TEMP/" "'${SAMPLE_SHEET_NAME}'" "/" $2 "/",$4) \
+			{print "qsub",\
+			"-S /bin/bash",\
+			"-cwd",\
+			"-V",\
+			"-v SINGULARITY_BINDPATH=/mnt:/mnt",\
+			"-q","'$QUEUE_LIST'",\
+			"-p","'${PRIORITY}'",\
+			"-N","B01-MARK_DUPLICATES_"$5"_"$1,\
+			"-o","'${CORE_PATH}'/"$1"/LOGS/"$2"/"$2"-MARK_DUPLICATES.log",\
+			"-j y",\
+			"-hold_jid","A02-BWA_"$5"_"$3, \
+			"'${SCRIPT_DIR}'""/B01-MARK_DUPLICATES.sh",\
+			"'${ALIGNMENT_CONTAINER}'",\
+			"'${CORE_PATH}'",\
+			$1,\
+			$2,\
+			$6,\
+			"'${SAMPLE_SHEET}'",\
+			"'${SUBMIT_STAMP}'",\
+			"INPUT=" "'${CORE_PATH}'" "/" $1 "/TEMP/" "'${SAMPLE_SHEET_NAME}'" "/" $2 "/"$4,\
+			"\n" \
+			"sleep 0.1s"}'
 
 ###################################################
 ### PROCEEDING WITH AGGREGATED SAMPLE FILES NOW ###
@@ -1368,6 +1372,53 @@
 				${SUBMIT_STAMP}
 		}
 
+		#######################################################################################
+		# EXTRACT OUT PASS ONLY SNVS FROM FINAL VCF ON TARGET BED FILE TO USE FOR CONCORDANCE #
+		#######################################################################################
+
+			EXTRACT_ON_TARGET_PASS_SNV ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_SNV_TARGET_PASS.log \
+				-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
+				${SCRIPT_DIR}/I01-A01-A01-EXTRACT_SNV_TARGET_PASS.sh \
+					${ALIGNMENT_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${REF_GENOME} \
+					${TARGET_BED} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+				############################################################################################
+				# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
+				############################################################################################
+
+					TARGET_PASS_SNV_CONCORDANCE ()
+					{
+						echo \
+						qsub \
+							${QSUB_ARGS} \
+						-N I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+							-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+						-hold_jid I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+						${SCRIPT_DIR}/I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+							${JAVA_1_8} \
+							${CIDRSEQSUITE_7_5_0_DIR} \
+							${VERACODE_CSV} \
+							${CORE_PATH} \
+							${PROJECT} \
+							${SM_TAG} \
+							${TARGET_BED} \
+							${SAMPLE_SHEET} \
+							${SUBMIT_STAMP}
+					}
+
 	##########################
 	# FILTER INDEL AND MIXED #
 	##########################
@@ -1484,64 +1535,31 @@
 				${SUBMIT_STAMP}
 		}
 
-	TARGET_PASS_SNV_CONCORDANCE ()
-	{
-		echo \
-		qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p ${PRIORITY} \
-		-N J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"${PROJECT} \
-			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-			-j y \
-		-hold_jid J.01-A.01-A.02_TARGET_PASS_SNV_QC"_"$SGE_SM_TAG"_"${PROJECT},A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT} \
-		${SCRIPT_DIR}/J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE.sh \
-			${JAVA_1_8} \
-			$CIDRSEQSUITE_7_5_0_DIR \
-			$VERACODE_CSV \
-			${CORE_PATH} \
-			${PROJECT} \
-			${SM_TAG} \
-			${TARGET_BED} \
-			${SAMPLE_SHEET} \
-			${SUBMIT_STAMP}
-	}
-
-
+######################################
+# GENERATE QC REPORT STUB FOR SAMPLE #
+######################################
 
 QC_REPORT_PREP ()
 {
 echo \
 qsub \
--S /bin/bash \
--cwd \
--V \
--q $QUEUE_LIST \
--p ${PRIORITY} \
--N X1"_"$SGE_SM_TAG \
+${QSUB_ARGS} \
+-N X1_${SGE_SM_TAG} \
 -hold_jid \
-J.01-A.01-A.05-A.01_RUN_TITV_NOVEL_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.01-A.01-A.04-A.01_RUN_TITV_KNOWN_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.01-A.01-A.03-A.01_RUN_TITV_ALL_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.03-A.01-A.02_TARGET_PASS_MIXED_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.03-A.01-A.01_BAIT_PASS_MIXED_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.02-A.01-A.02_TARGET_PASS_INDEL_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.02-A.01-A.01_BAIT_PASS_INDEL_QC"_"$SGE_SM_TAG"_"${PROJECT},\
-J.01-A.01-A.02-A.01_SNV_TARGET_PASS_CONCORDANCE"_"$SGE_SM_TAG"_"${PROJECT},\
-J.01-A.01-A.01_BAIT_PASS_SNV_QC"_"$SGE_SM_TAG"_"${PROJECT},\
+E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT},\
 E03-DOC_CODING_${SGE_SM_TAG}_${PROJECT},\
 E04-DOC_BAIT_${SGE_SM_TAG}_${PROJECT},\
 E05-A01-CHROM_DEPTH_${SGE_SM_TAG}_${PROJECT},\
 F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
 F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
-E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT},\
-E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT} \
+E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT},\
+I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
+J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
+J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
+J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
 -o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-QC_REPORT_PREP_QC.log \
-${SCRIPT_DIR}/X.01-QC_REPORT_PREP.sh \
-$SAMTOOLS_DIR \
-$DATAMASH_DIR \
+${SCRIPT_DIR}/X01-QC_REPORT_PREP.sh \
+${ALIGNMENT_CONTAINER} \
 ${CORE_PATH} \
 ${PROJECT} \
 ${SM_TAG} \
@@ -1568,6 +1586,10 @@ ${SUBMIT_STAMP}
 		echo sleep 0.1s
 		FILTER_SNV
 		echo sleep 0.1s
+		EXTRACT_ON_TARGET_PASS_SNV
+		echo sleep 0.1s
+		TARGET_PASS_SNV_CONCORDANCE
+		echo sleep 0.1s
 		FILTER_INDEL_AND_MIXED
 		echo sleep 0.1s
 		COMBINE_FILTERED_VCF_FILES
@@ -1578,10 +1600,8 @@ ${SUBMIT_STAMP}
 		echo sleep 0.1s
 		VCF_METRICS_TITV
 		echo sleep 0.1s
-		#TARGET_PASS_SNV_CONCORDANCE
-		#echo sleep 0.1s
-		# QC_REPORT_PREP
-		# echo sleep 0.1
+		QC_REPORT_PREP
+		echo sleep 0.1
 	done
 
 #############################
@@ -1590,11 +1610,14 @@ ${SUBMIT_STAMP}
 
 # grab email addy
 
-	SEND_TO=`cat ${SCRIPT_DIR}/../email_lists.txt`
+	SEND_TO=$(cat ${SCRIPT_DIR}/../email_lists.txt)
 
 # grab submitter's name
 
-	PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'$SUBMITTER_ID'" {print $5}'`
+	PERSON_NAME=$(getent passwd \
+		| awk 'BEGIN {FS=":"} \
+			$1=="'${SUBMITTER_ID}'" \
+			{print $5}')
 
 # build hold id for qc report prep per sample, per project
 
@@ -1604,13 +1627,15 @@ ${SUBMIT_STAMP}
 
 		for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-			| awk 'BEGIN {FS=","} $1=="'${PROJECT}'" {print $8}' \
+			| awk 'BEGIN {FS=","} \
+				$1=="'${PROJECT}'" \
+				{print $8}' \
 			| sort \
 			| uniq);
 		do
 			CREATE_SAMPLE_ARRAY
-			HOLD_ID_PATH=$HOLD_ID_PATH"X1_"$SGE_SM_TAG","
-			HOLD_ID_PATH=`echo $HOLD_ID_PATH | sed 's/@/_/g'`
+			HOLD_ID_PATH="${HOLD_ID_PATH}X1_${SGE_SM_TAG},"
+			HOLD_ID_PATH=`echo ${HOLD_ID_PATH} | sed 's/@/_/g'`
 		done
 	}
 
@@ -1620,41 +1645,38 @@ ${SUBMIT_STAMP}
 	{
 		echo \
 		qsub \
-			-S /bin/bash \
-			-cwd \
-			-V \
-			-q $QUEUE_LIST \
-			-p ${PRIORITY} \
+			${QSUB_ARGS} \
 			-m e \
 			-M khetric1@jhmi.edu \
-			-j y \
-		-N X.01-X.01_END_PROJECT_TASKS"_"${PROJECT} \
-			-o ${CORE_PATH}/${PROJECT}/LOGS/${PROJECT}"-END_PROJECT_TASKS.log" \
-		${HOLD_ID_PATH}"A00-LAB_PREP_METRICS_"${PROJECT} \
-		${SCRIPT_DIR}/X.01-X.01-END_PROJECT_TASKS.sh \
+		-N X01-X01-END_PROJECT_TASKS_${PROJECT} \
+			-o ${CORE_PATH}/${PROJECT}/LOGS/${PROJECT}-END_PROJECT_TASKS.log \
+		${HOLD_ID_PATH}A00-LAB_PREP_METRICS_${PROJECT} \
+		${SCRIPT_DIR}/X01-X01-END_PROJECT_TASKS.sh \
 			${CORE_PATH} \
-			$DATAMASH_DIR \
+			${ALIGNMENT_CONTAINER} \
 			${PROJECT} \
 			${SAMPLE_SHEET} \
 			${SCRIPT_DIR} \
-			$SUBMITTER_ID \
+			${SUBMITTER_ID} \
 			${SUBMIT_STAMP}
 	}
 
 # final loop
 
-for PROJECT in $(awk 1 ${SAMPLE_SHEET} \
+	for PROJECT in $(awk 1 ${SAMPLE_SHEET} \
 			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d; /^,/d' \
-			| awk 'BEGIN {FS=","} NR>1 {print $1}' \
+			| awk 'BEGIN {FS=","} \
+				NR>1 \
+				{print $1}' \
 			| sort \
 			| uniq);
-do
-	BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP
-	# PROJECT_WRAP_UP
-done
+	do
+		BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP
+		PROJECT_WRAP_UP
+	done
 
 # EMAIL WHEN DONE SUBMITTING
 
 printf "${SAMPLE_SHEET}\nhas finished submitting at\n`date`\nby `whoami`" \
-	| mail -s "$PERSON_NAME has submitted CIDR.WES.QC.SUBMITTER.sh" \
+	| mail -s "${PERSON_NAME} has submitted CIDR.WES.QC.SUBMITTER.sh" \
 		$SEND_TO

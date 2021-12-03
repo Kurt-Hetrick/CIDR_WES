@@ -32,16 +32,17 @@
 	SM_TAG=$5
 	REF_GENOME=$6
 	HC_BAIT_BED=$7
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
+	SUBMIT_STAMP=$9
+
 		BAIT_BED_NAME=$(basename ${HC_BAIT_BED} .bed)
 			if [[ ${HC_BAIT_BED}="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" ]];
 			then
 				CALL_BED_FILE=${HC_BAIT_BED}
 			else
-				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
+				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
 			fi
-	SAMPLE_SHEET=$8
-		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SUBMIT_STAMP=$9
 
 ## -----CONCATENATE SCATTERED g.vcf FILES INTO A SINGLE GRCh37 reference sorted g.vcf file-----
 
@@ -67,7 +68,7 @@ START_HAPLOTYPE_CALLER_GATHER=`date '+%s'` # capture time process starts for wal
 					collapse 1 \
 				| sed 's/,/ /g');
 		do
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
 		done
 
 	CMD=${CMD}" --outputFile ${CORE_PATH}/${PROJECT}/GVCF/${SM_TAG}.g.vcf.gz"

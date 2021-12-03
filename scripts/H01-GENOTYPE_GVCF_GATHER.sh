@@ -50,7 +50,7 @@ START_GENOTYPE_GVCF_GATHER=`date '+%s'` # capture time process starts for wall c
 		CMD=${CMD}" --assumeSorted"
 		# loop through natural sorted chromosome list to concatentate gvcf files.
 
-		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
+		for CHROMOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
 				| sed -r 's/[[:space:]]+/\t/g' \
 				| sed 's/chr//g' \
 				| egrep "^[0-9]|^X|^Y" \
@@ -61,10 +61,10 @@ START_GENOTYPE_GVCF_GATHER=`date '+%s'` # capture time process starts for wall c
 					collapse 1 \
 				| sed 's/,/ /g');
 		do
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.QC_RAW_OnBait.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.QC_RAW_OnBait.vcf.gz"
 		done
 
-	CMD=${CMD}" --outputFile ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
+	CMD=${CMD}" --outputFile ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
 
 	# write command line to file and execute the command line
 

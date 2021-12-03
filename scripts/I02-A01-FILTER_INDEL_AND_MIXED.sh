@@ -53,8 +53,8 @@ START_FILTER_INDEL_AND_MIXED=`date '+%s'` # capture time process starts for wall
 			CMD=${CMD}" --filterExpression 'DP < 8.0'" \
 			CMD=${CMD}" --filterName 'low_DP'" \
 			CMD=${CMD}" --logging_level ERROR"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_INDEL_MIXED.vcf.gz"
-		CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.FILTERED.INDEL_MIXED.vcf.gz" \
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_INDEL_MIXED.vcf.gz"
+		CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.FILTERED.INDEL_MIXED.vcf.gz" \
 
 	# write command line to file and execute the command line
 

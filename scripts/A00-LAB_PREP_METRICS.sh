@@ -46,21 +46,21 @@ START_LAB_PREP_METRICS=`date '+%s'` # capture time process starts for wall clock
 		| awk 'BEGIN {FS=",";OFS=","} \
 			$1=="'${PROJECT}'" \
 			{print $0}') \
-	>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${START_LAB_PREP_METRICS}.csv
+	>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SAMPLE_SHEET_NAME}_${START_LAB_PREP_METRICS}.csv
 
 # Generates a QC report for lab specific metrics including Physique Report, Samples Table, Sequencer XML data, Pca and Phoenix. Does not check if samples are dropped.
 
 # construct command line
 
 	CMD="$JAVA_1_8/java -jar"
-		CMD=${CMD}" $LAB_QC_DIR/EnhancedSequencingQCReport.jar"
+		CMD=${CMD}" ${LAB_QC_DIR}/EnhancedSequencingQCReport.jar"
 	CMD=${CMD}" -lab_qc_metrics" \
 		# [1] path_to_sample_sheet
-		CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${START_LAB_PREP_METRICS}.csv" \
+		CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SAMPLE_SHEET_NAME}_${START_LAB_PREP_METRICS}.csv" \
 		# [2] path_to_seq_proj (${CORE_PATH})
 		CMD=${CMD}" ${CORE_PATH}" \
 	# [3] path_to_output_file
-	CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv"
+	CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv"
 
 	# write command line to file and execute the command line
 

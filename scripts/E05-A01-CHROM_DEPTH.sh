@@ -31,6 +31,8 @@ echo
 	PROJECT=$3
 	SM_TAG=$4
 	CYTOBAND_BED=$5
+	SAMPLE_SHEET=$6
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 
 # Format the cytoband file.
 	# strip out the "chr" prefix from the chromsome name
@@ -49,7 +51,7 @@ echo
 			last 3 \
 		| awk 'BEGIN {OFS="\t"} \
 			{print $1,$3,$4,$2}' \
-	>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.CHROM_ARM.bed
+	>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.CHROM_ARM.bed
 
 # Annotate the sample_interval_summary file from DEPTH_OF_COVERAGE.csv with what chromosome arm that intervals falls into
 # remove any snps if present (they don't have a (-) in the first field, ignore the header
@@ -92,7 +94,7 @@ echo
 					-wo \
 					-a - \
 					-b \
-				${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.CHROM_ARM.bed \
+				${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.CHROM_ARM.bed \
 			| awk 'BEGIN {OFS="\t"} \
 				{if ($1=="X"&&$2<=2699520) print "'${SM_TAG}'","X.PAR",$8,$4,$9 ; \
 				else if ($1=="X"&&$2>=154931044) print "'${SM_TAG}'","X.PAR",$8,$4,$9 ; \
@@ -102,20 +104,20 @@ echo
 				-g 1,2,3 \
 				sum 4 \
 				sum 5 \
-			| tee ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
+			| tee ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
 			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 				-g 1,2 \
 				sum 4 \
 				sum 5 \
 			| awk 'BEGIN {OFS="\t"} \
 				{print $1,$2,"whole",$3,$4}' \
-		| tee -a ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt
+		| tee -a ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt
 
 # calculate the mean autosomal (chr 1-22) read depth to normalized all of the depth for each chromosome and chromsome arm
 
 	AUTOSOMAL_MEAN_DEPTH=`awk '$3=="whole"&&$2~/[0-9]/ \
 		{print $0}' \
-	${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
+	${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
 	| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 		-s \
 		sum 4 \
@@ -128,7 +130,7 @@ echo
 
 	awk 'BEGIN {print "SM_TAG","CHROM","ARM","TOTAL_COVERAGE","TOTAL_TARGETS","MEAN_DEPTH","NORM_DEPTH","AUTO_MEAN_DEPTH"} \
 	{print $1,$2,$3,$4,$5,$4/$5,$4/$5/"'${AUTOSOMAL_MEAN_DEPTH}'","'{$AUTOSOMAL_MEAN_DEPTH}'"}' \
-	${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
+	${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.depth_per_chr_arm.txt \
 		| sed 's/ /\t/g' \
 		| awk '$2!="21"||$3!="p" \
 			{print $0}' \

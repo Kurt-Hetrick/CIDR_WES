@@ -51,7 +51,7 @@
 	SAMPLE_SHEET=${19}
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 	SUBMIT_STAMP=${20}
-	
+
 # Need to convert data in sample manifest to Iso 8601 date since we are not using bwa mem to populate this.
 # Picard AddOrReplaceReadGroups is much more stringent here.
 
@@ -153,7 +153,7 @@
 				CMD=${CMD}" RGDT=${ISO_8601}"
 				CMD=${CMD}" RGPG=CIDR_WES-${PIPELINE_VERSION}"
 				CMD=${CMD}" RGDS=${BAIT_NAME},${TARGET_NAME},${TITV_NAME}"
-			CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${PLATFORM_UNIT}.bam"
+			CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${PLATFORM_UNIT}.bam"
 
 		# write command line to file and execute the command line
 
@@ -224,7 +224,7 @@
 				CMD=${CMD}" RGDT=${ISO_8601}"
 				CMD=${CMD}" RGPG=CIDR_WES-${PIPELINE_VERSION}"
 				CMD=${CMD}" RGDS=${BAIT_NAME},${TARGET_NAME},${TITV_NAME}"
-			CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${PLATFORM_UNIT}.bam"
+			CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${PLATFORM_UNIT}.bam"
 
 		# write command line to file and execute the command line
 

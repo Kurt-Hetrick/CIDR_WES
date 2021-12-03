@@ -49,12 +49,12 @@ START_SELECT_VERIFYBAMID_VCF=`date '+%s'` # capture time process starts for wall
 		CMD=${CMD}" /gatk/gatk.jar"
 	CMD=${CMD}" SelectVariants"
 		CMD=${CMD}" --reference ${REF_GENOME}"
-		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed"
+		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed"
 		CMD=${CMD}" --variant ${VERIFY_VCF}"
 		CMD=${CMD}" --exclude-intervals X"
 		CMD=${CMD}" --exclude-intervals Y"
 		CMD=${CMD}" --exclude-intervals MT"
-	CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.VerifyBamID.vcf"
+	CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.VerifyBamID.vcf"
 
 	# write command line to file and execute the command line
 

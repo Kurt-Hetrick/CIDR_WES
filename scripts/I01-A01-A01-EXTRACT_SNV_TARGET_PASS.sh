@@ -26,28 +26,30 @@
 
 	ALIGNMENT_CONTAINER=$1
 	CORE_PATH=$2
-
+	
 	PROJECT=$3
 	SM_TAG=$4
 	REF_GENOME=$5
-	SAMPLE_SHEET=$6
+	TARGET_BED=$6
+		TARGET_BED_NAME=$(basename ${TARGET_BED} .bed)
+	SAMPLE_SHEET=$7
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SUBMIT_STAMP=$7
+	SUBMIT_STAMP=$8
 
-## --write lossless cram file.
+# Filter to just passing SNVs on Target
 
-START_HC_CRAM=`date '+%s'` # capture time process starts for wall clock tracking purposes.
+START_SNV_TARGET_PASS=`date '+%s'`
 
 	# construct command line
 
-		CMD="singularity exec ${ALIGNMENT_CONTAINER} samtools"
-		CMD=${CMD}" view"
-			CMD=${CMD}" -C ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.HC.bam"
-			CMD=${CMD}" -T ${REF_GENOME}"
-			CMD=${CMD}" -@ 4"
-			CMD=${CMD}" --write-index"
-			CMD=${CMD}" -O CRAM"
-		CMD=${CMD}" -o ${CORE_PATH}/${PROJECT}/HC_CRAM/${SM_TAG}.HC.cram"
+		CMD="singularity exec ${ALIGNMENT_CONTAINER} java -jar"
+			CMD=${CMD}" /gatk/gatk.jar"
+		CMD=${CMD}" SelectVariants"
+			CMD=${CMD}" --reference ${REF_GENOME}"
+			CMD=${CMD}" --exclude-filtered"
+			CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.FILTERED.SNV.vcf.gz"
+		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}_QC_PASS_OnTarget_SNV.vcf"
 
 	# write command line to file and execute the command line
 
@@ -69,11 +71,11 @@ START_HC_CRAM=`date '+%s'` # capture time process starts for wall clock tracking
 					exit ${SCRIPT_STATUS}
 			fi
 
-END_HC_CRAM=`date '+%s'` # capture time process stops for wall clock tracking purposes.
+END_SNV_TARGET_PASS=`date '+%s'`
 
 # write out timing metrics to file
 
-	echo ${SM_TAG}_${PROJECT},H01,HC_CRAM,${HOSTNAME},${START_HC_CRAM},${END_HC_CRAM} \
+	echo ${SM_TAG},K01,SNV_TARGET_PASS,${HOSTNAME},${START_SNV_TARGET_PASS},${END_SNV_TARGET_PASS} \
 	>> ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}.WALL.CLOCK.TIMES.csv
 
 # exit with the signal from the program

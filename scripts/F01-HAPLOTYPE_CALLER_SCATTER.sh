@@ -31,18 +31,18 @@
 	SM_TAG=$4
 	REF_GENOME=$5
 	HC_BAIT_BED=$6
+	CHROMOSOME=$7
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
+	SUBMIT_STAMP=$9
+
 		BAIT_BED_NAME=$(basename ${HC_BAIT_BED} .bed)
 			if [[ ${HC_BAIT_BED}="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" ]];
 			then
 				CALL_BED_FILE=${HC_BAIT_BED}
 			else
-				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
+				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
 			fi
-
-	CHROMOSOME=$7
-	SAMPLE_SHEET=$8
-		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SUBMIT_STAMP=$9
 
 ## -----Haplotype Caller-----
 
@@ -65,7 +65,7 @@ START_HAPLOTYPE_CALLER=`date '+%s'` # capture time process starts for wall clock
 		CMD=${CMD}" /usr/GenomeAnalysisTK.jar"
 	CMD=${CMD}" --analysis_type HaplotypeCaller"
 		CMD=${CMD}" --reference_sequence ${REF_GENOME}"
-		CMD=${CMD}" --input_file ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.bam"
+		CMD=${CMD}" --input_file ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.bam"
 		CMD=${CMD}" --intervals ${CALL_BED_FILE}"
 		CMD=${CMD}" --intervals ${CHROMOSOME}"
 		CMD=${CMD}" --interval_set_rule INTERSECTION"
@@ -90,9 +90,9 @@ START_HAPLOTYPE_CALLER=`date '+%s'` # capture time process starts for wall clock
 		CMD=${CMD}" --annotation AlleleBalanceBySample"
 		CMD=${CMD}" --annotation AlleleBalance"
 		CMD=${CMD}" --annotation LikelihoodRankSumTest"
-	CMD=${CMD}" --bamOutput ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.HC.${CHROMOSOME}.bam"
+	CMD=${CMD}" --bamOutput ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.HC.${CHROMOSOME}.bam"
 		CMD=${CMD}" --emitDroppedReads"
-	CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
+	CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
 
 	# write command line to file and execute the command line
 

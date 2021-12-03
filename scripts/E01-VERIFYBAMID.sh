@@ -41,8 +41,8 @@ START_VERIFYBAMID=`date '+%s'`
 # construct command line # capture time process starts for wall clock tracking purposes.
 
 	CMD="singularity exec ${ALIGNMENT_CONTAINER} verifyBamID"
-		CMD=${CMD}" --bam ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.bam"
-		CMD=${CMD}" --vcf ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.VerifyBamID.vcf"
+		CMD=${CMD}" --bam ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.bam"
+		CMD=${CMD}" --vcf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.VerifyBamID.vcf"
 		CMD=${CMD}" --precise"
 		CMD=${CMD}" --verbose"
 		CMD=${CMD}" --maxDepth 2500"

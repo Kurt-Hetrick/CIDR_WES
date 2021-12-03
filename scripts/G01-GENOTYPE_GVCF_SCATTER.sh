@@ -49,13 +49,13 @@ START_GENOTYPE_GVCF=`date '+%s'` # capture time process starts for wall clock tr
 		CMD=${CMD}" --reference_sequence ${REF_GENOME}"
 		CMD=${CMD}" --disable_auto_index_creation_and_locking_when_reading_rods"
 		CMD=${CMD}" --intervals ${CHROMOSOME}"
-		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
+		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
 		CMD=${CMD}" --interval_set_rule INTERSECTION"
 		CMD=${CMD}" --dbsnp ${DBSNP}"
 		CMD=${CMD}" --group Standard"
 		CMD=${CMD}" --group AS_Standard"
-		CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
-	CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.QC_RAW_OnBait.vcf.gz"
+		CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.g.vcf.gz"
+	CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${CHROMOSOME}.QC_RAW_OnBait.vcf.gz"
 
 	# write command line to file and execute the command line
 

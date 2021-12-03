@@ -49,12 +49,12 @@ START_PERFORM_BQSR=`date '+%s'` # capture time process starts for wall clock tra
 		CMD=${CMD}" /gatk/gatk.jar"
 	CMD=${CMD}" BaseRecalibrator"
 		CMD=${CMD}" --use-original-qualities"
-		CMD=${CMD}" --input ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.dup.bam"
+		CMD=${CMD}" --input ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.dup.bam"
 		CMD=${CMD}" --reference ${REF_GENOME}"
 		CMD=${CMD}" --known-sites ${KNOWN_INDEL_1}"
 		CMD=${CMD}" --known-sites ${KNOWN_INDEL_2}"
 		CMD=${CMD}" --known-sites ${DBSNP}"
-		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
+		CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed"
 	CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/REPORTS/COUNT_COVARIATES/${SM_TAG}_PERFORM_BQSR.bqsr"
 
 	# write command line to file and execute the command line

@@ -43,7 +43,7 @@ START_CRAM=`date '+%s'` # capture time process starts for wall clock tracking pu
 
 	CMD="singularity exec ${ALIGNMENT_CONTAINER} samtools"
 	CMD=${CMD}" view"
-		CMD=${CMD}" -C ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.bam"
+		CMD=${CMD}" -C ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.bam"
 		CMD=${CMD}" -T ${REF_GENOME}"
 		CMD=${CMD}" -@ 4"
 		CMD=${CMD}" --write-index"

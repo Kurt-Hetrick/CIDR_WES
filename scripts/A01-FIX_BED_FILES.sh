@@ -35,6 +35,8 @@
 	TITV_BED=$6
 		TITV_BED_NAME=$(basename ${TITV_BED} .bed)
 	REF_DICT=$7
+	SAMPLE_SHEET=$8
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 
 # FIX BED FILES (FOR GRCH37)
 
@@ -47,7 +49,7 @@
 					
 			awk 1 ${BAIT_BED} \
 				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
-			>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed
 
 	# FIX THE TARGET BED FILE
 
@@ -58,7 +60,7 @@
 					
 			awk 1 ${TARGET_BED} \
 				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
-			>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed
 
 	# FIX THE TITV BED FILE
 
@@ -69,9 +71,9 @@
 					
 			awk 1 ${TITV_BED} \
 				| sed -r 's/\r//g ; s/chr//g ; s/[[:space:]]+/\t/g' \
-			>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}.bed
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}.bed
 
-# MAKE PICARD INTERVAL FILES (1-based start)
+# MAKE PICARD INTERVAL FILES (1-based start) for bed files in the sample sheet
 	# GRAB THE SEQUENCING DICTIONARY FORM THE ".dict" file in the directory where the reference genome is located
 	# then concatenate with the fixed bed file.
 	# add 1 to the start
@@ -84,21 +86,21 @@
 		(grep "^@SQ" ${REF_DICT} \
 			; awk 'BEGIN {OFS="\t"} \
 				{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
-			${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed) \
-		>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}-picard.bed
+			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed) \
+		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}-picard.bed
 
 	# target bed
 
 		(grep "^@SQ" ${REF_DICT} \
 			; awk 'BEGIN {OFS="\t"} \
 				{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
-			${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed) \
-		>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-picard.bed
+			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed) \
+		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-picard.bed
 
 	# target bed
 
 		(grep "^@SQ" ${REF_DICT} \
 			; awk 'BEGIN {OFS="\t"} \
 				{print $1,($2+1),$3,"+",$1"_"($2+1)"_"$3}' \
-			${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}.bed) \
-		>| ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}-picard.bed
+			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}.bed) \
+		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}-picard.bed

@@ -48,12 +48,12 @@ START_FINAL_BAM=`date '+%s'` # capture time process starts for wall clock tracki
 		CMD=${CMD}" --use-original-qualities"
 		CMD=${CMD}" --emit-original-quals"
 		CMD=${CMD}" --reference ${REF_GENOME}"
-		CMD=${CMD}" --input ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.dup.bam"
+		CMD=${CMD}" --input ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.dup.bam"
 		CMD=${CMD}" --bqsr-recal-file ${CORE_PATH}/${PROJECT}/REPORTS/COUNT_COVARIATES/${SM_TAG}_PERFORM_BQSR.bqsr"
 		CMD=${CMD}" --static-quantized-quals 10"
 		CMD=${CMD}" --static-quantized-quals 20"
 		CMD=${CMD}" --static-quantized-quals 30"
-	CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.bam"
+	CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.bam"
 
 	# write command line to file and execute the command line
 

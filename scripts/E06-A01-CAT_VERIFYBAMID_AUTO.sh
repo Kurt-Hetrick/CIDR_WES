@@ -32,6 +32,8 @@
 	SM_TAG=$4
 	BAIT_BED=$5
 		BAIT_BED_NAME=$(basename ${BAIT_BED} .bed)
+	SAMPLE_SHEET=$6
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 
 # CREATE A FILE WITH THE HEADER
 
@@ -41,7 +43,7 @@
 # LOOP THROUGH EACH UNIQUE AUTOSOME IN THE BAIT BED FILE AND APPEND TO ABOVE FILE
 
 	for AUTOSOME in $(sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
-		${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
+		${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
 			| egrep "^[0-9]" \
@@ -51,15 +53,9 @@
 				collapse 1 \
 			| sed 's/,/ /g');
 	do
-		cat ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.${AUTOSOME}.selfSM \
+		cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.${AUTOSOME}.selfSM \
 			| grep -v ^# \
 			| awk 'BEGIN {OFS="\t"} \
 				{print($1,"'${AUTOSOME}'",$7,$4,$8,$9,$6)}' \
 		>> ${CORE_PATH}/${PROJECT}/REPORTS/VERIFYBAMID_CHR/${SM_TAG}.VERIFYBAMID.PER_CHR.txt
 	done
-
-# THIS WAS FORMATTING DONE IN THE PREVIOUS VERSION. CHECK TO SEE IF THIS IS STILL NEEDED OR NOT.
-
-# sed -i '/^\s*$/d' ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}".verifybamID_unsorted.txt"
-
-# sed -i 's/ /\t/g' ${CORE_PATH}/${PROJECT}/REPORTS/VERIFYBAMID_CHR/${SM_TAG}".VERIFYBAMID.PER_CHR.txt"

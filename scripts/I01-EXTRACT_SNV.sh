@@ -45,8 +45,8 @@ START_EXTRACT_SNV=`date '+%s'` # capture time process starts for wall clock trac
 		CMD=${CMD}" SelectVariants"
 			CMD=${CMD}" --reference ${REF_GENOME}"
 			CMD=${CMD}" --select-type-to-include SNP"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
-		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_SNV.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
+		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_SNV.vcf.gz"
 
 	# write command line to file and execute the command line
 

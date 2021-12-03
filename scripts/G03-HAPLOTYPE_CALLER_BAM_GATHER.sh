@@ -30,16 +30,17 @@
 	PROJECT=$3
 	SM_TAG=$4
 	HC_BAIT_BED=$5
+	SAMPLE_SHEET=$6
+		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
+	SUBMIT_STAMP=$7
+
 		BAIT_BED_NAME=$(basename ${HC_BAIT_BED} .bed)
 			if [[ ${HC_BAIT_BED}="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" ]];
 			then
 				CALL_BED_FILE=${HC_BAIT_BED}
 			else
-				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
+				CALL_BED_FILE=$(${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed)
 			fi
-	SAMPLE_SHEET=$6
-		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SUBMIT_STAMP=$7
 
 ## --GATHER HC BAM FILES IN NATURAL SORTED ORDER--
 
@@ -63,12 +64,12 @@ START_HC_BAM_GATHER=`date '+%s'` # capture time process starts for wall clock tr
 					collapse 1 \
 				| sed 's/,/ /g');
 		do
-			CMD=${CMD}" INPUT=${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.HC.${CHROMOSOME}.bam"
+			CMD=${CMD}" INPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.HC.${CHROMOSOME}.bam"
 		done
 
 		CMD=${CMD}" VALIDATION_STRINGENCY=SILENT"
 		CMD=${CMD}" CREATE_INDEX=true"
-	CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.HC.bam"
+	CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.HC.bam"
 
 	# write command line to file and execute the command line
 

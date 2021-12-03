@@ -45,9 +45,9 @@ START_COMBINE_VCF=`date '+%s'` # capture time process starts for wall clock trac
 		CMD=${CMD}" --analysis_type CombineVariants"
 			CMD=${CMD}" --reference_sequence ${REF_GENOME}"
 			CMD=${CMD}" --genotypemergeoption UNSORTED"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.FILTERED.SNV.vcf.gz"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.FILTERED.INDEL_MIXED.vcf.gz"
-		CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/VCF/QC/${SM_TAG}.QC.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.FILTERED.SNV.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.FILTERED.INDEL_MIXED.vcf.gz"
+		CMD=${CMD}" --out ${CORE_PATH}/${PROJECT}/VCF/SINGLE_SAMPLE/${SM_TAG}.QC.vcf.gz"
 
 	# write command line to file and execute the command line
 

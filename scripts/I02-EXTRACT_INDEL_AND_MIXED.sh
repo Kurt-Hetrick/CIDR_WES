@@ -48,8 +48,8 @@ START_EXTRACT_INDEL_AND_MIXED=`date '+%s'` # capture time process starts for wal
 			CMD=${CMD}" --select-type-to-include MIXED"
 			CMD=${CMD}" --select-type-to-include MNP"
 			CMD=${CMD}" --select-type-to-include SYMBOLIC"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
-		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SM_TAG}/${SM_TAG}.QC_RAW_INDEL_MIXED.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_OnBait.vcf.gz"
+		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_RAW_INDEL_MIXED.vcf.gz"
 
 	# write command line to file and execute the command line
 
