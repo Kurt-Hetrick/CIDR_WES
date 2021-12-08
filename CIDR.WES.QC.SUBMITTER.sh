@@ -1172,7 +1172,8 @@
 				${CORE_PATH} \
 				${PROJECT} \
 				${SM_TAG} \
-				${CYTOBAND_BED}
+				${CYTOBAND_BED} \
+				${SAMPLE_SHEET}
 		}
 
 	#############################
@@ -1266,7 +1267,8 @@
 				${ALIGNMENT_CONTAINER} \
 				${PROJECT} \
 				${SM_TAG} \
-				${BAIT_BED}
+				${BAIT_BED} \
+				${SAMPLE_SHEET}
 		}
 
 ############################################

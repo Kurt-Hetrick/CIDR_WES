@@ -359,7 +359,7 @@
 #######################################################
 #######################################################
 ##### SEND EMAIL NOTIFICATION SUMMARIES WHEN DONE #####
-#######################################################
+##### CLEAN-UP OR NOT DEPENDING ON IF JOBS FAILED OR NOT #####
 #######################################################
 
 	# grab email addy
@@ -373,123 +373,77 @@
 				$1=="'${SUBMITTER_ID}'" \
 				{print $5}')
 
-	################################################################################
-	### SAMPLES WITH MULTIPLE LIBRARIES AND REPORT LOCATION NOTIFICATION ###########
-	################################################################################
-	# If there are samples with multiple libraries #################################
-	# send that notification along with paths to the various reports ###############
-	# otherwise just send out the email detailing where the reports are located at #
-	################################################################################
-
-		if [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt ]]
-		then
-			printf "${PERSON_NAME} Was The Submitter\n \
-			THIS BATCH HAS SAMPLES WITH EITHER MULTIPLE LIBRARIES OR TOTAL FAILURES. THAT LIST WILL COME IN A SEPARATE NOTIFICATION\n \
-			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
-			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
-			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
-			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
-			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv" \
-			| mail -s "${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
-				${SEND_TO}
-		else
-			printf "${PERSON_NAME} Was The Submitter\n \
-			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
-			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
-			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
-			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
-			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv" \
-			| mail -s "${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
-				${SEND_TO}
-		fi
-
-	# this is black magic that I don't know if it really helps.
-	# was having problems with getting the emails to send so I put a little delay in here.
-
-		sleep 2s
-
-	###########################################################################
-	### SEND WHICH SAMPLES HAVE MULTIPLE LIBRARIES OR WERE TOTAL FAILURES #####
-	###########################################################################
-	# AT THIS TIME, NOT DISTINGUISHING WHICH WAS WHICH ########################
-	###########################################################################
-
-		if [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt ]]
-		then
-			mail -s "BATCH ${SAMPLE_SHEET_NAME} FOR ${PROJECT} HAS THESE SAMPLES WITH MULITPLE LIBRARIES OR TOTAL FAILURES" \
-				${SEND_TO} \
-			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt
-				sleep 2s
-		fi
-
-##############################################################
-##### CLEAN-UP OR NOT DEPENDING ON IF JOBS FAILED OR NOT #####
-##############################################################
-
-	# CREATE SAMPLE ARRAY, USED DURING PROJECT CLEANUP
-
-		CREATE_SAMPLE_ARRAY_FOR_FILE_CLEANUP ()
-		{
-			SAMPLE_ARRAY=$(awk 1 ${SAMPLE_SHEET} \
-				| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
-				| awk 'BEGIN {FS=",";OFS="\t"} \
-					$1=="'${PROJECT}'"&&$8=="'${SM_TAG}'" \
-					{print $1,$8,$2"_"$3"_"$4"*"}' \
-				| sort \
-				| uniq \
-				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
-					-g 1,2 \
-					collapse 3)
-
-				#  1  Project=the Seq Proj folder name
-
-					PROJECT_FILE_CLEANUP=${SAMPLE_ARRAY[0]}
-
-				#  8  SM_Tag=sample ID
-
-					SM_TAG_FILE_CLEANUP=${SAMPLE_ARRAY[1]}
-
-				# PLATFORM UNIT: COMPRISED OF;
-					#  2  FCID=flowcell that sample read group was performed on
-					#  3  Lane=lane of flowcell that sample read group was performed on]
-					#  4  Index=sample barcode
-
-					PLATFORM_UNIT=${SAMPLE_ARRAY[2]}
-		}
-
-# IF THERE ARE NO FAILED JOBS THEN DELETE TEMP FILES FOR THIS BATCH
-# ELSE IF JOBS FAILED, BUT ONLY CONCORDANCE JOBS THEN DELETE AND SUMMARIZE WHAT SAMPLES FAILED CONCORDANCE
-# ELSE; DON'T DELETE ANYTHING BUT SUMMARIZE WHAT FAILED.
-	# IN THE FUTURE; SHOULD BE ABLE TO DELETE TEMP FILES FOR SAMPLES THAT DID NOT FAIL.
-
+	# IF THERE ARE NO FAILED JOBS SEND EMAIL NOTIFICATION AND THEN DELETE TEMP FILES FOR THIS BATCH
 	if [[ ! -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt ]]
 	then
-		echo rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+		if [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt ]]
+		then # note that there are samples with multiple libraries, but no errors.
+			printf "THIS RUN COMPLETED SUCCESSFULLY WITH NO ERRORS.\n \
+			SO THE TEMP FILES HAVE BEEN DELETED FOR THIS BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			THIS BATCH HAS SAMPLES WITH MULTIPLE LIBRARIES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-		rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SAMPLES THAT CONTAIN MULTIPLE LIBRARIES:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			mail -s "NO ERRORS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO}	\
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		else # send vanilla email. no exceptions noted.
+			printf "THIS RUN COMPLETED SUCCESSFULLY WITH NO ERRORS.\n \
+			SO THE TEMP FILES HAVE BEEN DELETED FOR THIS BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			| mail -s "NO ERRORS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO}
+		fi
+		# delete temp files
+			echo rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+			rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+	# ELSE IF: JOBS FAILED, BUT ONLY CONCORDANCE JOBS, THEN DELETE AND SUMMARIZE WHAT SAMPLES FAILED CONCORDANCE
 	elif [[ "`awk 'BEGIN {OFS="\t"} \
 				NF==6 \
 				{print $0}' \
 			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
 				| egrep -v "CONCORDANCE" \
 				| wc -l`" -eq 0 ]];
-	then
-		echo rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+	then # construct email message for batch that only had concordance jobs fail.
+		if [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt ]]
+		then # message when concordance failed and there are samples with multiple libraries.
+			printf "THIS RUN COMPLETED WITH ONLY HAVING ERRORS FOR CONCORDANCE JOBS.\n \
+			SO THE TEMP FILES HAVE BEEN DELETED FOR THIS BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			THIS BATCH HAS SAMPLES WITH MULTIPLE LIBRARIES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-		rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
-
-		# CONSTRUCT EMAIL MESSAGE FOR BATCH THAT ONLY HAD CONCORDANCE JOBS FAIL
-
-			printf "SAMPLES FAILED CONCORDANCE, BUT NO OTHER JOBS FAILED FOR:\n" \
-				>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
-
-			printf "${PROJECT}:\n" \
+			printf "###################################################################\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "${SAMPLE_SHEET}\n" \
+			printf "SAMPLES THAT CONTAIN MULTIPLE LIBRARIES:\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "SO THE TEMP FILES HAVE BEEN DELETED\n" \
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
 			printf "###################################################################\n" \
@@ -507,21 +461,67 @@
 
 			sleep 2s
 
-			mail -s "FAILED CONCORDANCE ONLY: ${PROJECT}: ${SAMPLE_SHEET_NAME}" \
+			mail -s "CONCORDANCE FAILURES ONLY: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
 				${SEND_TO} \
 			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
-	else
-		# CONSTRUCT MESSAGE TO BE SENT SUMMARIZING THE FAILED JOBS
-			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR:\n" \
-				>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		else # message when concordance failed and there are no samples with multiple libraries
+			printf "THIS RUN COMPLETED WITH ONLY HAVING ERRORS FOR CONCORDANCE JOBS.\n \
+			SO THE TEMP FILES HAVE BEEN DELETED FOR THIS BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "${SAMPLE_SHEET}\n" \
+			printf "###################################################################\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "FOR PROJECT:\n" \
+			printf "BELOW ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-			printf "${PROJECT}\n" \
+			awk 'BEGIN {OFS="\t"} \
+				NF==6 {print $0}' \
+			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| grep CONCORDANCE \
+				| awk '{print $1}' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			sleep 2s
+
+			mail -s "CONCORDANCE FAILURES ONLY: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO} \
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		fi
+		# delete temp files
+			echo rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+			rm -rf ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/
+	# ELSE; CRUCIAL JOBS FAILED. DON'T DELETE ANYTHING BUT SUMMARIZE WHAT FAILED.
+	else # construct email message for batch that had jobs failed other than concordance jobs
+		if [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+			&& ! -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt ]]
+		then # message when there are samples with multiple libraries, BUT NO TOTAL FAILURES.
+			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			THIS BATCH HAS SAMPLES WITH MULTIPLE LIBRARIES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SAMPLES THAT CONTAIN MULTIPLE LIBRARIES:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
 				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
 			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
@@ -588,12 +588,292 @@
 					{print $1}' \
 			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
-		sleep 2s
+			sleep 2s
 
-		mail -s "FAILED JOBS: ${PROJECT}: ${SAMPLE_SHEET_NAME}" \
-			${SEND_TO} \
-		< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+			mail -s "FAILED JOBS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO} \
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		elif [[ ! -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+			&& -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt ]]
+		then # message for no samples with multiple libraries, but samples that were total failures
+			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			THIS BATCH HAS SAMPLES THAT WERE TOTAL FAILURES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
 
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SAMPLES THAT WERE TOTAL FAILURES:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			egrep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+				| sort \
+				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+					-g 1 \
+					count 1 \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" \
+				| sed 's/ /\t/g' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			for sample in $(grep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| awk 'BEGIN {OFS="\t"} \
+						NF==6 \
+						{print $1}' \
+					| sort \
+					| uniq);
+			do
+				awk '$1=="'${sample}'" \
+					{print $0 "\n" "\n"}' \
+				${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| head -n 1 \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+			done
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR GIGGLES, HERE ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			grep CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			sleep 2s
+
+			mail -s "FAILED JOBS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO} \
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		elif [[ -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+			&& -f ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt ]]
+		then # message when there are samples with multiple libraries and samples that are total failures
+			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			THIS BATCH HAS SAMPLES THAT WERE TOTAL FAILURES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			THIS BATCH HAS SAMPLES WITH MULITPLE LIBRARIES. SEE BELOW FOR THE LIST OF SAMPLES\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SAMPLES THAT WERE TOTAL FAILURES:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SAMPLES THAT CONTAIN MULTIPLE LIBRARIES:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			cat ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_MULTIPLE_LIBS.txt \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			egrep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+				| sort \
+				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+					-g 1 \
+					count 1 \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" \
+				| sed 's/ /\t/g' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			for sample in $(grep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| awk 'BEGIN {OFS="\t"} \
+						NF==6 \
+						{print $1}' \
+					| sort \
+					| uniq);
+			do
+				awk '$1=="'${sample}'" \
+					{print $0 "\n" "\n"}' \
+				${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| head -n 1 \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+			done
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR GIGGLES, HERE ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			grep CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			sleep 2s
+
+			mail -s "FAILED JOBS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO} \
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		else # message when there are no samples with multiple libraries or total failures
+			printf "SO BAD THINGS HAPPENED AND THE TEMP FILES WILL NOT BE DELETED FOR BATCH.\n \
+			${PERSON_NAME} Was The Submitter\n \
+			REPORTS ARE AT:\n ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS\n\n \
+			BATCH QC REPORT:\n ${SAMPLE_SHEET_NAME}.QC_REPORT.csv\n\n \
+			FULL PROJECT QC REPORT:\n ${PROJECT}.QC_REPORT.${TIMESTAMP}.csv\n\n \
+			ANEUPLOIDY REPORT:\n ${PROJECT}.ANEUPLOIDY_CHECK.${TIMESTAMP}.csv\n\n \
+			BY CHROMOSOME VERIFYBAMID REPORT:\n ${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv\n" \
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SOMEWHAT FULL LISTING OF FAILED JOBS ARE HERE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "BELOW ARE THE SAMPLES AND THE MINIMUM NUMBER OF JOBS THAT FAILED PER SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			egrep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+				| sort \
+				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+					-g 1 \
+					count 1 \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR THE SAMPLES THAT HAVE FAILED JOBS, THIS IS ROUGHLY THE FIRST JOB THAT FAILED FOR EACH SAMPLE (EXCLUDING CONCORDANCE):\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "SM_TAG NODE JOB_NAME USER EXIT LOG_FILE\n" \
+				| sed 's/ /\t/g' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			for sample in $(grep -v CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| awk 'BEGIN {OFS="\t"} \
+						NF==6 \
+						{print $1}' \
+					| sort \
+					| uniq);
+			do
+				awk '$1=="'${sample}'" \
+					{print $0 "\n" "\n"}' \
+				${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+					| head -n 1 \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+			done
+
+			printf "###################################################################\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			printf "FOR GIGGLES, HERE ARE THE SAMPLES THAT FAILED CONCORDANCE:\n" \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			grep CONCORDANCE ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt \
+				| awk 'BEGIN {OFS="\t"} \
+					NF==6 \
+					{print $1}' \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+
+			sleep 2s
+
+			mail -s "FAILED JOBS: ${SAMPLE_SHEET} FOR ${PROJECT} has finished processing CIDR.WES.QC.SUBMITTER.sh" \
+				${SEND_TO} \
+			< ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_EMAIL_SUMMARY.txt
+		fi
 	fi
 
 	sleep 2s

@@ -664,11 +664,11 @@
 		>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 	fi
 
-##############################################################################
-### see how many libraries are in the samples ################################
-### should probably do this from the cram header, but meh, some other time ###
-### this is to be tested against at the end ##################################
-##############################################################################
+####################################################################################
+### see how many libraries are in the samples ######################################
+### not sure if I should be testing this against the cram header, rg header stub ###
+### I think that there are going to be caveats no matter how i do it ###############
+####################################################################################
 
 	MULTIPLE_LIBRARY=$(grep -v "^#" ${CORE_PATH}/${PROJECT}/REPORTS/BAIT_BIAS/SUMMARY/${SM_TAG}.bait_bias_summary_metrics.txt \
 		| sed '/^$/d' \
@@ -680,7 +680,11 @@
 
 		# if exit does not equal 0 then exit with whatever the exit signal is at the end.
 
-			if [ "${MULTIPLE_LIBRARY}" -ne 1 ]
+			if [[ ${MULTIPLE_LIBRARY} -eq 0 ]]
+			then
+				echo ${SM_TAG} \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_TOTAL_FAILURES.txt
+			elif [[ ${MULTIPLE_LIBRARY} -gt 1 ]]
 			then
 				grep -v ^# ${CORE_PATH}/${PROJECT}/REPORTS/BAIT_BIAS/SUMMARY/${SM_TAG}.bait_bias_summary_metrics.txt \
 					| sed '/^$/d' \
@@ -716,6 +720,7 @@
 	# if the exit does equal zero then check to see if there is only one library, if so then exit 0
 	# if exit is zero and there is multiple libraries then exit = 3. this will get pushed out to the sge accounting db so that 
 		# there is an indication that there are multiple libraries, which could be due to a sample sheet screw-up.
+	# a sample with a total failure should receive and exit status of 4
 
 			if [ "${SCRIPT_STATUS}" -ne 0 ]
 			then
@@ -723,6 +728,11 @@
 			elif [ "${MULTIPLE_LIBRARY}" -eq 1 ]
 			then
 				exit 0
+			elif [ "${MULTIPLE_LIBRARY}" -eq 0 ]
+			then
+				# total failures get an exit code of 4
+				exit 4
 			else
+				# multiple libraries get an exit code of 3
 				exit 3
 			fi

@@ -86,10 +86,10 @@ END_LAB_PREP_METRICS=`date '+s'` # capture time process stops for wall clock tra
 
 # add a date stamp to output, so if reran, the latest information will be pulled out.
 
-	(head -n 1 ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv \
+	(head -n 1 ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv \
 		| awk '{print $0 ",EPOCH_TIME"}' ; \
 	awk 'NR>1 {print $0 "," "'${START_LAB_PREP_METRICS}'"}' \
-	${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv \
+	${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv \
 		| sort -k 1,1 ) \
 	>| ${CORE_PATH}/${PROJECT}/REPORTS/LAB_PREP_REPORTS/${SAMPLE_SHEET_NAME}.LAB_PREP_METRICS.csv
 
