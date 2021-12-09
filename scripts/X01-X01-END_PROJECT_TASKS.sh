@@ -40,9 +40,9 @@
 ##### MAKE A QC REPORT FOR ALL SAMPLES GENERATED FOR THE PROJECT #####
 ######################################################################
 
-	####################################################################################
-	### CONCATENATED ALL THE INDIVIDUAL QC REPORTS FOR PROJECT AND ADDING THE HEADER ###
-	####################################################################################
+	###################################################################################
+	### CONCATENATE ALL THE INDIVIDUAL QC REPORTS FOR PROJECT AND ADDING THE HEADER ###
+	###################################################################################
 
 		cat ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORT_PREP/*.QC_REPORT_PREP.txt \
 			| sort -k 2,2 \
@@ -58,6 +58,13 @@
 				"HYB_WELL",\
 				"HYB_ROW",\
 				"HYB_COLUMN",\
+				"CRAM_PIPELINE_VERSION",\
+				"SEQUENCING_PLATFORM",\
+				"SEQUENCER_MODEL",\
+				"EXEMPLAR_DATE",\
+				"BAIT_BED_FILE",
+				"TARGET_BED_FILE",\
+				"TITV_BED_FILE",\
 				"X_AVG_DP",\
 				"X_NORM_DP",\
 				"Y_AVG_DP",\
