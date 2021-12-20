@@ -68,16 +68,6 @@ START_CRAM=`date '+%s'` # capture time process starts for wall clock tracking pu
 
 		SCRIPT_STATUS=`echo $?`
 
-		# if exit does not equal 0 then exit with whatever the exit signal is at the end.
-		# also write to file that this job failed
-
-			if [ "${SCRIPT_STATUS}" -ne 0 ]
-				then
-					echo ${SM_TAG} ${HOSTNAME} ${JOB_NAME} ${USER} ${SCRIPT_STATUS} ${SGE_STDERR_PATH} \
-					>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt
-					exit ${SCRIPT_STATUS}
-			fi
-
 END_CRAM=`date '+%s'` # capture time process stops for wall clock tracking purposes.
 
 # write out timing metrics to file
@@ -249,9 +239,17 @@ END_CRAM=`date '+%s'` # capture time process stops for wall clock tracking purpo
 				>| ${CORE_PATH}/${PROJECT}/REPORTS/RG_HEADER/${SM_TAG}.RG_HEADER.txt
 		else
 			echo -e "${PROJECT}\t${SM_TAG}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" \
-			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
-				transpose \
 			>| ${CORE_PATH}/${PROJECT}/REPORTS/RG_HEADER/${SM_TAG}.RG_HEADER.txt
+	fi
+
+# if exit does not equal 0 then exit with whatever the exit signal is at the end.
+# also write to file that this job failed
+
+	if [ "${SCRIPT_STATUS}" -ne 0 ]
+		then
+			echo ${SM_TAG} ${HOSTNAME} ${JOB_NAME} ${USER} ${SCRIPT_STATUS} ${SGE_STDERR_PATH} \
+			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}_${SUBMIT_STAMP}_ERRORS.txt
+			exit ${SCRIPT_STATUS}
 	fi
 
 # exit with the signal from samtools bam to cram

@@ -97,7 +97,7 @@
 			${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed) \
 		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-picard.bed
 
-	# target bed
+	# titv bed
 
 		(grep "^@SQ" ${REF_DICT} \
 			; awk 'BEGIN {OFS="\t"} \

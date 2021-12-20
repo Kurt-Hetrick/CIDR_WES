@@ -20,7 +20,9 @@
 
 	SUBMITTER_SCRIPT_PATH=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 
-	SCRIPT_DIR="${SUBMITTER_SCRIPT_PATH}/scripts"
+	COMMON_SCRIPT_DIR="${SUBMITTER_SCRIPT_PATH}/common_scripts"
+
+	GRCH37_SCRIPT_DIR="${SUBMITTER_SCRIPT_PATH}/grch37_scripts"
 
 ##################
 # CORE VARIABLES #
@@ -36,7 +38,7 @@
 
 	# used for tracking in the read group header of the cram file
 
-		PIPELINE_VERSION=`git --git-dir=${SCRIPT_DIR}/../.git --work-tree=${SCRIPT_DIR}/.. log --pretty=format:'%h' -n 1`
+		PIPELINE_VERSION=$(git --git-dir=${SUBMITTER_SCRIPT_PATH}/.git --work-tree=${SUBMITTER_SCRIPT_PATH} log --pretty=format:'%h' -n 1)
 
 	# load gcc for programs like verifyBamID
 	## this will get pushed out to all of the compute nodes since I specify env var to pushed out with qsub
@@ -50,19 +52,22 @@
 
 	# SUBMIT TIMESTAMP
 
-		SUBMIT_STAMP=`date '+%s'`
+		SUBMIT_STAMP=$(date '+%s')
 
 	# SUBMITTER_ID
 
-		SUBMITTER_ID=`whoami`
+		SUBMITTER_ID=$(whoami)
 
 	# grab submitter's name
 
-		PERSON_NAME=`getent passwd | awk 'BEGIN {FS=":"} $1=="'${SUBMITTER_ID}'" {print $5}'`
+		PERSON_NAME=$(getent passwd \
+			| awk 'BEGIN {FS=":"} \
+				$1=="'${SUBMITTER_ID}'" \
+				{print $5}')
 
 	# grab email addy
 
-		SEND_TO=`cat ${SCRIPT_DIR}/../email_lists.txt`
+		SEND_TO=$(cat ${SUBMITTER_SCRIPT_PATH}/email_lists.txt)
 
 	# bind the host file system /mnt to the singularity container. in case I use it in the submitter.
 
@@ -70,14 +75,14 @@
 
 	# Generate a list of active queue and remove the ones that I don't want to use
 
-		QUEUE_LIST=`qstat -f -s r \
+		QUEUE_LIST=$(qstat -f -s r \
 			| egrep -v "^[0-9]|^-|^queue|^ " \
 			| cut -d @ -f 1 \
 			| sort \
 			| uniq \
 			| egrep -v "all.q|cgc.q|programmers.q|rhel7.q|bigmem.q|bina.q|qtest.q|bigdata.q|uhoh.q" \
 			| datamash collapse 1 \
-			| awk '{print $1}'`
+			| awk '{print $1}')
 
 		# just show how to exclude a node
 			# QUEUE_LIST=`qstat -f -s r \
@@ -152,23 +157,11 @@
 		# also comes with some version of java 1.8
 		# jar file is /usr/GenomeAnalysisTK.jar
 
+	GATK_CONTAINER_4_2_2_0="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/gatk-4.2.2.0.simg"
 
-	PICARD_DIR="/mnt/linuxtools/PICARD/picard-2.17.0"
-	GATK_DIR="/mnt/linuxtools/GATK/GenomeAnalysisTK-3.7"
-	VERIFY_DIR="/mnt/linuxtools/verifyBamID/verifyBamID_1.1.3/verifyBamID/bin"
-	GATK_DIR_4011="/mnt/linuxtools/GATK/gatk-4.0.1.1"
+	BQSR_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/gatk-4.0.1.1.simg"
 
-	DATAMASH_DIR="/mnt/linuxtools/DATAMASH/datamash-1.0.6"
-	# This is samtools version 1.7
-	# I have no idea why other users other than me cannot index a cram file with a version of samtools that I built from the source
-	# Apparently the version that I built with Anaconda works for other users, but it performs REF_CACHE first...
-	SAMTOOLS_DIR="/mnt/linuxtools/ANACONDA/anaconda2-5.0.0.1/bin"
-	BEDTOOLS_DIR="/mnt/linuxtools/BEDTOOLS/bedtools-2.22.0/bin"
-	SAMTOOLS_0118_DIR="/mnt/linuxtools/SAMTOOLS/samtools-0.1.18"
-	CIDRSEQSUITE_6_JAVA_DIR="/mnt/linuxtools/JAVA/jre1.7.0_45/bin"
-	CIDRSEQSUITE_6_1_1_DIR="/mnt/linuxtools/CIDRSEQSUITE/6.1.1"
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
-	R_DIRECTORY="/mnt/linuxtools/R/R-3.1.1/bin"
 
 ##################
 # PIPELINE FILES #
@@ -223,7 +216,7 @@
 	{
 		mkdir -p \
 		${CORE_PATH}/${SEQ_PROJECT}/{COMMAND_LINES,CRAM,FASTQ,GVCF,HC_CRAM,LOGS} \
-		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/{ALIGNMENT_SUMMARY,ANEUPLOIDY_CHECK,ANNOVAR,COUNT_COVARIATES,ERROR_SUMMARY,LAB_PREP_REPORTS,PICARD_DUPLICATES,QC_REPORTS,QC_REPORT_PREP,QUALITY_YIELD,RG_HEADER,TI_TV,TI_TV_MS,VERIFYBAMID,VERIFYBAMID_CHR} \
+		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/{ALIGNMENT_SUMMARY,ANEUPLOIDY_CHECK,ANNOVAR,COUNT_COVARIATES,ERROR_SUMMARY,LAB_PREP_REPORTS,PICARD_DUPLICATES,QC_REPORTS,QC_REPORT_PREP,QUALITY_YIELD,RG_HEADER,VERIFYBAMID,VERIFYBAMID_CHR} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/BAIT_BIAS/{METRICS,SUMMARY} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/{METRICS,PDF} \
 		${CORE_PATH}/${SEQ_PROJECT}/REPORTS/BASECALL_Q_SCORE_DISTRIBUTION/{METRICS,PDF} \
@@ -251,7 +244,7 @@
 			${QSUB_ARGS} \
 		-N A00-LAB_PREP_METRICS_${PROJECT_NAME} \
 			-o ${CORE_PATH}/${PROJECT_NAME}/LOGS/${PROJECT_NAME}-LAB_PREP_METRICS.log \
-		${SCRIPT_DIR}/A00-LAB_PREP_METRICS.sh \
+		${COMMON_SCRIPT_DIR}/A00-LAB_PREP_METRICS.sh \
 			${JAVA_1_8} \
 			${LAB_QC_DIR} \
 			${CORE_PATH} \
@@ -301,7 +294,7 @@
 			PLATFORM=${SAMPLE_ARRAY[1]}
 
 		# 6: Library_Name=library group of the sample read group
-		#VUsed during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
+		# Used during Marking Duplicates to determine if molecules are to be considered as part of the same library or not
 
 			LIBRARY=${SAMPLE_ARRAY[2]}
 
@@ -393,11 +386,12 @@
 		${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}
 	}
 
-###################################################
-### fix common formatting problems in bed files ###
-### create picard style interval files ############
-### DO PER SAMPLE #################################
-###################################################
+##################################################################################
+### fix common formatting problems in bed files ##################################
+### create picard style interval files ###########################################
+### DO PER SAMPLE ################################################################
+### NOTE THIS SCRIPT IS THE SAME B/W HG19 AND GRCH38 BUT DIFFERENT THAN GRCH37 ###
+##################################################################################
 
 	FIX_BED_FILES ()
 	{
@@ -406,7 +400,7 @@
 			${QSUB_ARGS} \
 		-N A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT} \
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FIX_BED_FILES.log \
-		${SCRIPT_DIR}/A01-FIX_BED_FILES.sh \
+		${GRCH37_SCRIPT_DIR}/A01-FIX_BED_FILES.sh \
 			${CORE_PATH} \
 			${PROJECT} \
 			${SM_TAG} \
@@ -417,11 +411,11 @@
 			${SAMPLE_SHEET}
 	}
 
-	######################################
-	# CREATE VCF FOR VERIFYBAMID METRICS #
-	######################################
-	# USE THE TARGET BED FILE ############
-	######################################
+	##############################################################################
+	# CREATE VCF FOR VERIFYBAMID METRICS #########################################
+	# USE THE TARGET BED FILE ####################################################
+	# NOTE THIS SCRIPT IS THE SAME B/W HG19 AND GRCH38 BUT DIFFERENT THAN GRCH37 #
+	##############################################################################
 
 		SELECT_VERIFYBAMID_VCF ()
 		{
@@ -431,7 +425,7 @@
 			-N A01-A01-SELECT_VERIFYBAMID_VCF_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-SELECT_VERIFYBAMID_VCF.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/A01-A01-SELECT_VERIFYBAMID_VCF.sh \
+			${GRCH37_SCRIPT_DIR}/A01-A01-SELECT_VERIFYBAMID_VCF.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -595,7 +589,7 @@
 			${QSUB_ARGS} \
 		-N A02-BWA_${SGE_SM_TAG}_${FCID}_${LANE}_${INDEX} \
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}_${FCID}_${LANE}_${INDEX}-BWA.log \
-		${SCRIPT_DIR}/A02-BWA.sh \
+		${COMMON_SCRIPT_DIR}/A02-BWA.sh \
 			${ALIGNMENT_CONTAINER} \
 			${CORE_PATH} \
 			${PROJECT} \
@@ -694,7 +688,7 @@
 			"-o","'${CORE_PATH}'/"$1"/LOGS/"$2"/"$2"-MARK_DUPLICATES.log",\
 			"-j y",\
 			"-hold_jid","A02-BWA_"$5"_"$3, \
-			"'${SCRIPT_DIR}'""/B01-MARK_DUPLICATES.sh",\
+			"'${COMMON_SCRIPT_DIR}'""/B01-MARK_DUPLICATES.sh",\
 			"'${ALIGNMENT_CONTAINER}'",\
 			"'${CORE_PATH}'",\
 			$1,\
@@ -722,8 +716,8 @@
 			-N C01-PERFORM_BQSR_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-PERFORM_BQSR.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},B01-MARK_DUPLICATES_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/C01-PERFORM_BQSR.sh \
-				${ALIGNMENT_CONTAINER} \
+			${COMMON_SCRIPT_DIR}/C01-PERFORM_BQSR.sh \
+				${BQSR_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
 				${SM_TAG} \
@@ -750,8 +744,8 @@
 			-N D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-APPLY_BQSR.log \
 			-hold_jid C01-PERFORM_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/D01-APPLY_BQSR.sh \
-				${ALIGNMENT_CONTAINER} \
+			${COMMON_SCRIPT_DIR}/D01-APPLY_BQSR.sh \
+				${BQSR_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
 				${SM_TAG} \
@@ -772,7 +766,7 @@
 			-N E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-VERIFYBAMID.log \
 			-hold_jid A01-A01-SELECT_VERIFYBAMID_VCF_${SGE_SM_TAG}_${PROJECT},D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E01-VERIFYBAMID.sh \
+			${COMMON_SCRIPT_DIR}/E01-VERIFYBAMID.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -829,7 +823,7 @@
 			-N F01-HAPLOTYPE_CALLER_${SGE_SM_TAG}_${PROJECT}_chr${CHROMOSOME} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-HAPLOTYPE_CALLER_chr${CHROMOSOME}.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT},E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/F01-HAPLOTYPE_CALLER_SCATTER.sh \
+			${COMMON_SCRIPT_DIR}/F01-HAPLOTYPE_CALLER_SCATTER.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -840,6 +834,27 @@
 				${SAMPLE_SHEET} \
 				${SUBMIT_STAMP}
 		}
+
+		CALL_HAPLOTYPE_CALLER ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+			-N F01-HAPLOTYPE_CALLER_${SGE_SM_TAG}_${PROJECT}_chr${CHROMOSOME} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-HAPLOTYPE_CALLER_chr${CHROMOSOME}.log \
+			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT},E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT} \
+			${COMMON_SCRIPT_DIR}/F01-HAPLOTYPE_CALLER_SCATTER.sh \
+				${GATK_3_7_0_CONTAINER} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${SM_TAG} \
+				${REF_GENOME} \
+				${HC_BAIT_BED} \
+				${CHROMOSOME} \
+				${SAMPLE_SHEET} \
+				${SUBMIT_STAMP}
+		}
+
 
 	################################################################################################
 	# run genotype gvcfs for each per chromosome gvcf to ###########################################
@@ -854,7 +869,7 @@
 			-N G01-GENOTYPE_GVCF_${SGE_SM_TAG}_${PROJECT}_chr${CHROMOSOME} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-GENOTYPE_GVCF_chr${CHROMOSOME}.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},F01-HAPLOTYPE_CALLER_${SGE_SM_TAG}_${PROJECT}_chr${CHROMOSOME} \
-			${SCRIPT_DIR}/G01-GENOTYPE_GVCF_SCATTER.sh \
+			${COMMON_SCRIPT_DIR}/G01-GENOTYPE_GVCF_SCATTER.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -904,9 +919,11 @@
 			done
 		}
 
-	###################################
-	# gather the per chromosome gvcfs #
-	###################################
+	################################################################################################
+	# gather the per chromosome gvcfs ##############################################################
+	# NOTE THAT THE DIFF B/W PIPELINES HERE IS HOW HC_BAIT_BED file is defined b/w builds (cont'd) #
+	# for special projects (e.g. mendel, cutting) ##################################################
+	################################################################################################
 
 		CALL_HAPLOTYPE_CALLER_GVCF_GATHER ()
 		{
@@ -916,7 +933,7 @@
 			-N G02-HAPLOTYPE_CALLER_GVCF_GATHER_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-HAPLOTYPE_CALLER_GVCF_GATHER.log \
 			${HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER} \
-			${SCRIPT_DIR}/G02-HAPLOTYPE_CALLER_GVCF_GATHER.sh \
+			${GRCH37_SCRIPT_DIR}/G02-HAPLOTYPE_CALLER_GVCF_GATHER.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
@@ -928,9 +945,11 @@
 				${SUBMIT_STAMP}
 		}
 
-	########################################################
-	# gather the per chromosome haplotype caller bam files #
-	########################################################
+	################################################################################################
+	# gather the per chromosome haplotype caller bam files #########################################
+	# NOTE THAT THE DIFF B/W PIPELINES HERE IS HOW HC_BAIT_BED file is defined b/w builds (cont'd) #
+	# for special projects (e.g. mendel, cutting) ##################################################
+	################################################################################################
 
 		CALL_HAPLOTYPE_CALLER_BAM_GATHER ()
 		{
@@ -940,7 +959,7 @@
 			-N G03-HAPLOTYPE_CALLER_BAM_GATHER_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-HAPLOTYPE_CALLER_BAM_GATHER.log \
 			${HOLD_ID_PATH_GVCF_AND_HC_BAM_GATHER} \
-			${SCRIPT_DIR}/G03-HAPLOTYPE_CALLER_BAM_GATHER.sh \
+			${GRCH37_SCRIPT_DIR}/G03-HAPLOTYPE_CALLER_BAM_GATHER.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -962,7 +981,7 @@
 				-N G03-A01-HAPLOTYPE_CALLER_CRAM_${SGE_SM_TAG}_${PROJECT} \
 					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-HC_BAM_TO_CRAM.log \
 				-hold_jid G03-HAPLOTYPE_CALLER_BAM_GATHER_${SGE_SM_TAG}_${PROJECT} \
-				${SCRIPT_DIR}/G03-A01-HAPLOTYPE_CALLER_CRAM.sh \
+				${COMMON_SCRIPT_DIR}/G03-A01-HAPLOTYPE_CALLER_CRAM.sh \
 					${ALIGNMENT_CONTAINER} \
 					${CORE_PATH} \
 					${PROJECT} \
@@ -984,7 +1003,7 @@
 			-N H01-GENOTYPE_GVCF_GATHER_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-GENOTYPE_GVCF_GATHER.log \
 			${HOLD_ID_PATH_GENOTYPE_GVCF_GATHER} \
-			${SCRIPT_DIR}/H01-GENOTYPE_GVCF_GATHER.sh \
+			${COMMON_SCRIPT_DIR}/H01-GENOTYPE_GVCF_GATHER.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
@@ -1073,7 +1092,7 @@
 			-N E02-BAM_TO_CRAM_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-BAM_TO_CRAM.log \
 			-hold_jid D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E02-BAM_TO_CRAM.sh \
+			${COMMON_SCRIPT_DIR}/E02-BAM_TO_CRAM.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1095,7 +1114,7 @@
 			-N E03-DOC_CODING_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-DOC_CODING.log \
 			-hold_jid D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E03-DOC_CODING.sh \
+			${COMMON_SCRIPT_DIR}/E03-DOC_CODING.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1119,7 +1138,7 @@
 			-N E04-DOC_BAIT_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-DOC_BED_SUPERSET.log \
 			-hold_jid D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E04-DOC_BED_SUPERSET.sh \
+			${COMMON_SCRIPT_DIR}/E04-DOC_BED_SUPERSET.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1143,7 +1162,7 @@
 			-N E05-DOC_TARGET_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-DOC_TARGET.log \
 			-hold_jid D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E05-DOC_TARGET.sh \
+			${COMMON_SCRIPT_DIR}/E05-DOC_TARGET.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1167,7 +1186,7 @@
 			-N E05-A01-CHROM_DEPTH_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-ANEUPLOIDY_CHECK.log \
 			-hold_jid E05-DOC_TARGET_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E05-A01-CHROM_DEPTH.sh \
+			${COMMON_SCRIPT_DIR}/E05-A01-CHROM_DEPTH.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1188,7 +1207,7 @@
 			-N F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-COLLECT_MULTIPLE_METRICS.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},E02-BAM_TO_CRAM_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/F02-COLLECT_MULTIPLE_METRICS.sh \
+			${COMMON_SCRIPT_DIR}/F02-COLLECT_MULTIPLE_METRICS.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1212,8 +1231,8 @@
 			-N F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-COLLECT_HS_METRICS.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},E02-BAM_TO_CRAM_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/F03-COLLECT_HS_METRICS.sh \
-				${ALIGNMENT_CONTAINER} \
+			${COMMON_SCRIPT_DIR}/F03-COLLECT_HS_METRICS.sh \
+				${GATK_CONTAINER_4_2_2_0} \
 				${CORE_PATH} \
 				${PROJECT} \
 				${SM_TAG} \
@@ -1224,10 +1243,11 @@
 				${SUBMIT_STAMP}
 		}
 
-	################################################################
-	# PERFORM VERIFYBAM ID PER CHROMOSOME ##########################
-	# DOING BOTH THE SELECT VCF AND VERIFYBAMID RUN WITHIN ONE JOB #
-	################################################################
+	################################################################################
+	# PERFORM VERIFYBAM ID PER CHROMOSOME ##########################################
+	# DOING BOTH THE SELECT VCF AND VERIFYBAMID RUN WITHIN ONE JOB #################
+	# NOTE THAT THE HG19 AND GRCH38 SCRIPTS ARE THE SAME BUT DIFFERENT FROM GRCH37 #
+	################################################################################
 
 		CALL_VERIFYBAMID_PER_AUTO ()
 		{
@@ -1237,7 +1257,7 @@
 			-N E06-VERIFYBAMID_PER_AUTO_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-VERIFYBAMID_PER_CHR.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},D01-APPLY_BQSR_${SGE_SM_TAG}_${PROJECT} \
-				${SCRIPT_DIR}/E06-VERIFYBAMID_PER_AUTO.sh \
+			${GRCH37_SCRIPT_DIR}/E06-VERIFYBAMID_PER_AUTO.sh \
 				${ALIGNMENT_CONTAINER} \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
@@ -1262,7 +1282,7 @@
 			-N E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-CAT_VERIFYBAMID_AUTO.log \
 			-hold_jid E06-VERIFYBAMID_PER_AUTO_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/E06-A01-CAT_VERIFYBAMID_AUTO.sh \
+			${COMMON_SCRIPT_DIR}/E06-A01-CAT_VERIFYBAMID_AUTO.sh \
 				${CORE_PATH} \
 				${ALIGNMENT_CONTAINER} \
 				${PROJECT} \
@@ -1320,7 +1340,7 @@
 			-N I01-EXTRACT_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-SELECT_SNV_QC.log \
 			-hold_jid H01-GENOTYPE_GVCF_GATHER_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/I01-EXTRACT_SNV.sh \
+			${COMMON_SCRIPT_DIR}/I01-EXTRACT_SNV.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1342,7 +1362,7 @@
 			-N I02-EXTRACT_INDEL_AND_MIXED_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-SELECT_INDEL_QC.log \
 			-hold_jid H01-GENOTYPE_GVCF_GATHER_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/I02-EXTRACT_INDEL_AND_MIXED.sh \
+			${COMMON_SCRIPT_DIR}/I02-EXTRACT_INDEL_AND_MIXED.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1364,7 +1384,7 @@
 			-N I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FILTER_SNV_QC.log \
 			-hold_jid I01-EXTRACT_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/I01-A01-FILTER_SNV.sh \
+			${COMMON_SCRIPT_DIR}/I01-A01-FILTER_SNV.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1386,7 +1406,7 @@
 				-N I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
 					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_SNV_TARGET_PASS.log \
 				-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
-				${SCRIPT_DIR}/I01-A01-A01-EXTRACT_SNV_TARGET_PASS.sh \
+				${COMMON_SCRIPT_DIR}/I01-A01-A01-EXTRACT_SNV_TARGET_PASS.sh \
 					${ALIGNMENT_CONTAINER} \
 					${CORE_PATH} \
 					${PROJECT} \
@@ -1397,29 +1417,31 @@
 					${SUBMIT_STAMP}
 			}
 
-				############################################################################################
-				# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
-				############################################################################################
+			############################################################################################
+			# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
+			# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
+			# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
+			############################################################################################
 
-					TARGET_PASS_SNV_CONCORDANCE ()
-					{
-						echo \
-						qsub \
-							${QSUB_ARGS} \
-						-N I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
-							-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-						-hold_jid I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-						${SCRIPT_DIR}/I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
-							${JAVA_1_8} \
-							${CIDRSEQSUITE_7_5_0_DIR} \
-							${VERACODE_CSV} \
-							${CORE_PATH} \
-							${PROJECT} \
-							${SM_TAG} \
-							${TARGET_BED} \
-							${SAMPLE_SHEET} \
-							${SUBMIT_STAMP}
-					}
+				TARGET_PASS_SNV_CONCORDANCE ()
+				{
+					echo \
+					qsub \
+						${QSUB_ARGS} \
+					-N I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+						-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+					-hold_jid I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+					${GRCH37_SCRIPT_DIR}/I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+						${JAVA_1_8} \
+						${CIDRSEQSUITE_7_5_0_DIR} \
+						${VERACODE_CSV} \
+						${CORE_PATH} \
+						${PROJECT} \
+						${SM_TAG} \
+						${TARGET_BED} \
+						${SAMPLE_SHEET} \
+						${SUBMIT_STAMP}
+				}
 
 	##########################
 	# FILTER INDEL AND MIXED #
@@ -1433,7 +1455,7 @@
 			-N I02-A01-FILTER_INDEL_AND_MIXED_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FILTER_INDEL_QC.log \
 			-hold_jid I02-EXTRACT_INDEL_AND_MIXED_QC_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/I02-A01-FILTER_INDEL_AND_MIXED.sh \
+			${COMMON_SCRIPT_DIR}/I02-A01-FILTER_INDEL_AND_MIXED.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1455,7 +1477,7 @@
 			-N J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FILTER_INDEL_QC.log \
 			-hold_jid I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT},I02-A01-FILTER_INDEL_AND_MIXED_QC_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/J01-COMBINE_FILTERED_VCF_FILES.sh \
+			${COMMON_SCRIPT_DIR}/J01-COMBINE_FILTERED_VCF_FILES.sh \
 				${GATK_3_7_0_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1477,7 +1499,7 @@
 			-N J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-VCF_METRICS_BAIT_QC.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/J01-A01-VCF_METRICS_BAIT.sh \
+			${COMMON_SCRIPT_DIR}/J01-A01-VCF_METRICS_BAIT.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1501,7 +1523,7 @@
 			-N J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-VCF_METRICS_TARGET_QC.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/J01-A02-VCF_METRICS_TARGET.sh \
+			${COMMON_SCRIPT_DIR}/J01-A02-VCF_METRICS_TARGET.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1525,7 +1547,7 @@
 			-N J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-VCF_METRICS_TITV_QC.log \
 			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
-			${SCRIPT_DIR}/J01-A03-VCF_METRICS_TITV.sh \
+			${COMMON_SCRIPT_DIR}/J01-A03-VCF_METRICS_TITV.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
 				${PROJECT} \
@@ -1560,7 +1582,7 @@ J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
 -o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-QC_REPORT_PREP_QC.log \
-${SCRIPT_DIR}/X01-QC_REPORT_PREP.sh \
+${COMMON_SCRIPT_DIR}/X01-QC_REPORT_PREP.sh \
 ${ALIGNMENT_CONTAINER} \
 ${CORE_PATH} \
 ${PROJECT} \
@@ -1610,17 +1632,6 @@ ${SUBMIT_STAMP}
 ##### END PROJECT TASKS #####
 #############################
 
-# grab email addy
-
-	SEND_TO=$(cat ${SCRIPT_DIR}/../email_lists.txt)
-
-# grab submitter's name
-
-	PERSON_NAME=$(getent passwd \
-		| awk 'BEGIN {FS=":"} \
-			$1=="'${SUBMITTER_ID}'" \
-			{print $5}')
-
 # build hold id for qc report prep per sample, per project
 
 	BUILD_HOLD_ID_PATH_PROJECT_WRAP_UP ()
@@ -1653,12 +1664,12 @@ ${SUBMIT_STAMP}
 		-N X01-X01-END_PROJECT_TASKS_${PROJECT} \
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${PROJECT}-END_PROJECT_TASKS.log \
 		${HOLD_ID_PATH}A00-LAB_PREP_METRICS_${PROJECT} \
-		${SCRIPT_DIR}/X01-X01-END_PROJECT_TASKS.sh \
+		${GRCH37_SCRIPT_DIR}/X01-X01-END_PROJECT_TASKS.sh \
 			${CORE_PATH} \
 			${ALIGNMENT_CONTAINER} \
 			${PROJECT} \
 			${SAMPLE_SHEET} \
-			${SCRIPT_DIR} \
+			${SUBMITTER_SCRIPT_PATH} \
 			${SUBMITTER_ID} \
 			${SUBMIT_STAMP}
 	}
@@ -1681,4 +1692,4 @@ ${SUBMIT_STAMP}
 
 printf "${SAMPLE_SHEET}\nhas finished submitting at\n`date`\nby `whoami`" \
 	| mail -s "${PERSON_NAME} has submitted CIDR.WES.QC.SUBMITTER.sh" \
-		$SEND_TO
+		${SEND_TO}

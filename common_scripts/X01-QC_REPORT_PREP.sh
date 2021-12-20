@@ -73,6 +73,7 @@
 			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 				transpose \
 		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
+
 	elif [[ ! -f ${CORE_PATH}/${PROJECT}/REPORTS/RG_HEADER/${SM_TAG}.RG_HEADER.txt \
 			&& -f ${CORE_PATH}/${PROJECT}/CRAM/${SM_TAG}.cram ]];
 	then
@@ -223,12 +224,35 @@
 							BED_FILES[2],\
 							BED_FILES[3]}' \
 					| awk 'BEGIN { FS = OFS = "\t" } { for(i=1; i<=NF; i++) if($i ~ /^ *$/) $i = "NA" }; 1' \
-				>| ${CORE_PATH}/${PROJECT}/REPORTS/RG_HEADER/${SM_TAG}.RG_HEADER.txt
+					| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+						-s \
+						-g 1,2 \
+						collapse 3 \
+						unique 4 \
+						unique 5 \
+						unique 6 \
+						unique 7 \
+						unique 8 \
+						unique 9 \
+						unique 10 \
+						unique 11 \
+						unique 12 \
+						unique 13 \
+						unique 14 \
+						unique 15 \
+						unique 16 \
+						unique 17 \
+						unique 18 \
+						unique 19 \
+					| sed 's/,/;/g' \
+					| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+						transpose \
+				>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 	else
 			echo -e "${PROJECT}\t${SM_TAG}\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA\tNA" \
 			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 				transpose \
-			>| ${CORE_PATH}/${PROJECT}/REPORTS/RG_HEADER/${SM_TAG}.RG_HEADER.txt
+			>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 	fi
 
 #####################################################
@@ -425,18 +449,25 @@
 ### "UNPAIRED_READ_DUPLICATES","UNPAIRED_READS_EXAMINED","UNPAIRED_DUP_RATE","PERCENT_DUPLICATION_OPTICAL" ###
 ##############################################################################################################
 
+	MAX_RECORD=$(grep -n "^$" ${CORE_PATH}/${PROJECT}/REPORTS/PICARD_DUPLICATES/${SM_TAG}_MARK_DUPLICATES.txt \
+				| awk 'BEGIN {FS=":"} \
+					NR==2 \
+					{print $1}')
+
 	if [[ ! -f ${CORE_PATH}/${PROJECT}/REPORTS/PICARD_DUPLICATES/${SM_TAG}_MARK_DUPLICATES.txt ]]
 	then
 		echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
 			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 				transpose \
 		>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
+	elif [[ -f ${CORE_PATH}/${PROJECT}/REPORTS/PICARD_DUPLICATES/${SM_TAG}_MARK_DUPLICATES.txt \
+		&& ${MAX_RECORD} -lt 7 ]]; \
+	then
+		echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+				transpose \
+		>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 	else
-		MAX_RECORD=$(grep -n "^$" ${CORE_PATH}/${PROJECT}/REPORTS/PICARD_DUPLICATES/${SM_TAG}_MARK_DUPLICATES.txt \
-				| awk 'BEGIN {FS=":"} \
-					NR==2 \
-					{print $1}')
-
 		awk 'BEGIN {OFS="\t"} \
 			NR>7&&NR<'$MAX_RECORD' \
 			{if ($10!~/[0-9]/) \
@@ -478,8 +509,8 @@
 ### THIS IS THE HEADER #################################################################################
 ### "GENOME_SIZE","BAIT_TERRITORY","TARGET_TERRITORY","PCT_PF_UQ_READS_ALIGNED","PF_UQ_GIGS_ALIGNED" ###
 ### "PCT_SELECTED_BASES","ON_BAIT_VS_SELECTED","MEAN_TARGET_COVERAGE" ##################################
-### "MEDIAN_TARGET_COVERAGE","MAX_TARGET_COVERAGE","ZERO_CVG_TARGETS_PCT" ##############################
-### "PCT_EXC_MAPQ","PCT_EXC_BASEQ","PCT_EXC_OVERLAP","PCT_EXC_OFF_TARGET","FOLD_80_BASE_PENALTY" #######
+### "MEDIAN_TARGET_COVERAGE","MAX_TARGET_COVERAGE","ZERO_CVG_TARGETS_PCT","PCT_EXC_MAPQ" ###############
+### "PCT_EXC_ADAPTER","PCT_EXC_BASEQ","PCT_EXC_OVERLAP","PCT_EXC_OFF_TARGET","FOLD_80_BASE_PENALTY" ####
 ### "PCT_TARGET_BASES_1X","PCT_TARGET_BASES_2X","PCT_TARGET_BASES_10X","PCT_TARGET_BASES_20X" ##########
 ### "PCT_TARGET_BASES_30X","PCT_TARGET_BASES_40X","PCT_TARGET_BASES_50X","PCT_TARGET_BASES_100X" #######
 ### "HS_LIBRARY_SIZE","AT_DROPOUT","GC_DROPOUT","THEORETICAL_HET_SENSITIVITY","HET_SNP_Q" ##############
@@ -491,48 +522,185 @@
 
 		if [[ ! -f ${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt ]]
 		then
-			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
+			echo -e NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN'\t'NaN \
 				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 					transpose \
 			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 		else
-			awk 'BEGIN {FS="\t";OFS="\t"} \
-				NR==8 \
-				{if ($12=="?"&&$44=="") \
-				print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$23,$24,$25,$29*100,\
-					"NaN","NaN","NaN","NaN","NaN",$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,\
-					$42*100,$43*100,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
-				else if ($12!="?"&&$44=="") \
-				print $2,$3,$4,$12*100,($14/1000000000),$19*100,$21,$23,$24,$25,$29*100,\
-					$31*100,$32*100,$33*100,$34*100,$35,$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,\
-					$42*100,$43*100,"NaN",$51,$52,$53,$54,$1,$26*100 ; \
-				else \
-				print $2,$3,$4,$12*100,($14/1000000000),$19*100,$21,$23,$24,$25,$29*100,\
-					$31*100,$32*100,$33*100,$34*100,$35,$36*100,$37*100,$38*100,$39*100,$40*100,$41*100,\
-					$42*100,$43*100,$44,$51,$52,$53,$54,$1,$26*100}' \
-			${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt \
-				| singularity exec ${ALIGNMENT_CONTAINER} datamash \
-					transpose \
-			>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
+			# grab field numbers for metrics and store a variables.
+
+				BAIT_SET=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="BAIT_SET") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				BAIT_TERRITORY=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="BAIT_TERRITORY") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_SELECTED_BASES=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_SELECTED_BASES") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				ON_BAIT_VS_SELECTED=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="ON_BAIT_VS_SELECTED") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_USABLE_BASES_ON_BAIT=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_USABLE_BASES_ON_BAIT") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				HS_LIBRARY_SIZE=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="HS_LIBRARY_SIZE") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				TARGET_TERRITORY=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="TARGET_TERRITORY") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				GENOME_SIZE=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="GENOME_SIZE") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PF_UQ_BASES_ALIGNED=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PF_UQ_BASES_ALIGNED") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_PF_UQ_READS_ALIGNED=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_PF_UQ_READS_ALIGNED") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				MEAN_TARGET_COVERAGE=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="MEAN_TARGET_COVERAGE") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				MEDIAN_TARGET_COVERAGE=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="MEDIAN_TARGET_COVERAGE") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				MAX_TARGET_COVERAGE=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="MAX_TARGET_COVERAGE") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				ZERO_CVG_TARGETS_PCT=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="ZERO_CVG_TARGETS_PCT") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_EXC_ADAPTER=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_EXC_ADAPTER") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_EXC_MAPQ=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_EXC_MAPQ") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_EXC_BASEQ=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_EXC_BASEQ") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_EXC_OVERLAP=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_EXC_OVERLAP") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_EXC_OFF_TARGET=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_EXC_OFF_TARGET") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				FOLD_80_BASE_PENALTY=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="FOLD_80_BASE_PENALTY") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_1X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_1X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_2X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_2X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_10X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_10X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_20X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_20X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_30X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_30X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_40X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_40X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_50X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_50X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				PCT_TARGET_BASES_100X=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="PCT_TARGET_BASES_100X") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				AT_DROPOUT=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="AT_DROPOUT") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				GC_DROPOUT=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="GC_DROPOUT") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				HET_SNP_SENSITIVITY=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="HET_SNP_SENSITIVITY") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+				HET_SNP_Q=$(awk 'NR==7 {for (i=1; i<=NF; ++i) {if ($i=="HET_SNP_Q") print i}}' \
+					${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt)
+
+			# this was supposed to be
+			## if there are no reads, then print x
+			## if there are no reads in the target area, the print y
+			## else the data is fine and do as you intended.
+			## however i no longer have anything to test this on...
+
+				awk \
+					-v BAIT_SET="$BAIT_SET" \
+					-v BAIT_TERRITORY="$BAIT_TERRITORY" \
+					-v PCT_SELECTED_BASES="$PCT_SELECTED_BASES" \
+					-v ON_BAIT_VS_SELECTED="$ON_BAIT_VS_SELECTED" \
+					-v PCT_USABLE_BASES_ON_BAIT="$PCT_USABLE_BASES_ON_BAIT" \
+					-v HS_LIBRARY_SIZE="$HS_LIBRARY_SIZE" \
+					-v TARGET_TERRITORY="$TARGET_TERRITORY" \
+					-v GENOME_SIZE="$GENOME_SIZE" \
+					-v PF_UQ_BASES_ALIGNED="$PF_UQ_BASES_ALIGNED" \
+					-v PCT_PF_UQ_READS_ALIGNED="$PCT_PF_UQ_READS_ALIGNED" \
+					-v MEAN_TARGET_COVERAGE="$MEAN_TARGET_COVERAGE" \
+					-v MEDIAN_TARGET_COVERAGE="$MEDIAN_TARGET_COVERAGE" \
+					-v MAX_TARGET_COVERAGE="$MAX_TARGET_COVERAGE" \
+					-v ZERO_CVG_TARGETS_PCT="$ZERO_CVG_TARGETS_PCT" \
+					-v PCT_EXC_ADAPTER="$PCT_EXC_ADAPTER" \
+					-v PCT_EXC_MAPQ="$PCT_EXC_MAPQ" \
+					-v PCT_EXC_BASEQ="$PCT_EXC_BASEQ" \
+					-v PCT_EXC_OVERLAP="$PCT_EXC_OVERLAP" \
+					-v PCT_EXC_OFF_TARGET="$PCT_EXC_OFF_TARGET" \
+					-v FOLD_80_BASE_PENALTY="$FOLD_80_BASE_PENALTY" \
+					-v PCT_TARGET_BASES_1X="$PCT_TARGET_BASES_1X" \
+					-v PCT_TARGET_BASES_2X="$PCT_TARGET_BASES_2X" \
+					-v PCT_TARGET_BASES_10X="$PCT_TARGET_BASES_10X" \
+					-v PCT_TARGET_BASES_20X="$PCT_TARGET_BASES_20X" \
+					-v PCT_TARGET_BASES_30X="$PCT_TARGET_BASES_30X" \
+					-v PCT_TARGET_BASES_40X="$PCT_TARGET_BASES_40X" \
+					-v PCT_TARGET_BASES_50X="$PCT_TARGET_BASES_50X" \
+					-v PCT_TARGET_BASES_100X="$PCT_TARGET_BASES_100X" \
+					-v AT_DROPOUT="$AT_DROPOUT" \
+					-v GC_DROPOUT="$GC_DROPOUT" \
+					-v HET_SNP_SENSITIVITY="$HET_SNP_SENSITIVITY" \
+					-v HET_SNP_Q="$HET_SNP_Q" \
+				'BEGIN {FS="\t";OFS="\t"} \
+					NR==8 \
+					{if ($PCT_PF_UQ_READS_ALIGNED=="?"&&$HS_LIBRARY_SIZE=="") \
+					print $GENOME_SIZE,$BAIT_TERRITORY,$TARGET_TERRITORY,"NaN",\
+						($PF_UQ_BASES_ALIGNED/1000000000),"NaN","NaN",\
+						$MEAN_TARGET_COVERAGE,$MEDIAN_TARGET_COVERAGE,$MAX_TARGET_COVERAGE,\
+						$ZERO_CVG_TARGETS_PCT*100,"NaN","NaN","NaN",\
+						"NaN","NaN","NaN",\
+						$PCT_TARGET_BASES_1X*100,$PCT_TARGET_BASES_2X*100,$PCT_TARGET_BASES_10X*100,\
+						$PCT_TARGET_BASES_20X*100,$PCT_TARGET_BASES_30X*100,$PCT_TARGET_BASES_40X*100,\
+						$PCT_TARGET_BASES_50X*100,$PCT_TARGET_BASES_100X*100,"NaN",$AT_DROPOUT,\
+						$GC_DROPOUT,$HET_SNP_SENSITIVITY,$HET_SNP_Q,$BAIT_SET,"NaN" ; \
+					else if ($PCT_PF_UQ_READS_ALIGNED!="?"&&$HS_LIBRARY_SIZE=="") \
+					print $GENOME_SIZE,$BAIT_TERRITORY,$TARGET_TERRITORY,$PCT_PF_UQ_READS_ALIGNED*100,\
+						($PF_UQ_BASES_ALIGNED/1000000000),$PCT_SELECTED_BASES*100,$ON_BAIT_VS_SELECTED,\
+						$MEAN_TARGET_COVERAGE,$MEDIAN_TARGET_COVERAGE,$MAX_TARGET_COVERAGE,\
+						$ZERO_CVG_TARGETS_PCT*100,$PCT_EXC_MAPQ*100,$PCT_EXC_BASEQ*100,$PCT_EXC_OVERLAP*100,\
+						$PCT_EXC_OFF_TARGET*100,$PCT_EXC_ADAPTER,$FOLD_80_BASE_PENALTY,\
+						$PCT_TARGET_BASES_1X*100,$PCT_TARGET_BASES_2X*100,$PCT_TARGET_BASES_10X*100,\
+						$PCT_TARGET_BASES_20X*100,$PCT_TARGET_BASES_30X*100,$PCT_TARGET_BASES_40X*100,\
+						$PCT_TARGET_BASES_50X*100,$PCT_TARGET_BASES_100X*100,"NaN",$AT_DROPOUT,\
+						$GC_DROPOUT,$HET_SNP_SENSITIVITY,$HET_SNP_Q,$BAIT_SET,$PCT_USABLE_BASES_ON_BAIT*100 ; \
+					else \
+					print $GENOME_SIZE,$BAIT_TERRITORY,$TARGET_TERRITORY,$PCT_PF_UQ_READS_ALIGNED*100,\
+						($PF_UQ_BASES_ALIGNED/1000000000),$PCT_SELECTED_BASES*100,$ON_BAIT_VS_SELECTED,\
+						$MEAN_TARGET_COVERAGE,$MEDIAN_TARGET_COVERAGE,$MAX_TARGET_COVERAGE,\
+						$ZERO_CVG_TARGETS_PCT*100,$PCT_EXC_MAPQ*100,$PCT_EXC_BASEQ*100,$PCT_EXC_OVERLAP*100,\
+						$PCT_EXC_OFF_TARGET*100,$PCT_EXC_ADAPTER,$FOLD_80_BASE_PENALTY,\
+						$PCT_TARGET_BASES_1X*100,$PCT_TARGET_BASES_2X*100,$PCT_TARGET_BASES_10X*100,\
+						$PCT_TARGET_BASES_20X*100,$PCT_TARGET_BASES_30X*100,$PCT_TARGET_BASES_40X*100,\
+						$PCT_TARGET_BASES_50X*100,$PCT_TARGET_BASES_100X*100,$HS_LIBRARY_SIZE,$AT_DROPOUT,\
+						$GC_DROPOUT,$HET_SNP_SENSITIVITY,$HET_SNP_Q,$BAIT_SET,$PCT_USABLE_BASES_ON_BAIT*100}' \
+				${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}_hybridization_selection_metrics.txt \
+					| singularity exec ${ALIGNMENT_CONTAINER} datamash \
+						transpose \
+				>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 		fi
-
-	# this was supposed to be
-	## if there are no reads, then print x
-	## if there are no reads in the target area, the print y
-	## else the data is fine and do as you intended.
-	## however i no longer have anything to test this on...
-
-		# awk 'BEGIN {FS="\t";OFS="\t"} \
-		# NR==8 \
-		# {if ($12=="?"&&$44=="") print $2,$3,$4,"NaN",($14/1000000000),"NaN","NaN",$22,$23,$24,$25,$29,"NaN","NaN","NaN","NaN",\
-		# $36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,"NaN" ; \
-		# else if ($12!="?") print $2,$3,$4,$12,($14/1000000000),$19,$21,$22,$23,$24,$25,$29,$31,$32,$33,$34,\
-		# $36,$37,$38,$39,$40,$41,$42,$43,"NaN",$51,$52,$53,$54,$1,$26 ; \
-		# else print $2,$3,$4,$12,($14/1000000000),$19,$21,$22,$23,$24,$25,$29,$31,$32,$33,$34,\
-		# $36,$37,$38,$39,$40,$41,$42,$43,$44,$51,$52,$53,$54,$1,$26}' \
-		# ${CORE_PATH}/${PROJECT}/REPORTS/HYB_SELECTION/${SM_TAG}"_hybridization_selection_metrics.txt" \
-		# | singularity exec ${ALIGNMENT_CONTAINER} datamash transpose \
-		# >> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.QC_REPORT_TEMP.txt
 
 ##########################################
 ### BAIT BIAS REPORT FOR Cref and Gref ###

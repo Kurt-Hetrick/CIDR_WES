@@ -30,7 +30,7 @@
 	PROJECT=$3
 	SAMPLE_SHEET=$4
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SCRIPT_DIR=$5
+	SUBMITTER_SCRIPT_PATH=$5
 	SUBMITTER_ID=$6
 	SUBMIT_STAMP=$7
 
@@ -144,6 +144,7 @@
 				"PCT_EXC_BASEQ",\
 				"PCT_EXC_OVERLAP",\
 				"PCT_EXC_OFF_TARGET",\
+				"PCT_EXC_ADAPTER",\
 				"FOLD_80_BASE_PENALTY",\
 				"PCT_TARGET_BASES_1X",\
 				"PCT_TARGET_BASES_2X",\
@@ -371,7 +372,7 @@
 
 	# grab email addy
 
-		SEND_TO=$(cat ${SCRIPT_DIR}/../email_lists.txt)
+		SEND_TO=$(cat ${SUBMITTER_SCRIPT_PATH}/email_lists.txt)
 
 	# grab submitter's name
 
