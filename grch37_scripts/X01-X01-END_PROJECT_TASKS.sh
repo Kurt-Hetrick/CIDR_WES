@@ -364,11 +364,10 @@
 			| sed 's/\t/,/g' \
 	>| ${CORE_PATH}/${PROJECT}/REPORTS/QC_REPORTS/${PROJECT}.PER_CHR_VERIFYBAMID.${TIMESTAMP}.csv
 
-#######################################################
-#######################################################
-##### SEND EMAIL NOTIFICATION SUMMARIES WHEN DONE #####
+##############################################################
+##### SEND EMAIL NOTIFICATION SUMMARIES WHEN DONE ############
 ##### CLEAN-UP OR NOT DEPENDING ON IF JOBS FAILED OR NOT #####
-#######################################################
+##############################################################
 
 	# grab email addy
 
@@ -910,7 +909,7 @@
 
 	# summarize by sample by taking the max times per concurrent task group and summing them up
 
-		sed 's/,/\t/g' ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}".WALL.CLOCK.TIMES.FIXED.csv" \
+		sed 's/,/\t/g' ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}.WALL.CLOCK.TIMES.FIXED.csv \
 			| awk 'NR>1' \
 			| sed 's/_BAM_REPORTS//g' \
 			| sort -k 1,1 -k 2,2 -k 3,3 -k 4,4 \
@@ -931,14 +930,14 @@
 				{print "SAMPLE","PROJECT","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} \
 				{print $0}' \
 			| sed -r 's/[[:space:]]+/,/g' \
-		>| ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}".WALL.CLOCK.TIMES.BY_SAMPLE.csv"
+		>| ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}.WALL.CLOCK.TIMES.BY_SAMPLE.csv
 
 	# break down by the longest task within a group per sample
 
 		sed 's/\t/,/g' ${CORE_PATH}/${PROJECT}/TEMP/WALL.CLOCK.TIMES.BY.GROUP.txt \
 			| awk 'BEGIN {print "SAMPLE","PROJECT","TASK_GROUP","WALL_CLOCK_SECONDS","WALL_CLOCK_MINUTES","WALL_CLOCK_HOURS"} {print $0}' \
 			| sed -r 's/[[:space:]]+/,/g' \
-		>| ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}".WALL.CLOCK.TIMES.BY_SAMPLE_GROUP.csv"
+		>| ${CORE_PATH}/${PROJECT}/REPORTS/${PROJECT}.WALL.CLOCK.TIMES.BY_SAMPLE_GROUP.csv
 
 # put a stamp as to when the run was done
 

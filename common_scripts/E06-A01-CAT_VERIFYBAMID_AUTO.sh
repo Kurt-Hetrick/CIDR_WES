@@ -46,6 +46,7 @@
 		${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${BAIT_BED_NAME}.bed \
 			| sed -r 's/[[:space:]]+/\t/g' \
 			| cut -f 1 \
+			| sed 's/^chr//g' \
 			| egrep "^[0-9]" \
 			| sort -k 1,1n \
 			| uniq \

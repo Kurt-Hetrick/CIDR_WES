@@ -89,6 +89,7 @@ echo
 			split(CHROM[2],POS,"-"); \
 			print CHROM[1],POS[1]-1,POS[2],$2}' \
 		${CORE_PATH}/${PROJECT}/REPORTS/DEPTH_OF_COVERAGE/TARGET/${SM_TAG}.TARGET_BED.sample_interval_summary.csv \
+			| sed 's/^chr//g' \
 			| singularity exec ${ALIGNMENT_CONTAINER} bedtools \
 				intersect \
 					-wo \
