@@ -390,7 +390,6 @@
 ### fix common formatting problems in bed files ##################################
 ### create picard style interval files ###########################################
 ### DO PER SAMPLE ################################################################
-### NOTE THIS SCRIPT IS THE SAME B/W HG19 AND GRCH38 BUT DIFFERENT THAN GRCH37 ###
 ##################################################################################
 
 	FIX_BED_FILES ()
@@ -667,7 +666,7 @@
 				-k 3,3 \
 				-k 6,6 \
 			| uniq \
-			| singularity exec $ALIGNMENT_CONTAINER datamash \
+			| singularity exec ${ALIGNMENT_CONTAINER} datamash \
 				-s \
 				-g 1,2 \
 				collapse 3 \
@@ -682,7 +681,7 @@
 			"-cwd",\
 			"-V",\
 			"-v SINGULARITY_BINDPATH=/mnt:/mnt",\
-			"-q","'$QUEUE_LIST'",\
+			"-q","'${QUEUE_LIST}'",\
 			"-p","'${PRIORITY}'",\
 			"-N","B01-MARK_DUPLICATES_"$5"_"$1,\
 			"-o","'${CORE_PATH}'/"$1"/LOGS/"$2"/"$2"-MARK_DUPLICATES.log",\
@@ -991,9 +990,10 @@
 					${SUBMIT_STAMP}
 			}
 
-	##################################
-	# gather the per chromosome vcfs #
-	##################################
+	#########################################################################################
+	# gather the per chromosome vcfs ########################################################
+	# this step is the same between the hg19 and grch38 pipelines but different than grch37 #
+	#########################################################################################
 
 		CALL_GENOTYPE_GVCF_GATHER ()
 		{

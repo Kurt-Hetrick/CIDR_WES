@@ -35,7 +35,8 @@
 	SUBMIT_STAMP=$7
 
 		BAIT_BED_NAME=$(basename ${HC_BAIT_BED} .bed)
-			if [[ ${HC_BAIT_BED}="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" ]];
+			if [[ ${HC_BAIT_BED}="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914.bed" \
+				|| ${HC_BAIT_BED}="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files/H_Cutting_phase_1plus2_super_file.bed" ]];
 			then
 				CALL_BED_FILE=${HC_BAIT_BED}
 			else
