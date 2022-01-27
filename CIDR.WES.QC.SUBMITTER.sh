@@ -1394,55 +1394,6 @@
 				${SUBMIT_STAMP}
 		}
 
-		#######################################################################################
-		# EXTRACT OUT PASS ONLY SNVS FROM FINAL VCF ON TARGET BED FILE TO USE FOR CONCORDANCE #
-		#######################################################################################
-
-			EXTRACT_ON_TARGET_PASS_SNV ()
-			{
-				echo \
-				qsub \
-					${QSUB_ARGS} \
-				-N I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_SNV_TARGET_PASS.log \
-				-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
-				${COMMON_SCRIPT_DIR}/I01-A01-A01-EXTRACT_SNV_TARGET_PASS.sh \
-					${ALIGNMENT_CONTAINER} \
-					${CORE_PATH} \
-					${PROJECT} \
-					${SM_TAG} \
-					${REF_GENOME} \
-					${TARGET_BED} \
-					${SAMPLE_SHEET} \
-					${SUBMIT_STAMP}
-			}
-
-			############################################################################################
-			# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
-			# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
-			# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
-			############################################################################################
-
-				TARGET_PASS_SNV_CONCORDANCE ()
-				{
-					echo \
-					qsub \
-						${QSUB_ARGS} \
-					-N I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
-						-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-					-hold_jid I01-A01-A01-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-					${GRCH37_SCRIPT_DIR}/I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
-						${JAVA_1_8} \
-						${CIDRSEQSUITE_7_5_0_DIR} \
-						${VERACODE_CSV} \
-						${CORE_PATH} \
-						${PROJECT} \
-						${SM_TAG} \
-						${TARGET_BED} \
-						${SAMPLE_SHEET} \
-						${SUBMIT_STAMP}
-				}
-
 	##########################
 	# FILTER INDEL AND MIXED #
 	##########################
@@ -1483,6 +1434,55 @@
 				${PROJECT} \
 				${SM_TAG} \
 				${REF_GENOME} \
+				${SAMPLE_SHEET} \
+				${SUBMIT_STAMP}
+		}
+
+	#######################################################################################
+	# EXTRACT OUT PASS ONLY SNVS FROM FINAL VCF ON TARGET BED FILE TO USE FOR CONCORDANCE #
+	#######################################################################################
+
+		EXTRACT_ON_TARGET_PASS_SNV ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+			-N J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_SNV_TARGET_PASS.log \
+			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
+			${COMMON_SCRIPT_DIR}/J01-A04-EXTRACT_SNV_TARGET_PASS.sh \
+				${ALIGNMENT_CONTAINER} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${SM_TAG} \
+				${REF_GENOME} \
+				${TARGET_BED} \
+				${SAMPLE_SHEET} \
+				${SUBMIT_STAMP}
+		}
+
+	############################################################################################
+	# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
+	# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
+	# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
+	############################################################################################
+
+		TARGET_PASS_SNV_CONCORDANCE ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+			-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+			-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+			${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+				${JAVA_1_8} \
+				${CIDRSEQSUITE_7_5_0_DIR} \
+				${VERACODE_CSV} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${SM_TAG} \
+				${TARGET_BED} \
 				${SAMPLE_SHEET} \
 				${SUBMIT_STAMP}
 		}
@@ -1577,7 +1577,7 @@ E05-A01-CHROM_DEPTH_${SGE_SM_TAG}_${PROJECT},\
 F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
 F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
 E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT},\
-I01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
+J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
 J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
@@ -1610,13 +1610,13 @@ ${SUBMIT_STAMP}
 		echo sleep 0.1s
 		FILTER_SNV
 		echo sleep 0.1s
-		EXTRACT_ON_TARGET_PASS_SNV
-		echo sleep 0.1s
-		TARGET_PASS_SNV_CONCORDANCE
-		echo sleep 0.1s
 		FILTER_INDEL_AND_MIXED
 		echo sleep 0.1s
 		COMBINE_FILTERED_VCF_FILES
+		echo sleep 0.1s
+		EXTRACT_ON_TARGET_PASS_SNV
+		echo sleep 0.1s
+		TARGET_PASS_SNV_CONCORDANCE
 		echo sleep 0.1s
 		VCF_METRICS_BAIT
 		echo sleep 0.1s

@@ -46,9 +46,10 @@ START_SNV_TARGET_PASS=`date '+%s'`
 			CMD=${CMD}" /gatk/gatk.jar"
 		CMD=${CMD}" SelectVariants"
 			CMD=${CMD}" --reference ${REF_GENOME}"
+			CMD=${CMD}" --select-type-to-include SNP"
 			CMD=${CMD}" --exclude-filtered"
 			CMD=${CMD}" --intervals ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.bed"
-			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.FILTERED.SNV.vcf.gz"
+			CMD=${CMD}" --variant ${CORE_PATH}/${PROJECT}/VCF/SINGLE_SAMPLE/${SM_TAG}.QC.vcf.gz"
 		CMD=${CMD}" --output ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}_QC_PASS_OnTarget_SNV.vcf"
 
 	# write command line to file and execute the command line
