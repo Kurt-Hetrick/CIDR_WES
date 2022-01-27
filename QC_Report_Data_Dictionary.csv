@@ -1,8 +1,8 @@
 COLUMN,DESCRIPTION,PROGRAM,COMMENT,SOURCE
-SM_TAG,CIDR internal database ID plus 2D barcode,,Read Group Sample tag,
+SM_TAG,CIDR internal database ID plus 2D barcode,,SM field in CRAM Read Group Header,
 PROJECT,Project Name,,,
-RG_PU,FLOWCELL_LANE_INDEX,,,
-LIBRARY,LibraryPlate_WellPosition_HybPlate_WellPosition from cram/bam file,,,
+RG_PU,FLOWCELL_LANE_INDEX,,PG field in CRAM Read Group Header,
+LIBRARY,LibraryPlate_WellPosition_HybPlate_WellPosition from cram/bam file,,LB field in CRAM Read Group Header,
 LIBRARY_PLATE,Name of plate used in laboratory during library prep from cram/bam file,,,
 LIBRARY_WELL,Well the sample is located in during library prep from cram/bam file,,,
 LIBRARY_ROW,Row of the well the sample is located in during library prep from cram/bam file,,,
@@ -11,6 +11,13 @@ HYB_PLATE,Name of plate used in laboratory during capture hybridization from cra
 HYB_WELL,Well the sample is located in during capture hybridization from cram/bam file,,,
 HYB_ROW,Row of the well the sample is located in during capture hybridization from cram/bam file,,,
 HYB_COLUMN,Column of the well the sample is located in during capture hybridization from cram/bam file,,,
+CRAM_PIPELINE_VERSION,Pipeline version used to generate CRAM files,,PG field in CRAM Read Group Header,
+SEQUENCING_PLATFORM,Sequencing chemistry used (Illumina or other),,PL field in CRAM Read Group Header,
+SEQUENCER_MODEL,Instrument Model Used,,PM field in CRAM Read Group Header,
+EXEMPLAR_DATE,Date Sample was registered into Exempler LIMS,,DT field in CRAM Read Group Header,
+BAIT_BED_FILE,"Bait Bed file used for processing, variant metrics and other metrics",,DS field in CRAM Read Group Header,
+TARGET_BED_FILE,"Target Bed file used for processing, variant, concordance and other metrics",,DS field in CRAM Read Group Header,
+TITV_BED_FILE,TITV Bed file used for variant metrics. Usually only contains regions of coding sequence only,,DS field in CRAM Read Group Header,
 X_AVG_DP,Mean depth Of chr X targets,,,
 X_NORM_DP,Mean depth Of chr X targets divided by mean depth of autosomal targets,,,
 Y_AVG_DP,Mean depth Of chr Y targets,,,
@@ -27,7 +34,7 @@ SENSITIVITY_2_HET,Percent of heterozygous array genotypes that are also called a
 SNP_ARRAY,SNP array used to calculate concordance/sensitivity,cidrseqsuite code,,On Target
 VERIFYBAM_FREEMIX_PCT,Sequence-only estimate of contamination (PERCENTAGE),verifyBamID,,
 VERIFYBAM_#SNPS,Number of sites used for verifybamID contamination,verifyBamID,,
-VERIFYBAM_FREELK1, Maximum log-likelihood of the sequence reads given estimated contamination under sequence-only method,verifyBamID,,
+VERIFYBAM_FREELK1,Maximum log-likelihood of the sequence reads given estimated contamination under sequence-only method,verifyBamID,,
 VERIFYBAM_FREELK0,Log-likelihood of the sequence reads given no contamination under sequence-only method,verifyBamID,,
 VERIFYBAM_DIFF_LK0_LK1,VERIFYBAM_FREELK0-VERIFYBAM_FREELK1,verifyBamID,,
 VERIFYBAM_AVG_DP,Average depth at sites used by verifybamID,verifyBamID,,
@@ -90,6 +97,7 @@ PCT_EXC_MAPQ,The percentage of aligned bases that were filtered out because they
 PCT_EXC_BASEQ,The percentage of aligned bases that were filtered out because they were of low base quality (<10).,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 PCT_EXC_OVERLAP,The percentage of aligned bases that were filtered out because they were the second observation from an insert with overlapping reads.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 PCT_EXC_OFF_TARGET,The percentage of aligned bases that were filtered out because they did not align over a target base.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
+PCT_EXC_ADAPTER,The percentage of PF reads that are unaligned and match to a known adapter sequence right from the start of the read.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 FOLD_80_BASE_PENALTY,"The fold over-coverage necesssary to raise 80% of bases in ""non-zero-cvg"" targets to the mean coverage level in those targets",CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 PCT_TARGET_BASES_1X,The percentage of all target bases achieving 1X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
 PCT_TARGET_BASES_2X,The percentage of all target bases achieving 2X or greater coverage.,CollectHsMetrics,,https://broadinstitute.github.io/picard/picard-metric-definitions.html#HsMetrics
@@ -121,30 +129,74 @@ PCT_A_to_T,Percent of A to T and T to A substitution rate excluding dbSNP 138,Co
 PCT_C_to_A,Percent of C to A and G to T substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 PCT_C_to_G,Percent of C to G and G to C substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
 PCT_C_to_T,Percent of C to T and G to A substitution rate excluding dbSNP 138,CollectSequencingArtifactMetrics,,http://broadinstitute.github.io/picard/picard-metric-definitions.html#SequencingArtifactMetrics.BaitBiasSummaryMetrics
-COUNT_SNV_ON_BAIT,Count of PASSING SNVs from the Bait Bed file,,,
-PERCENT_SNV_ON_BAIT_SNP138,Percent of PASSING SNVs from the Bait Bed file that are in dbSNP 138,,,
-COUNT_SNV_ON_TARGET,Count of PASSING SNVs from the Target Bed file,,,
-PERCENT_SNV_ON_TARGET_SNP138,Percent of PASSING SNVs from the Target Bed file that are in dbSNP 138,,,
-HET:HOM_TARGET,Number of passing het SNVs on Target/Number of passing non-ref homozygotes on target,,,
-ALL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file,vcfutils.pl qstats,,
-ALL_TI_TV_RATIO,Ti/Tv ratio of ALL_TI_TV_COUNT,vcfutils.pl qstats,,
-KNOWN_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are in dbSNP 129,vcfutils.pl qstats,,
-KNOWN_TI_TV_RATIO,Ti/Tv ratio of KNOWN_TI_TV_COUNT,vcfutils.pl qstats,,
-NOVEL_TI_TV_COUNT,Count of of PASSING SNVs that fall in the TsTv Bed file and are NOT in dbSNP 129,vcfutils.pl qstats,,
-NOVEL_TI_TV_RATIO,Ti/Tv ratio of NOVEL_TI_TV_COUNT,vcfutils.pl qstats,,
-COUNT_ALL_INDEL_BAIT,Count of all PASSING indels on bait,,,
-ALL_INDEL_BAIT_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on bait,,,
-COUNT_BIALLELIC_INDEL_BAIT,Count of PASSING biallelic indels on bait,,,
-BIALLELIC_INDEL_BAIT_PCT_SNP138,Pct of PASSING biallelic indels on bait in dbSNP 138,,,
-COUNT_ALL_INDEL_TARGET,Count of all PASSING indels on target,,,
-ALL_INDEL_TARGET_PCT_SNP138,Percent of PASSING Indels that are in dbSNP 138 and on target,,,
-COUNT_BIALLELIC_INDEL_TARGET,Count of PASSING biallelic indels on target,,,
-BIALLELIC_INDEL_TARGET_PCT_SNP138,Pct of PASSING biallelic indels on target in dbSNP 138,,,
-BIALLELIC_ID_RATIO,Insertion/Deletion ratio for PASSING biallelic indels on target,,,
-COUNT_MIXED_ON_BAIT,Count of PASSING mixed variants on bait,,,
-PERCENT_MIXED_ON_BAIT_SNP138,Pct of PASSING mixed variants on bait in dbSNP 138,,,
-COUNT_MIXED_ON_TARGET,Count of PASSING mixed variants on target,,,
-PERCENT_MIXED_ON_TARGET_SNP138,Pct of PASSING mixed variants on target in dbSNP 138,,,
+BAIT_HET_HOMVAR_RATIO,(count of hets)/(count of homozygous non-ref) for this sample,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+BAIT_PCT_GQ0_VARIANT,The percentage of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+BAIT_TOTAL_GQ0_VARIANT,The total number of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+BAIT_TOTAL_HET_DEPTH_SNV,total number of reads (from AD field) for passing bi-allelic SNP hets for this sample,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+BAIT_TOTAL_SNV,The number of passing bi-allelic SNPs calls (i.e. non-reference genotypes) that were examined,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NUM_IN_DBSNP_138_SNV,The number of passing bi-allelic SNPs found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NOVEL_SNV,The number of passing bi-allelic SNPS called that were not found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_FILTERED_SNV,The number of SNPs that are filtered,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_PCT_DBSNP_138_SNV,The percentage of passing bi-allelic SNPs in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_TOTAL_INDEL,The number of passing indel calls that were examined,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NOVEL_INDEL,The number of passing indels called that were not found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_FILTERED_INDEL,The number of indels that are filtered,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_PCT_DBSNP_138_INDEL,The percentage of passing indels in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NUM_IN_DBSNP_138_INDEL,The number of passing indels found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_DBSNP_138_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at dbSNP 138 sites,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NOVEL_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at non-dbSNP 138 sites,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_TOTAL_MULTIALLELIC_SNV,The number of passing multi-allelic SNP calls that were examined,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NUM_IN_DBSNP_138_MULTIALLELIC_SNV,The number of passing multi-allelic SNPs found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_TOTAL_COMPLEX_INDEL,The number of passing complex indel calls that were examined,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NUM_IN_DBSNP_138_COMPLEX_INDEL,The number of passing complex indels found in dbSNP 138,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_SNP_REFERENCE_BIAS,The rate at which reference bases are observed at ref/alt heterozygous SNP sites.,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+BAIT_NUM_SINGLETONS,The number of variants that appear only in the current sample.,CollectVariantCallingMetrics,On Bait Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_HET_HOMVAR_RATIO,(count of hets)/(count of homozygous non-ref) for this sample,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+TARGET_PCT_GQ0_VARIANT,The percentage of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+TARGET_TOTAL_GQ0_VARIANT,The total number of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+TARGET_TOTAL_HET_DEPTH_SNV,total number of reads (from AD field) for passing bi-allelic SNP hets for this sample,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+TARGET_TOTAL_SNV,The number of passing bi-allelic SNPs calls (i.e. non-reference genotypes) that were examined,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NUM_IN_DBSNP_138_SNV,The number of passing bi-allelic SNPs found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NOVEL_SNV,The number of passing bi-allelic SNPS called that were not found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_FILTERED_SNV,The number of SNPs that are filtered,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_PCT_DBSNP_138_SNV,The percentage of passing bi-allelic SNPs in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_TOTAL_INDEL,The number of passing indel calls that were examined,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NOVEL_INDEL,The number of passing indels called that were not found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_FILTERED_INDEL,The number of indels that are filtered,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_PCT_DBSNP_138_INDEL,The percentage of passing indels in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NUM_IN_DBSNP_138_INDEL,The number of passing indels found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_DBSNP_138_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at dbSNP 138 sites,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NOVEL_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at non-dbSNP 138 sites,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_TOTAL_MULTIALLELIC_SNV,The number of passing multi-allelic SNP calls that were examined,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NUM_IN_DBSNP_138_MULTIALLELIC_SNV,The number of passing multi-allelic SNPs found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_TOTAL_COMPLEX_INDEL,The number of passing complex indel calls that were examined,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NUM_IN_DBSNP_138_COMPLEX_INDEL,The number of passing complex indels found in dbSNP 138,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_SNP_REFERENCE_BIAS,The rate at which reference bases are observed at ref/alt heterozygous SNP sites.,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+TARGET_NUM_SINGLETONS,The number of variants that appear only in the current sample.,CollectVariantCallingMetrics,On Target Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_HET_HOMVAR_RATIO,(count of hets)/(count of homozygous non-ref) for this sample,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+CODING_PCT_GQ0_VARIANT,The percentage of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+CODING_TOTAL_GQ0_VARIANT,The total number of variants in a particular sample that have a GQ score of 0.,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+CODING_TOTAL_HET_DEPTH_SNV,total number of reads (from AD field) for passing bi-allelic SNP hets for this sample,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingDetailMetrics
+CODING_TOTAL_SNV,The number of passing bi-allelic SNPs calls (i.e. non-reference genotypes) that were examined,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NUM_IN_DBSNP_129_SNV,The number of passing bi-allelic SNPs found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NOVEL_SNV,The number of passing bi-allelic SNPS called that were not found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_FILTERED_SNV,The number of SNPs that are filtered,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_PCT_DBSNP_129_SNV,The percentage of passing bi-allelic SNPs in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_DBSNP_129_TITV,The Transition/Transversion ratio of the passing bi-allelic SNP calls made at dbSNP 129 sites,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NOVEL_TITV,The Transition/Transversion ratio of the passing bi-allelic SNP calls made at non-dbSNP 129 sites,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_TOTAL_INDEL,The number of passing indel calls that were examined,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NOVEL_INDEL,The number of passing indels called that were not found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_FILTERED_INDEL,The number of indels that are filtered,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_PCT_DBSNP_129_INDEL,The percentage of passing indels in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NUM_IN_DBSNP_129_INDEL,The number of passing indels found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_DBSNP_129_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at dbSNP 129 sites,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NOVEL_INS_DEL_RATIO,The Insertion/Deletion ratio of the indel calls made at non-dbSNP 129 sites,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_TOTAL_MULTIALLELIC_SNV,The number of passing multi-allelic SNP calls that were examined,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NUM_IN_DBSNP_129_MULTIALLELIC_SNV,The number of passing multi-allelic SNPs found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_TOTAL_COMPLEX_INDEL,The number of passing complex indel calls that were examined,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NUM_IN_DBSNP_129_COMPLEX_INDEL,The number of passing complex indels found in dbSNP 129,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_SNP_REFERENCE_BIAS,The rate at which reference bases are observed at ref/alt heterozygous SNP sites.,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
+CODING_NUM_SINGLETONS,The number of variants that appear only in the current sample.,CollectVariantCallingMetrics,On TITV Bed File,https://broadinstitute.github.io/picard/picard-metric-definitions.html#CollectVariantCallingMetrics.VariantCallingSummaryMetrics
 Shear DNA Amount,Amount of DNA going into library prep,EnhancedSequencingQCReport.jar,,Sample Physique Report
 QC2 Analysis Region[Range] Size [BP],Size after library prep in BP,EnhancedSequencingQCReport.jar,,Sample Physique Report
 QC2 Analysis Estimated Total DNA,Estimated total DNA after library prep in ng,EnhancedSequencingQCReport.jar,,Sample Physique Report
@@ -167,6 +219,19 @@ NSP END RUN QCA % CLUSTER PF MEDIAN,Average Percent Clusters Passing Filter on t
 NSP END RUN QCA % CLUSTER PF AVG,Average Median Clusters Passing Filter on the flowcell calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
 NSP END RUN QCA % UNDETERMINED,Percent Undetermined from Demultiplexing Report,EnhancedSequencingQCReport.jar,,Sample Physique Report
 NSP END RUN QCA % PHIX ALIGNED,Average PhiX Aligned calculated by RTA,EnhancedSequencingQCReport.jar,,Sample Physique Report
+NSP SAMPLE PREP FLOWCELL TYPE,,,,
+NSP SAMPLE PREP WORKFLOW,,,,
+QPCR ANALYSIS CALCULATED MOLARITY,,,,
+DBSPRI DILUTION PLATE FACTOR,,,,
+SPRQC ANALYSIS REGION[RANGE] SIZE [BP],,,,
+SPRQC ANALYSIS ADJUSTED CONCENTRATION,,,,
+SPRQC ANALYSIS ESTIMATED TOTAL DNA,,,,
+SPRQC ANALYSIS ESTIMATED TOTAL MOLARITY,,,,
+LIGQC DILUTION PLATE FACTOR,,,,
+LIGQC ANALYSIS REGION[RANGE] SIZE [BP],,,,
+LIGQC ANALYSIS ADJUSTED CONCENTRATION,,,,
+LIGQC ANALYSIS ESTIMATED TOTAL DNA,,,,
+LIGQC ANALYSIS ESTIMATED TOTAL MOLARITY,,,,
 Genotyping Contam_estimate %,VerifyID level of contamination from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
 Genotyping LLK_Diff,VerifyID LLK_Diff from the pretesting array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
 Call Rate,# of called genotypes / total # SNPs released with genotypes for this sample (calls + no calls) on the Pretesting Array,EnhancedSequencingQCReport.jar,,GenomeStudio Sample Table
@@ -177,8 +242,6 @@ Seq Run Date,Date the sequencer was started,EnhancedSequencingQCReport.jar,,Samp
 Seq Chemistry,Kit number of sequencer reagents,EnhancedSequencingQCReport.jar,,Sample Physique Report
 Flowcell Mode,Illumina Flowcell Type,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
 Workflow Type,Workflow Mode on the Sequencer,EnhancedSequencingQCReport.jar,,Run_Parameters.xml
-PCV1,Principal Component Eigen vector 1 for PCA,EnhancedSequencingQCReport.jar,,
-PCV2,Principal Component Eigen vector 2 for PCA,EnhancedSequencingQCReport.jar,,
 Sample_Name,LIMS Study Code plus Subject ID used in Sample Information File and ID provided in manifest file from PI plus aliquot iteration plus 2D barcode,EnhancedSequencingQCReport.jar,,Phoenix
 Subject_ID,Subject ID used in Sample Information File and ID provided in manifest file from PI,EnhancedSequencingQCReport.jar,,Phoenix
 Family_ID,Family ID used in Sample Information File from PI,EnhancedSequencingQCReport.jar,,Phoenix

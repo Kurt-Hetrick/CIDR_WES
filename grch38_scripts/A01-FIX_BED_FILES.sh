@@ -37,7 +37,7 @@
 		TITV_BED_NAME=$(basename ${TITV_BED} .bed)
 	REF_DICT=$8
 	HG38_TO_HG19_CHAIN=$9
-	H19_DICT=${10}
+	HG19_DICT=${10}
 	SAMPLE_SHEET=${11}
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 
@@ -113,7 +113,7 @@
 				CMD=${CMD}" /gatk/picard.jar"
 			CMD=${CMD}" LiftOverIntervalList"
 				CMD=${CMD}" INPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-picard.bed"
-				CMD=${CMD}" SEQUENCE_DICTIONARY=${H19_DICT}"
+				CMD=${CMD}" SEQUENCE_DICTIONARY=${HG19_DICT}"
 				CMD=${CMD}" CHAIN=${HG38_TO_HG19_CHAIN}"
 			CMD=${CMD}" OUTPUT=${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.OnTarget.hg19.interval_list"
 
