@@ -30,7 +30,7 @@
 	PROJECT=$3
 	SM_TAG=$4
 	REF_DICT=$5
-	DBSNP=$6
+	DBSNP_129=$6
 	TITV_BED=$7
 		TITV_BED_NAME=$(basename ${TITV_BED} .bed)
 	SAMPLE_SHEET=$8
@@ -47,7 +47,7 @@ START_VCF_METRICS_TITV=`date '+%s'` # capture time process starts for wall clock
 			CMD=${CMD}" /gatk/gatk.jar"
 		CMD=${CMD}" CollectVariantCallingMetrics"
 			CMD=${CMD}" --SEQUENCE_DICTIONARY ${REF_DICT}"
-			CMD=${CMD}" --DBSNP ${DBSNP}"
+			CMD=${CMD}" --DBSNP ${DBSNP_129}"
 			CMD=${CMD}" --THREAD_COUNT 4"
 			CMD=${CMD}" --TARGET_INTERVALS $CORE_PATH/$PROJECT/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TITV_BED_NAME}-picard.bed"
 			CMD=${CMD}" --INPUT ${CORE_PATH}/${PROJECT}/VCF/SINGLE_SAMPLE/${SM_TAG}.QC.vcf.gz"

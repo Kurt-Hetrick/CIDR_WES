@@ -1553,7 +1553,7 @@
 				${PROJECT} \
 				${SM_TAG} \
 				${REF_DICT} \
-				${DBSNP} \
+				${DBSNP_129} \
 				${TITV_BED} \
 				${SAMPLE_SHEET} \
 				${SUBMIT_STAMP}
