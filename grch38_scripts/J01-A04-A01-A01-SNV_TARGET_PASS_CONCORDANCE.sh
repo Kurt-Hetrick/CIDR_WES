@@ -32,6 +32,7 @@
 	PROJECT=$5
 	SM_TAG=$6
 	TARGET_BED=$7
+		TARGET_BED_NAME=$(basename ${TARGET_BED} .bed)
 	SAMPLE_SHEET=$8
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
 	SUBMIT_STAMP=$9
@@ -117,7 +118,7 @@ START_CONCORDANCE=`date '+%s'` # capture time process starts for wall clock trac
 		CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}_QC_OnTarget_SNV.hg19.vcf"
 		CMD=${CMD}" ${FINAL_REPORT}"
 		# [3] path_to_bed_file
-		CMD=${CMD}" ${TARGET_BED}"
+		CMD=${CMD}" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.lift.hg19.bed"
 		# [4] path_to_liftover_file
 		CMD=${CMD}" ${VERACODE_CSV}"
 	# [5] path_to_output_directory

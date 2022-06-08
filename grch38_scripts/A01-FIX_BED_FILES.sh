@@ -124,8 +124,10 @@
 			echo ${CMD} | bash
 
 			# CONVERT HG19 CONVERT INTERVAL LIST BACK TO A BED FILE
+			# remove contigs that are not from primary assembly
 			
 				grep -v "^@" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}.OnTarget.hg19.interval_list \
 					| awk 'BEGIN {OFS="\t"} \
+						$1!~"_" \
 						{print $1,($2-1),$3}' \
 				>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}.lift.hg19.bed
