@@ -116,7 +116,7 @@
 #####################
 
 	JAVA_1_8="/mnt/linuxtools/JAVA/jdk1.8.0_73/bin"
-	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.1.0"
+	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.1.1"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
 		# md5 f979bb4dc8d97113735ef17acd3a766e  EnhancedSequencingQCReport.jar
 	ALIGNMENT_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/ddl_ce_control_align-0.0.4.simg"
