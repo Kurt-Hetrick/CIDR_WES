@@ -103,9 +103,11 @@
 	elif
 		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]
 	then
-		MISEQ_RUN_FOLDER=$(ls /mnt/instrument_files/miseq/data | grep ${FLOWCELL})
+		MISEQ_REPO=/mnt/instrument_files/miseq/data
 
-		FINDPATH=${MISEQ_RUN_FOLDER}/FASTQ/${PROJECT}
+		MISEQ_RUN_FOLDER=$(ls ${MISEQ_REPO} | grep ${FLOWCELL})
+
+		FINDPATH=${MISEQ_REPO}/${MISEQ_RUN_FOLDER}/FASTQ/${PROJECT}
 
 		# look for illumina file naming convention for novaseq flowcells
 		# if it is found in the project/fastq folder under active, then use that one
@@ -120,6 +122,14 @@
 
 		FASTQ_2=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R2_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R2_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_2.fastq* 2> /dev/null)`
 	fi
+
+# for debugging purposes
+
+	echo
+	echo this is what was found for the first fastq file: ${FASTQ_1}
+	echo this is the FINDPATH: ${FINDPATH}
+	echo this is the fixed platform unit: ${FIXED_PLATFORM_UNIT}
+	echo
 
 # -----Alignment and BAM post-processing-----
 
