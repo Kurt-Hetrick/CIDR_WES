@@ -86,26 +86,39 @@
 # I got files from yale, that used the illumina naming conventions and actually went a step farther and broke files by tile (i think).
 	## I concatenated them and then added 000 for the tile so added that to the end of the non novaseq fastq file look up
 
-	if [[ ${SEQUENCER_MODEL} == *"NovaSeq"* ]]
-		then
+	if
+		[[ ${SEQUENCER_MODEL} == *"NovaSeq"* ]]
+	then
+		NOVASEQ_RUN_FOLDER=$(ls ${NOVASEQ_REPO} | grep ${FLOWCELL})
 
-			NOVASEQ_RUN_FOLDER=$(ls ${NOVASEQ_REPO} | grep ${FLOWCELL})
+		FINDPATH=${NOVASEQ_REPO}/${NOVASEQ_RUN_FOLDER}/FASTQ/${PROJECT}
 
-			FINDPATH=${NOVASEQ_REPO}/${NOVASEQ_RUN_FOLDER}/FASTQ/${PROJECT}
+		# look for illumina file naming convention for novaseq flowcells
+		# if it is found in the project/fastq folder under active, then use that one
+		FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
+			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null) | tail -n 1`
 
-			# look for illumina file naming convention for novaseq flowcells
-			# if it is found in the project/fastq folder under active, then use that one
-			FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
-				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null) | tail -n 1`
+		FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
+			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null) | tail -n 1`
+	elif
+		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]
+	then
+		MISEQ_RUN_FOLDER=$(ls /mnt/instrument_files/miseq/data | grep ${FLOWCELL})
 
-			FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
-				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null) | tail -n 1`
+		FINDPATH=${MISEQ_RUN_FOLDER}/FASTQ/${PROJECT}
 
-		else
+		# look for illumina file naming convention for novaseq flowcells
+		# if it is found in the project/fastq folder under active, then use that one
+		FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
+			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null) | tail -n 1`
 
-			FASTQ_1=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R1_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R1_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_1.fastq* 2> /dev/null)`
+		FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
+			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null) | tail -n 1`
+	else
 
-			FASTQ_2=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R2_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R2_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_2.fastq* 2> /dev/null)`
+		FASTQ_1=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R1_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R1_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_1.fastq* 2> /dev/null)`
+
+		FASTQ_2=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R2_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R2_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_2.fastq* 2> /dev/null)`
 	fi
 
 # -----Alignment and BAM post-processing-----
