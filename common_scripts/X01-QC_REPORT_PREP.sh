@@ -767,7 +767,7 @@
 ### "PCT_A","PCT_C","PCT_G","PCT_T","PCT_N" ###########
 #######################################################
 
-	BASE_DISTIBUTION_BY_CYCLE_ROW_COUNT=$(wc -l ${CORE_PATH}/${PROJECT}/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/${SM_TAG}.base_distribution_by_cycle_metrics.txt)
+	BASE_DISTIBUTION_BY_CYCLE_ROW_COUNT=$(wc -l ${CORE_PATH}/${PROJECT}/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/${SM_TAG}.base_distribution_by_cycle_metrics.txt | awk '{print $1}')
 
 	if [[ ! -f ${CORE_PATH}/${PROJECT}/REPORTS/BASE_DISTRIBUTION_BY_CYCLE/METRICS/${SM_TAG}.base_distribution_by_cycle_metrics.txt ]]
 	then
