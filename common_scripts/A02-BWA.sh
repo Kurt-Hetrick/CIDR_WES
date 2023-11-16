@@ -48,9 +48,10 @@
 	TITV_BED=${17}
 		TITV_NAME=$(basename ${TITV_BED} .bed)
 	NOVASEQ_REPO=${18}
-	SAMPLE_SHEET=${19}
+	NOVASEQXPLUS_REPO=${19}
+	SAMPLE_SHEET=${20}
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	SUBMIT_STAMP=${20}
+	SUBMIT_STAMP=${21}
 
 # Need to convert data in sample manifest to Iso 8601 date since we are not using bwa mem to populate this.
 # Picard AddOrReplaceReadGroups is much more stringent here.
@@ -89,16 +90,18 @@
 	if
 		[[ ${SEQUENCER_MODEL} == *"NovaSeq"* ]]
 	then
-		NOVASEQ_RUN_FOLDER=$(ls ${NOVASEQ_REPO} | grep ${FLOWCELL})
+		NOVASEQ_RUN_FOLDER=$(ls ${NOVASEQ_REPO} ${NOVASEQXPLUS_REPO} | grep ${FLOWCELL})
 
 		FINDPATH=${NOVASEQ_REPO}/${NOVASEQ_RUN_FOLDER}/FASTQ/${PROJECT}
 
+		FINDPATH_X=${NOVASEQXPLUS_REPO}/${NOVASEQ_RUN_FOLDER}/Analysis/?/Data/BCLConvert/fastq
+
 		# look for illumina file naming convention for novaseq flowcells
 		# if it is found in the project/fastq folder under active, then use that one
-		FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
+		FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* -a ${FINDPATH_X}/${SM_TAG}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
 			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null) | tail -n 1`
 
-		FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
+		FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* -a ${FINDPATH_X}/${SM_TAG}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
 			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null) | tail -n 1`
 	elif
 		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]

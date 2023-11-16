@@ -38,6 +38,10 @@
 
 		NOVASEQ_REPO="/mnt/instrument_files/novaseq"
 
+	# Directory where NovaSeqXPlus runs are located
+
+		NOVASEQXPLUS_REPO="/mnt/instrument_files/novaseqx"
+
 	# used for tracking in the read group header of the cram file
 
 		PIPELINE_VERSION=$(git --git-dir=${SUBMITTER_SCRIPT_PATH}/.git --work-tree=${SUBMITTER_SCRIPT_PATH} log --pretty=format:'%h' -n 1)
@@ -611,6 +615,7 @@
 			${TARGET_BED} \
 			${TITV_BED} \
 			${NOVASEQ_REPO} \
+			${NOVASEQXPLUS_REPO} \
 			${SAMPLE_SHEET} \
 			${SUBMIT_STAMP}
 	}
