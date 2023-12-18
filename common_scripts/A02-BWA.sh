@@ -94,14 +94,26 @@
 
 		FINDPATH=${NOVASEQ_REPO}/${NOVASEQ_RUN_FOLDER}/FASTQ/${PROJECT}
 
-		FINDPATH_X=${NOVASEQXPLUS_REPO}/${NOVASEQ_RUN_FOLDER}/Analysis/?/Data/BCLConvert/fastq
+		FINDPATH_X=${NOVASEQXPLUS_REPO}/${NOVASEQ_RUN_FOLDER}
 
 		# look for illumina file naming convention for novaseq flowcells
 		# if it is found in the project/fastq folder under active, then use that one
-		FASTQ_1=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* -a ${FINDPATH_X}/${SM_TAG}* 2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
+		FASTQ_1=`( echo du --max-depth=1 \
+				-a ${FINDPATH}/${SM_TAG}* \
+				-a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* \
+				-a ${FINDPATH_X}/Analysis/?/Data/BCLConvert/fastq/${SM_TAG}* \
+				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${SM_TAG}* \
+				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${FIXED_PLATFORM_UNIT}* \
+				2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
 			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null) | tail -n 1`
 
-		FASTQ_2=`( echo du --max-depth=1 -a ${FINDPATH}/${SM_TAG}* -a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* -a ${FINDPATH_X}/${SM_TAG}* 2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
+		FASTQ_2=`( echo du --max-depth=1 \
+				-a ${FINDPATH}/${SM_TAG}* \
+				-a ${FINDPATH}/${FIXED_PLATFORM_UNIT}* \
+				-a ${FINDPATH_X}/Analysis/?/Data/BCLConvert/fastq/${SM_TAG}* \
+				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${SM_TAG}* \
+				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${FIXED_PLATFORM_UNIT}* \
+				2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
 			ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null) | tail -n 1`
 	elif
 		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]
