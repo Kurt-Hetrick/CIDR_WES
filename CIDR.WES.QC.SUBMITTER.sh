@@ -6,9 +6,18 @@
 
 	SAMPLE_SHEET=$1
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
+	ARRAY_REF=$2
+		# if there is no 2nd argument present the array reference genome is grch37
 
-		# if there is no 2nd argument present then use the number for priority
+			if [[ ! ${ARRAY_REF} ]]
+				then
+				ARRAY_REF="grch37"
+			fi
+
+	PRIORITY=$3
+		# optional. if no 3rd argument present then the default is -15
+		# if you want to set this then you have to specify the array reference as well. even to the default.
+
 			if [[ ! ${PRIORITY} ]]
 				then
 				PRIORITY="-15"
@@ -1466,32 +1475,6 @@
 				${SUBMIT_STAMP}
 		}
 
-	############################################################################################
-	# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
-	# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
-	# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
-	############################################################################################
-
-		TARGET_PASS_SNV_CONCORDANCE ()
-		{
-			echo \
-			qsub \
-				${QSUB_ARGS} \
-			-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
-				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-			-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-			${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
-				${JAVA_1_8} \
-				${CIDRSEQSUITE_7_5_0_DIR} \
-				${VERACODE_CSV} \
-				${CORE_PATH} \
-				${PROJECT} \
-				${SM_TAG} \
-				${TARGET_BED} \
-				${SAMPLE_SHEET} \
-				${SUBMIT_STAMP}
-		}
-
 	#############################################
 	# GENERATE VCF METRICS FOR ON BAIT BED FILE #
 	#############################################
@@ -1564,6 +1547,100 @@
 				${SUBMIT_STAMP}
 		}
 
+######################################################
+# RUN STEPS TO DO VCF RELATED METRICS SANS QC REPORT #
+######################################################
+
+	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+		| awk 'BEGIN {FS=","} \
+			NR>1 \
+			{print $8}' \
+		| sort \
+		| uniq);
+	do
+		CREATE_SAMPLE_ARRAY
+		EXTRACT_SNV
+		echo sleep 0.1s
+		EXTRACT_INDEL_AND_MIXED
+		echo sleep 0.1s
+		FILTER_SNV
+		echo sleep 0.1s
+		FILTER_INDEL_AND_MIXED
+		echo sleep 0.1s
+		COMBINE_FILTERED_VCF_FILES
+		echo sleep 0.1s
+		EXTRACT_ON_TARGET_PASS_SNV
+		echo sleep 0.1s
+		VCF_METRICS_BAIT
+		echo sleep 0.1s
+		VCF_METRICS_TARGET
+		echo sleep 0.1s
+		VCF_METRICS_TITV
+		echo sleep 0.1s
+	done
+
+############################################################################################
+# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
+# THIS IS FOR WHEN THE REFERENCE GENOME BUILD FOR THE ARRAY IS GRCH37 ######################
+# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
+# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
+############################################################################################
+
+	TARGET_PASS_SNV_CONCORDANCE_GRCH37 ()
+	{
+		echo \
+		qsub \
+			${QSUB_ARGS} \
+		-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+		-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+		${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+			${JAVA_1_8} \
+			${CIDRSEQSUITE_7_5_0_DIR} \
+			${VERACODE_CSV} \
+			${CORE_PATH} \
+			${PROJECT} \
+			${SM_TAG} \
+			${TARGET_BED} \
+			${SAMPLE_SHEET} \
+			${SUBMIT_STAMP}
+	}
+
+############################################################################################
+# RUN CONCORDANCE SCRIPTS BASED ON WHAT THE REFERENCE GENOME BUILD IS. DEFAULT OR NOT ######
+############################################################################################
+
+	if
+		[[ ${ARRAY_REF} == "grch37" ]]
+	then
+		for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+			| awk 'BEGIN {FS=","} \
+				NR>1 \
+				{print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			TARGET_PASS_SNV_CONCORDANCE_GRCH37
+			echo sleep 0.1s
+		done
+	else
+		for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+			| awk 'BEGIN {FS=","} \
+				NR>1 \
+				{print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			TARGET_PASS_SNV_CONCORDANCE_GRCH38
+			echo sleep 0.1s
+		done
+	fi
+
 ######################################
 # GENERATE QC REPORT STUB FOR SAMPLE #
 ######################################
@@ -1596,9 +1673,9 @@ ${SAMPLE_SHEET} \
 ${SUBMIT_STAMP}
 }
 
-##########################################################
-# RUN STEPS TO DO VCF RELATED METRICS AND QC REPORT PREP #
-##########################################################
+#####################
+# DO QC REPORT PREP #
+#####################
 
 	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
@@ -1609,26 +1686,6 @@ ${SUBMIT_STAMP}
 		| uniq);
 	do
 		CREATE_SAMPLE_ARRAY
-		EXTRACT_SNV
-		echo sleep 0.1s
-		EXTRACT_INDEL_AND_MIXED
-		echo sleep 0.1s
-		FILTER_SNV
-		echo sleep 0.1s
-		FILTER_INDEL_AND_MIXED
-		echo sleep 0.1s
-		COMBINE_FILTERED_VCF_FILES
-		echo sleep 0.1s
-		EXTRACT_ON_TARGET_PASS_SNV
-		echo sleep 0.1s
-		TARGET_PASS_SNV_CONCORDANCE
-		echo sleep 0.1s
-		VCF_METRICS_BAIT
-		echo sleep 0.1s
-		VCF_METRICS_TARGET
-		echo sleep 0.1s
-		VCF_METRICS_TITV
-		echo sleep 0.1s
 		QC_REPORT_PREP
 		echo sleep 0.1
 	done
