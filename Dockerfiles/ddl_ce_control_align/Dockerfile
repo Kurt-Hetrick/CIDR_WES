@@ -43,10 +43,15 @@ ENV SAMTOOLS_URL https://github.com/samtools/samtools/releases/download/1.10/sam
 ENV SAMTOOLS_MD5 = "506b0b9b2628e1f3bbedd77855b4c709"
 ENV BCFTOOLS_URL https://github.com/samtools/bcftools/releases/download/1.10.2/bcftools-1.10.2.tar.bz2
 ENV BCFTOOLS_MD5 = "081ebb6138f5fdf394cb6a074effadb3"
+ENV LIFTOVER_URL https://hgdownload.soe.ucsc.edu/admin/exe/linux.x86_64.v385/liftOver
 
 SHELL ["/bin/bash", "-c"]
 
 WORKDIR /downloads
+
+RUN apt-get update && \
+	apt-get install -y \
+	parallel=20161222-1~ubuntu0.16.04.1
 
 RUN wget -nv $PICARD_URL && \
 	mv picard.jar /gatk/picard.jar
@@ -107,3 +112,7 @@ RUN wget -nv $BCFTOOLS_URL && \
 	make install && \
 	cd .. && \
 	rm -rf bcftools-1.10.2*
+
+RUN wget -nv $LIFTOVER_URL && \
+	chmod a+x liftOver && \
+	mv liftOver /usr/bin/liftOver

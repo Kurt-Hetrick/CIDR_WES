@@ -132,7 +132,7 @@
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.1.1"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
 		# md5 f979bb4dc8d97113735ef17acd3a766e  EnhancedSequencingQCReport.jar
-	ALIGNMENT_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/ddl_ce_control_align-0.0.4.simg"
+	ALIGNMENT_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/ddl_ce_control_align-0.0.5.simg"
 	# contains the following software and is on Ubuntu 16.04.5 LTS
 		# gatk 4.0.11.0 (base image). also contains the following.
 			# Python 3.6.2 :: Continuum Analytics, Inc.
@@ -162,6 +162,7 @@
 			# bgzip 1.10
 			# tabix 1.10
 			# bcftools 1.10.2
+			# liftOver v385 (from ucsc)
 
 	GATK_3_7_0_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/gatk3-3.7-0.simg"
 	# singularity pull docker://broadinstitute/gatk3:3.7-0
