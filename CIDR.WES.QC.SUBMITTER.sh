@@ -194,6 +194,8 @@
 		# FOR REANALYSIS OF CUTTING'S PHASE AND PHASE 2 PROJECTS.
 		# md5: 5d99c5df1d8f970a8219ef0ab455d756
 	MERGED_CUTTING_BED_FILE="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files/H_Cutting_phase_1plus2_super_file.bed"
+	B37_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/chainFiles_b37/b37tohg19.chain"
+	HG19_TO_GRCH38_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg19ToHg38.over.chain"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -414,6 +416,7 @@
 		-N A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT} \
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FIX_BED_FILES.log \
 		${GRCH37_SCRIPT_DIR}/A01-FIX_BED_FILES.sh \
+			${ALIGNMENT_CONTAINER} \
 			${CORE_PATH} \
 			${PROJECT} \
 			${SM_TAG} \
@@ -421,6 +424,8 @@
 			${TARGET_BED} \
 			${TITV_BED} \
 			${REF_DICT} \
+			${B37_TO_HG19_CHAIN} \
+			${HG19_TO_GRCH38_CHAIN} \
 			${SAMPLE_SHEET}
 	}
 
