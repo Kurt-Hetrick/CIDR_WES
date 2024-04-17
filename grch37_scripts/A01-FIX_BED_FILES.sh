@@ -26,6 +26,7 @@
 
 	ALIGNMENT_CONTAINER=$1
 	CORE_PATH=$2
+
 	PROJECT=$3
 	SM_TAG=$4
 	BAIT_BED=$5
@@ -136,3 +137,12 @@
 			echo ${CMD} >> ${CORE_PATH}/${PROJECT}/COMMAND_LINES/${SM_TAG}_command_lines.txt
 			echo >> ${CORE_PATH}/${PROJECT}/COMMAND_LINES/${SM_TAG}_command_lines.txt
 			echo ${CMD} | bash
+
+	# remove any loci that are not part of the primary assembly
+	# this is for concordance when the gt array reference genome is grch38 b/c cidrseqsuite will crash
+
+		grep -v "^@" ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-LIFT_GRCH38.bed \
+			| awk 'BEGIN {OFS="\t"} \
+				$1!~"_" \
+				{print $0}' \
+		>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${SM_TAG}-${TARGET_BED_NAME}-LIFT_GRCH38_PRIMARY.bed

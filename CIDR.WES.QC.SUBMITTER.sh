@@ -177,6 +177,8 @@
 
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
 
+	PICARD_LIFTOVER_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/picard-2.26.10.0.simg"
+
 ##################
 # PIPELINE FILES #
 ##################
@@ -196,6 +198,8 @@
 	MERGED_CUTTING_BED_FILE="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files/H_Cutting_phase_1plus2_super_file.bed"
 	B37_TO_HG19_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/chainFiles_b37/b37tohg19.chain"
 	HG19_TO_GRCH38_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg19ToHg38.over.chain"
+	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
+	GRCH38_REF="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/Homo_sapiens_assembly38.fasta"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -1593,25 +1597,119 @@
 # BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
 ############################################################################################
 
-	TARGET_PASS_SNV_CONCORDANCE_GRCH37 ()
-	{
-		echo \
-		qsub \
-			${QSUB_ARGS} \
-		-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
-			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-		-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-		${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
-			${JAVA_1_8} \
-			${CIDRSEQSUITE_7_5_0_DIR} \
-			${VERACODE_CSV} \
-			${CORE_PATH} \
-			${PROJECT} \
-			${SM_TAG} \
-			${TARGET_BED} \
-			${SAMPLE_SHEET} \
-			${SUBMIT_STAMP}
-	}
+	#############################################
+	# CONCORANCE FOR WHEN ARRAY GT IS ON GRCH37 #
+	#############################################
+
+		TARGET_PASS_SNV_CONCORDANCE_GRCH37 ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+			-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+			-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+			${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+				${JAVA_1_8} \
+				${CIDRSEQSUITE_7_5_0_DIR} \
+				${VERACODE_CSV} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${SM_TAG} \
+				${TARGET_BED} \
+				${SAMPLE_SHEET} \
+				${SUBMIT_STAMP}
+		}
+
+	#############################################
+	# CONCORANCE FOR WHEN ARRAY GT IS ON GRCH38 #
+	#############################################
+
+		# LIFTOVER SNV TARGET PASS VCF TO HG19
+
+			LIFTOVER_SNV_TARGET_PASS_VCF_HG19 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_HG19_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-LIFTOVER_SNV_TARGET_PASS_VCF_HG19.log \
+				-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+				${GRCH37_SCRIPT_DIR}/J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_HG19.sh \
+					${PICARD_LIFTOVER_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${HG19_REF} \
+					${B37_TO_HG19_CHAIN} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+		# LIFTOVER SNV TARGET PASS HG19 VCF TO GRCH38
+
+			LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-A01-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38.log \
+				-hold_jid J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_HG19_${SGE_SM_TAG}_${PROJECT} \
+				${GRCH37_SCRIPT_DIR}/J01-A04-A01-A01-LIFTOVER_SNV_TARGET_PASS_VCF_HG19_TO_GRCH38.sh \
+					${PICARD_LIFTOVER_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${GRCH38_REF} \
+					${HG19_TO_GRCH38_CHAIN} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+		# EXTRACT PRIMARY ASSEMBLY FROM LIFTED OVER GRCH38 VCF
+
+			EXTRACT_PRIMARY_SNV_TARGET_PASS_VCF_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF.log \
+				-hold_jid J01-A04-A01-A01-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+				${GRCH37_SCRIPT_DIR}/J01-A04-A01-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF.sh \
+					${ALIGNMENT_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${GRCH38_REF} \
+					${TARGET_BED} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+		# RUN CONCORDANCE ON LIFTED OVER GRCH38 VCF TO GT ARRAY ON GRCH38 BUILD
+
+			TARGET_PASS_SNV_CONCORDANCE_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-SNV_TARGET_PASS_CONCORDANCE_GRCH38.log \
+				-hold_jid J01-A04-A01-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF_${SGE_SM_TAG}_${PROJECT} \
+				${GRCH37_SCRIPT_DIR}/J01-A04-A01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38.sh \
+					${JAVA_1_8} \
+					${CIDRSEQSUITE_7_5_0_DIR} \
+					${VERACODE_CSV} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${TARGET_BED} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
 
 ############################################################################################
 # RUN CONCORDANCE SCRIPTS BASED ON WHAT THE REFERENCE GENOME BUILD IS. DEFAULT OR NOT ######
@@ -1642,6 +1740,12 @@
 			| uniq);
 		do
 			CREATE_SAMPLE_ARRAY
+			LIFTOVER_SNV_TARGET_PASS_VCF_HG19
+			echo sleep 0.1s
+			LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38
+			echo sleep 0.1s
+			EXTRACT_PRIMARY_SNV_TARGET_PASS_VCF_GRCH38
+			echo sleep 0.1s
 			TARGET_PASS_SNV_CONCORDANCE_GRCH38
 			echo sleep 0.1s
 		done
@@ -1650,6 +1754,9 @@
 ######################################
 # GENERATE QC REPORT STUB FOR SAMPLE #
 ######################################
+
+# NOTE: THERE ARE TWO CONCORDANCE LISTED IN THE HOLD ID DEPENDING ON WHAT THE GT ARRAY BUILD IS ON
+# IF THE OTHER ONE DOES NOT EXIST IT DOES NOT MATTER
 
 QC_REPORT_PREP ()
 {
@@ -1666,6 +1773,7 @@ F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
 F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
 E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT},\
 J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
+J01-A04-A01-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38_${SGE_SM_TAG}_${PROJECT},\
 J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
 J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
