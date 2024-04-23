@@ -1466,8 +1466,6 @@
 				${SUBMIT_STAMP}
 		}
 
-
-
 	#############################################
 	# GENERATE VCF METRICS FOR ON BAIT BED FILE #
 	#############################################
@@ -1740,7 +1738,7 @@ ${SUBMIT_STAMP}
 	do
 		CREATE_SAMPLE_ARRAY
 		QC_REPORT_PREP
-		echo sleep 0.1
+		echo sleep 0.1s
 	done
 
 #############################

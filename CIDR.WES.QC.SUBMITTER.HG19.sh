@@ -6,9 +6,18 @@
 
 	SAMPLE_SHEET=$1
 		SAMPLE_SHEET_NAME=$(basename ${SAMPLE_SHEET} .csv)
-	PRIORITY=$2 # optional. if no 2nd argument present then the default is -15
+	ARRAY_REF=$2
+		# if there is no 2nd argument present the array reference genome is grch37
 
-		# if there is no 2nd argument present then use the number for priority
+			if [[ ! ${ARRAY_REF} ]]
+				then
+				ARRAY_REF="grch37"
+			fi
+
+	PRIORITY=$3
+		# optional. if no 3rd argument present then the default is -15
+		# if you want to set this then you have to specify the array reference as well. even to the default.
+
 			if [[ ! ${PRIORITY} ]]
 				then
 				PRIORITY="-15"
@@ -125,25 +134,25 @@
 	LAB_QC_DIR="/mnt/linuxtools/CUSTOM_CIDR/EnhancedSequencingQCReport/0.1.1"
 		# Copied from /mnt/research/tools/LINUX/CIDRSEQSUITE/pipeline_dependencies/QC_REPORT/EnhancedSequencingQCReport.jar
 		# md5 f979bb4dc8d97113735ef17acd3a766e  EnhancedSequencingQCReport.jar
-	ALIGNMENT_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/ddl_ce_control_align-0.0.4.simg"
-	# contains the following software and is on Ubuntu 16.04.5 LTS
-		# gatk 4.0.11.0 (base image). also contains the following.
-			# Python 3.6.2 :: Continuum Analytics, Inc.
-				# samtools 0.1.19
-				# bcftools 0.1.19
-				# bedtools v2.25.0
-				# bgzip 1.2.1
-				# tabix 1.2.1
-				# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
-				# R 3.2.5
-					# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
-					# getopt_1.20.0.tar.gz
-					# optparse_1.3.2.tar.gz
-					# data.table_1.10.4-2.tar.gz
-					# gsalib_2.1.tar.gz
-					# ggplot2_2.2.1.tar.gz
-				# openjdk version "1.8.0_181"
-				# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
+	ALIGNMENT_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/ddl_ce_control_align-0.0.5.simg"
+		# contains the following software and is on Ubuntu 16.04.5 LTS
+			# gatk 4.0.11.0 (base image). also contains the following.
+				# Python 3.6.2 :: Continuum Analytics, Inc.
+					# samtools 0.1.19
+					# bcftools 0.1.19
+					# bedtools v2.25.0
+					# bgzip 1.2.1
+					# tabix 1.2.1
+					# samtools, bcftools, bgzip and tabix will be replaced with newer versions.
+					# R 3.2.5
+						# dependencies = c("gplots","digest", "gtable", "MASS", "plyr", "reshape2", "scales", "tibble", "lazyeval")    # for ggplot2
+						# getopt_1.20.0.tar.gz
+						# optparse_1.3.2.tar.gz
+						# data.table_1.10.4-2.tar.gz
+						# gsalib_2.1.tar.gz
+						# ggplot2_2.2.1.tar.gz
+					# openjdk version "1.8.0_181"
+					# /gatk/gatk.jar -> /gatk/gatk-package-4.0.11.0-local.jar
 		# added
 			# picard.jar 2.17.0 (as /gatk/picard.jar)
 			# samblaster-v.0.1.24
@@ -155,6 +164,7 @@
 			# bgzip 1.10
 			# tabix 1.10
 			# bcftools 1.10.2
+			# liftOver v385 (from ucsc)
 
 	GATK_3_7_0_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/gatk3-3.7-0.simg"
 	# singularity pull docker://broadinstitute/gatk3:3.7-0
@@ -169,6 +179,8 @@
 
 	CIDRSEQSUITE_7_5_0_DIR="/mnt/linuxtools/CIDRSEQSUITE/7.5.0"
 
+	PICARD_LIFTOVER_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/picard-2.26.10.0.simg"
+
 ##################
 # PIPELINE FILES #
 ##################
@@ -182,6 +194,8 @@
 	VERIFY_VCF="/mnt/research/tools/PIPELINE_FILES/hg19_aux_files/Omni25_genotypes_1525_samples_v2.b37.PASS.ALL.sites.hg19.liftover.vcf"
 	DBSNP_129="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/dbsnp_138.hg19.excluding_sites_after_129.vcf"
 	VERACODE_CSV="/mnt/research/tools/LINUX/CIDRSEQSUITE/resources/Veracode_hg18_hg19.csv"
+	HG19_TO_GRCH38_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg19ToHg38.over.chain"
+	GRCH38_REF="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/Homo_sapiens_assembly38.fasta"
 
 	##### FROM THE LAND OF NOPE. THESE FILES SHOULD NOT HAVE TO BE CONVERTED, BUT I SURE DO LIKE COMMENTING THINGS OUT.
 	#MERGED_MENDEL_BED_FILE="/mnt/research/active/M_Valle_MD_SeqWholeExome_120417_1/BED_Files/BAITS_Merged_S03723314_S06588914_TwistCUEXmito.bed"
@@ -408,6 +422,7 @@
 		-N A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT} \
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-FIX_BED_FILES.log \
 		${HG19_SCRIPT_DIR}/A01-FIX_BED_FILES.sh \
+			${ALIGNMENT_CONTAINER} \
 			${CORE_PATH} \
 			${PROJECT} \
 			${SM_TAG} \
@@ -415,6 +430,7 @@
 			${TARGET_BED} \
 			${TITV_BED} \
 			${REF_DICT} \
+			${HG19_TO_GRCH38_CHAIN} \
 			${SAMPLE_SHEET}
 	}
 
@@ -1435,7 +1451,7 @@
 				${QSUB_ARGS} \
 			-N J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
 				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_SNV_TARGET_PASS.log \
-			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},I01-A01-FILTER_SNV_QC_${SGE_SM_TAG}_${PROJECT} \
+			-hold_jid A01-FIX_BED_FILES_${SGE_SM_TAG}_${PROJECT},J01-COMBINE_FILTERED_VCF_FILES_${SGE_SM_TAG}_${PROJECT} \
 			${COMMON_SCRIPT_DIR}/J01-A04-EXTRACT_SNV_TARGET_PASS.sh \
 				${ALIGNMENT_CONTAINER} \
 				${CORE_PATH} \
@@ -1445,32 +1461,6 @@
 				${TARGET_BED} \
 				${SAMPLE_SHEET} \
 				${SUBMIT_STAMP}
-		}
-
-	############################################################################################
-	# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
-	# NOTE THAT SCRIPT IS THE SAME AS THE ONE USED FOR THE GRCH37 PIPELINE #####################
-	# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
-	############################################################################################
-
-		TARGET_PASS_SNV_CONCORDANCE ()
-		{
-			echo \
-			qsub \
-				${QSUB_ARGS} \
-			-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
-				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
-			-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
-			${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
-					${JAVA_1_8} \
-					${CIDRSEQSUITE_7_5_0_DIR} \
-					${VERACODE_CSV} \
-					${CORE_PATH} \
-					${PROJECT} \
-					${SM_TAG} \
-					${TARGET_BED} \
-					${SAMPLE_SHEET} \
-					${SUBMIT_STAMP}
 		}
 
 	#############################################
@@ -1545,41 +1535,9 @@
 				${SUBMIT_STAMP}
 		}
 
-######################################
-# GENERATE QC REPORT STUB FOR SAMPLE #
-######################################
-
-QC_REPORT_PREP ()
-{
-echo \
-qsub \
-${QSUB_ARGS} \
--N X1_${SGE_SM_TAG} \
--hold_jid \
-E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT},\
-E03-DOC_CODING_${SGE_SM_TAG}_${PROJECT},\
-E04-DOC_BAIT_${SGE_SM_TAG}_${PROJECT},\
-E05-A01-CHROM_DEPTH_${SGE_SM_TAG}_${PROJECT},\
-F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
-F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
-E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT},\
-J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
-J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
-J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
-J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
--o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-QC_REPORT_PREP_QC.log \
-${COMMON_SCRIPT_DIR}/X01-QC_REPORT_PREP.sh \
-${ALIGNMENT_CONTAINER} \
-${CORE_PATH} \
-${PROJECT} \
-${SM_TAG} \
-${SAMPLE_SHEET} \
-${SUBMIT_STAMP}
-}
-
-##########################################################
-# RUN STEPS TO DO VCF RELATED METRICS AND QC REPORT PREP #
-##########################################################
+######################################################
+# RUN STEPS TO DO VCF RELATED METRICS SANS QC REPORT #
+######################################################
 
 	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
 		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
@@ -1596,13 +1554,11 @@ ${SUBMIT_STAMP}
 		echo sleep 0.1s
 		FILTER_SNV
 		echo sleep 0.1s
-		EXTRACT_ON_TARGET_PASS_SNV
-		echo sleep 0.1s
-		TARGET_PASS_SNV_CONCORDANCE
-		echo sleep 0.1s
 		FILTER_INDEL_AND_MIXED
 		echo sleep 0.1s
 		COMBINE_FILTERED_VCF_FILES
+		echo sleep 0.1s
+		EXTRACT_ON_TARGET_PASS_SNV
 		echo sleep 0.1s
 		VCF_METRICS_BAIT
 		echo sleep 0.1s
@@ -1610,8 +1566,196 @@ ${SUBMIT_STAMP}
 		echo sleep 0.1s
 		VCF_METRICS_TITV
 		echo sleep 0.1s
+	done
+
+############################################################################################
+# GENERATE CONCORDANCE USING GT ARRAY FINAL REPORT AS THE TRUTH SET ON THE TARGET BED FILE #
+# THIS IS FOR WHEN THE REFERENCE GENOME BUILD FOR THE ARRAY IS GRCH37 ######################
+# NOTE THAT SCRIPT IS THE SAME BETWEEN THE GRCH37 AND HG19 PIPELINES #######################
+# BUT DIFFERENT THAN THE ONE USED FOR THE GRCH38 PIPELINE ##################################
+############################################################################################
+
+	##############################################
+	# CONCORDANCE FOR WHEN ARRAY GT IS ON GRCH37 #
+	##############################################
+
+		TARGET_PASS_SNV_CONCORDANCE_GRCH37 ()
+		{
+			echo \
+			qsub \
+				${QSUB_ARGS} \
+			-N J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT} \
+				-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-TARGET_PASS_SNV_QC_CONCORDANCE.log \
+			-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+			${GRCH37_SCRIPT_DIR}/J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE.sh \
+				${JAVA_1_8} \
+				${CIDRSEQSUITE_7_5_0_DIR} \
+				${VERACODE_CSV} \
+				${CORE_PATH} \
+				${PROJECT} \
+				${SM_TAG} \
+				${TARGET_BED} \
+				${SAMPLE_SHEET} \
+				${SUBMIT_STAMP}
+		}
+
+	##############################################
+	# CONCORDANCE FOR WHEN ARRAY GT IS ON GRCH38 #
+	##############################################
+
+		# LIFTOVER SNV TARGET PASS HG19 VCF TO GRCH38
+
+			LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38.log \
+				-hold_jid J01-A04-EXTRACT_SNV_TARGET_PASS_${SGE_SM_TAG}_${PROJECT} \
+				${HG19_SCRIPT_DIR}/J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_HG19_TO_GRCH38.sh \
+					${PICARD_LIFTOVER_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${GRCH38_REF} \
+					${HG19_TO_GRCH38_CHAIN} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+		# EXTRACT PRIMARY ASSEMBLY FROM LIFTED OVER GRCH38 VCF
+
+			EXTRACT_PRIMARY_SNV_TARGET_PASS_VCF_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF.log \
+				-hold_jid J01-A04-A01-LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+				${HG19_SCRIPT_DIR}/J01-A04-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF.sh \
+					${ALIGNMENT_CONTAINER} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${GRCH38_REF} \
+					${TARGET_BED} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+		# RUN CONCORDANCE ON LIFTED OVER GRCH38 VCF TO GT ARRAY ON GRCH38 BUILD
+
+			TARGET_PASS_SNV_CONCORDANCE_GRCH38 ()
+			{
+				echo \
+				qsub \
+					${QSUB_ARGS} \
+				-N J01-A04-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38_${SGE_SM_TAG}_${PROJECT} \
+					-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-SNV_TARGET_PASS_CONCORDANCE_GRCH38.log \
+				-hold_jid J01-A04-A01-A01-EXTRACT_GRCH38_PRIMARY_SNV_TARGET_PASS_VCF_${SGE_SM_TAG}_${PROJECT} \
+				${HG19_SCRIPT_DIR}/J01-A04-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38.sh \
+					${JAVA_1_8} \
+					${CIDRSEQSUITE_7_5_0_DIR} \
+					${VERACODE_CSV} \
+					${CORE_PATH} \
+					${PROJECT} \
+					${SM_TAG} \
+					${TARGET_BED} \
+					${SAMPLE_SHEET} \
+					${SUBMIT_STAMP}
+			}
+
+############################################################################################
+# RUN CONCORDANCE SCRIPTS BASED ON WHAT THE REFERENCE GENOME BUILD IS. DEFAULT OR NOT ######
+############################################################################################
+
+	if
+		[[ ${ARRAY_REF} == "grch37" ]]
+	then
+		for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+			| awk 'BEGIN {FS=","} \
+				NR>1 \
+				{print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			TARGET_PASS_SNV_CONCORDANCE_GRCH37
+			echo sleep 0.1s
+		done
+	else
+		for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+			| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+			| awk 'BEGIN {FS=","} \
+				NR>1 \
+				{print $8}' \
+			| sort \
+			| uniq);
+		do
+			CREATE_SAMPLE_ARRAY
+			LIFTOVER_SNV_TARGET_PASS_VCF_GRCH38
+			echo sleep 0.1s
+			EXTRACT_PRIMARY_SNV_TARGET_PASS_VCF_GRCH38
+			echo sleep 0.1s
+			TARGET_PASS_SNV_CONCORDANCE_GRCH38
+			echo sleep 0.1s
+		done
+	fi
+
+######################################
+# GENERATE QC REPORT STUB FOR SAMPLE #
+######################################
+
+# NOTE: THERE ARE TWO CONCORDANCE LISTED IN THE HOLD ID DEPENDING ON WHAT THE GT ARRAY BUILD IS ON
+# IF THE OTHER ONE DOES NOT EXIST IT DOES NOT MATTER
+
+QC_REPORT_PREP ()
+{
+echo \
+qsub \
+${QSUB_ARGS} \
+-N X1_${SGE_SM_TAG} \
+-hold_jid \
+E01-RUN_VERIFYBAMID_${SGE_SM_TAG}_${PROJECT},\
+E03-DOC_CODING_${SGE_SM_TAG}_${PROJECT},\
+E04-DOC_BAIT_${SGE_SM_TAG}_${PROJECT},\
+E05-A01-CHROM_DEPTH_${SGE_SM_TAG}_${PROJECT},\
+F02-COLLECT_MULTIPLE_METRICS_${SGE_SM_TAG}_${PROJECT},\
+F03-COLLECT_HS_METRICS_${SGE_SM_TAG}_${PROJECT},\
+E06-A01-CAT_VERIFYBAMID_AUTO_${SGE_SM_TAG}_${PROJECT},\
+J01-A04-A01-SNV_TARGET_PASS_CONCORDANCE_${SGE_SM_TAG}_${PROJECT},\
+J01-A04-A01-A01-A01-SNV_TARGET_PASS_CONCORDANCE_GRCH38_${SGE_SM_TAG}_${PROJECT},\
+J01-A01-VCF_METRICS_BAIT_QC_${SGE_SM_TAG}_${PROJECT},\
+J01-A02-VCF_METRICS_TARGET_QC_${SGE_SM_TAG}_${PROJECT},\
+J01-A03-VCF_METRICS_TITV_QC_${SGE_SM_TAG}_${PROJECT} \
+-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}-QC_REPORT_PREP_QC.log \
+${COMMON_SCRIPT_DIR}/X01-QC_REPORT_PREP.sh \
+${ALIGNMENT_CONTAINER} \
+${CORE_PATH} \
+${PROJECT} \
+${SM_TAG} \
+${SAMPLE_SHEET} \
+${SUBMIT_STAMP}
+}
+
+#####################
+# DO QC REPORT PREP #
+#####################
+
+	for SM_TAG in $(awk 1 ${SAMPLE_SHEET} \
+		| sed 's/\r//g; /^$/d; /^[[:space:]]*$/d' \
+		| awk 'BEGIN {FS=","} \
+			NR>1 \
+			{print $8}' \
+		| sort \
+		| uniq);
+	do
+		CREATE_SAMPLE_ARRAY
 		QC_REPORT_PREP
-		echo sleep 0.1
+		echo sleep 0.1s
 	done
 
 #############################
