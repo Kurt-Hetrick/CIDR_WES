@@ -116,7 +116,7 @@
 				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${FIXED_PLATFORM_UNIT}* \
 				2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; \
-				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null) | tail -n 1`
+				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null) | tail -n 1`
 	elif
 		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]
 	then
@@ -137,7 +137,7 @@
 
 		FASTQ_1=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R1_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R1_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_1.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null)`
 
-		FASTQ_2=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R2_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R2_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_2.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null)`
+		FASTQ_2=`(ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_R2_000.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_R2_001.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_2.fastq* 2> /dev/null; ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null)`
 	fi
 
 # for debugging purposes
