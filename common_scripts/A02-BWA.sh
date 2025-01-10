@@ -145,6 +145,7 @@
 	echo
 	echo this is what was found for the first fastq file: ${FASTQ_1}
 	echo this is the FINDPATH: ${FINDPATH}
+	echo this is the FINDPATH_X: ${FINDPATH_X}
 	echo this is the fixed platform unit: ${FIXED_PLATFORM_UNIT}
 	echo
 
