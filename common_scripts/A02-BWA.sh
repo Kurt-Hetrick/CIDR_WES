@@ -105,6 +105,7 @@
 				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${SM_TAG}* \
 				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${FIXED_PLATFORM_UNIT}* \
 				2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
+				ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null) | tail -n 1`
 
@@ -115,6 +116,7 @@
 				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${SM_TAG}* \
 				-a ${FINDPATH_X}/FASTQ/${PROJECT}/${FIXED_PLATFORM_UNIT}* \
 				2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
+				ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null) | tail -n 1`
 	elif
