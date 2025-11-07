@@ -111,9 +111,14 @@ START_CONCORDANCE=`date '+%s'` # capture time process starts for wall clock trac
 
 	FINAL_REPORT_FILENAME=$(basename ${FINAL_REPORT})
 
-# find out what row where the header is...this is not the most robust way of doing this, but I'm doing this for now
+# grab field number for Chr in genotyping array report
 
-	FINAL_REPORT_HEADER_ROW=$(grep -n "^SNP Name" ${FINAL_REPORT} | cut -f 1 -d ":")
+	FINAL_REPORT_CHR_FIELD_NUMBER=(`grep -m 1 "^SNP" ${FINAL_REPORT} \
+		| sed 's/,/\n/g' \
+		| cat -n \
+		| sed 's/^ *//g' \
+		| awk '$2=="Chr" \
+			{print $1}'`)
 
 # remove carriage on final report
 
@@ -125,7 +130,7 @@ START_CONCORDANCE=`date '+%s'` # capture time process starts for wall clock trac
 	>| ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/"NoAlts"_${FINAL_REPORT_FILENAME}
 
 	awk 'NR>'${FINAL_REPORT_HEADER_ROW}'' ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/${FINAL_REPORT_FILENAME} \
-	| awk 'BEGIN {FS=",";OFS=","} $2!~"_" {print $0}' \
+		| awk 'BEGIN {FS=",";OFS=","} '${FINAL_REPORT_CHR_FIELD_NUMBER}'!~"_" {print $0}' \
 	>> ${CORE_PATH}/${PROJECT}/TEMP/${SAMPLE_SHEET_NAME}/${SM_TAG}/"NoAlts"_${FINAL_REPORT_FILENAME}
 
 # -single_sample_concordance
