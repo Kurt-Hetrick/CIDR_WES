@@ -260,14 +260,14 @@
 	##### join with the newest all project qc report on sm_tag ##########################################
 	#####################################################################################################
 
-		(cat  ${CORE_PATH}/${PROJECT}/REPORTS/LAB_PREP_REPORTS/*LAB_PREP_METRICS.csv \
+		(cat ${CORE_PATH}/${PROJECT}/REPORTS/LAB_PREP_REPORTS/*LAB_PREP_METRICS.csv \
 			| head -n 1 ; \
 		cat ${CORE_PATH}/${PROJECT}/REPORTS/LAB_PREP_REPORTS/*LAB_PREP_METRICS.csv \
 			| grep -v "^SM_TAG" \
 			| sort \
 				-t',' \
 				-k 1,1 \
-				-k 40,40nr) \
+				-k 61,61n) \
 		| awk 'BEGIN {FS=",";OFS=","} \
 			!x[$1]++ \
 			{print $0}' \
