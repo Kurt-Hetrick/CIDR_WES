@@ -111,6 +111,10 @@ START_CONCORDANCE=`date '+%s'` # capture time process starts for wall clock trac
 
 	FINAL_REPORT_FILENAME=$(basename ${FINAL_REPORT})
 
+# find out what row where the header is...this is not the most robust way of doing this, but I'm doing this for now
+
+	FINAL_REPORT_HEADER_ROW=$(grep -n "^SNP Name" ${FINAL_REPORT} | cut -f 1 -d ":")
+
 # grab field number for Chr in genotyping array report
 
 	FINAL_REPORT_CHR_FIELD_NUMBER=(`grep -m 1 "^SNP" ${FINAL_REPORT} \
