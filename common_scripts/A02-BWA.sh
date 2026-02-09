@@ -107,6 +107,7 @@
 				2\> /dev/null \| grep L00${LANE}_R1_001.fastq \| cut -f 2 | bash ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_1.fastq* 2> /dev/null ; \
+				ls $CORE_PATH/${PROJECT}/DEMUX/FINAL_FASTQ_FOR_IMPUTE/${FLOWCELL}/FASTQ/${SM_TAG}-${FLOWCELL}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R1_001.fastq* 2> /dev/null) | tail -n 1`
 
 		FASTQ_2=`( echo du --max-depth=1 \
@@ -118,6 +119,7 @@
 				2\> /dev/null \| grep L00${LANE}_R2_001.fastq \| cut -f 2 | bash ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${SM_TAG}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_2.fastq* 2> /dev/null ; \
+				ls $CORE_PATH/${PROJECT}/DEMUX/FINAL_FASTQ_FOR_IMPUTE/${FLOWCELL}/FASTQ/${SM_TAG}-${FLOWCELL}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null ; \
 				ls $CORE_PATH/${PROJECT}/FASTQ/${FIXED_PLATFORM_UNIT}_S*_L00${LANE}_R2_001.fastq* 2> /dev/null) | tail -n 1`
 	elif
 		[[ ${SEQUENCER_MODEL} == *"MiSeq"* ]]
