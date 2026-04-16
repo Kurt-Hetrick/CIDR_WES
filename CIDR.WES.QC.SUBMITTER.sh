@@ -179,6 +179,8 @@
 
 	PICARD_LIFTOVER_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/picard-2.26.10.0.simg"
 
+	ORAD_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/orad-2.7.0.simg"
+
 ##################
 # PIPELINE FILES #
 ##################
@@ -200,6 +202,7 @@
 	HG19_TO_GRCH38_CHAIN="/mnt/shared_resources/public_resources/liftOver_chain/hg19ToHg38.over.chain"
 	HG19_REF="/mnt/research/tools/PIPELINE_FILES/GATK_resource_bundle/2.8/hg19/ucsc.hg19.fasta"
 	GRCH38_REF="/mnt/research/tools/PIPELINE_FILES/GRCh38_aux_files/Homo_sapiens_assembly38.fasta"
+	ORADATA="/mnt/linuxtools/ORAD/orad.2.7.0.linux/oradata"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -613,6 +616,8 @@
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}_${FCID}_${LANE}_${INDEX}-BWA.log \
 		${COMMON_SCRIPT_DIR}/A02-BWA.sh \
 			${ALIGNMENT_CONTAINER} \
+			${ORAD_CONTAINER} \
+			${ORADATA} \
 			${CORE_PATH} \
 			${PROJECT} \
 			${FCID} \

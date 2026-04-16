@@ -181,6 +181,8 @@
 
 	PICARD_LIFTOVER_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/picard-2.26.10.0.simg"
 
+	ORAD_CONTAINER="/mnt/research/tools/LINUX/00_GIT_REPO_KURT/CONTAINERS/orad-2.7.0.simg"
+
 ##################
 # PIPELINE FILES #
 ##################
@@ -202,6 +204,7 @@
 		# FOR REANALYSIS OF CUTTING'S PHASE AND PHASE 2 PROJECTS.
 		# md5: 5d99c5df1d8f970a8219ef0ab455d756
 	# MERGED_CUTTING_BED_FILE="/mnt/research/active/H_Cutting_CFTR_WGHum-SeqCustom_1_Reanalysis/BED_Files/H_Cutting_phase_1plus2_super_file.bed"
+	ORADATA="/mnt/linuxtools/ORAD/orad.2.7.0.linux/oradata"
 
 #################################
 ##### MAKE A DIRECTORY TREE #####
@@ -614,6 +617,8 @@
 			-o ${CORE_PATH}/${PROJECT}/LOGS/${SM_TAG}/${SM_TAG}_${FCID}_${LANE}_${INDEX}-BWA.log \
 		${COMMON_SCRIPT_DIR}/A02-BWA.sh \
 			${ALIGNMENT_CONTAINER} \
+			${ORAD_CONTAINER} \
+			${ORADATA} \
 			${CORE_PATH} \
 			${PROJECT} \
 			${FCID} \
